@@ -71,6 +71,14 @@
   $("#cookie-settings").addEventListener("click", function (e) { e.preventDefault(); banner.hidden = false; });
 
   // ---------- ürün kartları ----------
+  var tl = $("#trust-list");
+  (C.trust || []).forEach(function (t) {
+    var li = document.createElement("li");
+    li.innerHTML = '<span class="ti" aria-hidden="true"></span><div><strong></strong><span></span></div>';
+    $(".ti", li).textContent = t.icon; $("strong", li).textContent = t.title; $("div > span", li).textContent = t.text;
+    tl.appendChild(li);
+  });
+
   var fmt = new Intl.NumberFormat("tr-TR");
   var grid = $("#product-grid");
   $("#price-note").textContent = C.priceNote || "";
@@ -78,7 +86,7 @@
     var el = document.createElement("article");
     el.className = "card"; el.dataset.pid = p.id;
     el.innerHTML =
-      '<span class="tag ' + (p.type === "3D Baskı" ? "t3d" : "") + '">' + p.badge + '</span>' +
+      '<span class="tag ' + (p.type !== "Orijinal" ? "t3d" : "") + '">' + p.badge + '</span>' +
       '<h3></h3><p></p>' +
       '<div class="price">' + p.currency + fmt.format(p.price) + '<small>tahmini birim fiyat</small></div>' +
       '<button class="btn" type="button">Talep bırak</button>';
@@ -108,7 +116,7 @@
 
   (C.products || []).forEach(function (p) {
     var l = document.createElement("label");
-    l.innerHTML = '<input type="checkbox" name="products" value="' + p.id + '"> ' + p.title.replace("Uyumlu ", "");
+    l.innerHTML = '<input type="checkbox" name="products" value="' + p.id + '"> ' + p.title;
     chips.appendChild(l);
   });
 

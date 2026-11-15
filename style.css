@@ -73,3 +73,10 @@ legend{font-weight:600;font-size:.9rem;padding:0;margin-bottom:6px}
 .consent-btns{display:flex;gap:8px}
 [hidden]{display:none!important}
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+
+.trust{border-block:1px solid var(--line);background:var(--surface)}
+.trust ul{list-style:none;margin:0;padding:18px 0;display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+.trust li{display:flex;gap:12px;align-items:flex-start}
+.trust .ti{font-size:1.5rem;line-height:1}
+.trust strong{display:block}
+.trust li div span{color:var(--muted);font-size:.9rem}

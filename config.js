@@ -17,6 +17,13 @@ window.SITE_CONFIG = {
 
   // Fiyatlar TASLAKTIR. Gerçek fiyatlarla değiştirin. (TL, KDV dahil/hariç notunu da güncelleyin)
   priceNote: "Fiyatlar tahminidir; kur ve temin koşullarına göre kesinleşir. KDV ayrıca belirtilecektir.",
+  // Güven maddeleri: YALNIZCA gerçekten yerine getirebileceğiniz sözleri bırakın.
+  trust: [
+    { icon: "💳", title: "Ön ödeme yok", text: "Ödeme, ürün teslim edildikten sonra yapılır." },
+    { icon: "↩️", title: "Ücretsiz iade", text: "Teslimatta memnun kalmazsanız iade kargo ücreti bizden." },
+    { icon: "💬", title: "WhatsApp'tan birebir destek", text: "Fiyat, teslim süresi ve içerik hakkında doğrudan yazışırsınız." },
+  ],
+
   products: [
     {
       id: "b4-orijinal",
@@ -29,34 +36,14 @@ window.SITE_CONFIG = {
       badge: "Orijinal",
     },
     {
-      id: "b4-3d",
+      id: "b4-yerli",
       set: "Bayley-4",
-      type: "3D Baskı",
-      title: "Bayley-4 Uyumlu 3D Baskı Set",
-      desc: "Manipülatifler yerelde 3D baskı ile üretilir. Orijinale göre daha ulaşılabilir fiyat.",
+      type: "Yerli Üretim",
+      title: "Bayley-4 Yerli Üretim Set",
+      desc: "Set içeriğinin bir bölümü yerelde 3D baskı ve diğer yöntemlerle üretilir. Orijinale göre daha ulaşılabilir fiyat.",
       price: 35000,
       currency: "₺",
-      badge: "3D Baskı",
-    },
-    {
-      id: "b3-orijinal",
-      set: "Bayley-III",
-      type: "Orijinal",
-      title: "Bayley-III Orijinal Set",
-      desc: "Bayley-III için orijinal set, temin edilebilirlik durumuna göre sağlanır.",
-      price: 55000,
-      currency: "₺",
-      badge: "Orijinal",
-    },
-    {
-      id: "b3-3d",
-      set: "Bayley-III",
-      type: "3D Baskı",
-      title: "Bayley-III Uyumlu 3D Baskı Set",
-      desc: "Bayley-III manipülatiflerinin 3D baskı ile üretilmiş karşılığı.",
-      price: 25000,
-      currency: "₺",
-      badge: "3D Baskı",
+      badge: "Yerli Üretim",
     },
   ],
 };
