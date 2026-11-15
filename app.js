@@ -4,28 +4,12 @@
   var $ = function (s, r) { return (r || document).querySelector(s); };
   var $$ = function (s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); };
 
-  // ---------- güvenli depolama ----------
-  var store = {
-    get: function (k) { try { return localStorage.getItem(k); } catch (e) { return null; } },
-    set: function (k, v) { try { localStorage.setItem(k, v); } catch (e) {} }
-  };
-
-  // ---------- onay + izleme ----------
-  var consent = store.get("consent"); // "yes" | "no" | null
-  var vid = null;
-  function visitorId() {
-    if (vid) return vid;
-    vid = store.get("vid");
-    if (!vid) { vid = "v" + Math.random().toString(36).slice(2) + Date.now().toString(36); store.set("vid", vid); }
-    return vid;
-  }
+  // ---------- anonim olay kaydı (çerez / tarayıcı depolaması yok) ----------
+  // Her sayfa yüklemesi için bellekte rastgele bir kimlik üretilir; kalıcı değildir.
+  var vid = "v" + Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
 
   function post(payload) {
     if (!C.endpoint) {
-      try {
-        var key = payload.type === "lead" ? "local_leads" : "local_events";
-        var arr = JSON.parse(store.get(key) || "[]"); arr.push(payload); store.set(key, JSON.stringify(arr.slice(-200)));
-      } catch (e) {}
       if (window.console) console.info("[test modu]", payload);
       return Promise.resolve();
     }
@@ -37,40 +21,10 @@
   }
 
   function track(name, params) {
-    if (consent !== "yes") return;
-    params = params || {};
-    post({ type: "event", event: name, params: params, vid: visitorId(), ts: new Date().toISOString(), path: location.pathname, ref: document.referrer || "", ua_mobile: /Mobi|Android/i.test(navigator.userAgent) });
-    if (window.gtag) window.gtag("event", name, params);
+    post({ type: "event", event: name, params: params || {}, vid: vid, ts: new Date().toISOString(), ref: document.referrer || "", ua_mobile: /Mobi|Android/i.test(navigator.userAgent) });
   }
 
-  function loadAnalytics() {
-    if (C.ga4Id && !window.gtag) {
-      var s = document.createElement("script"); s.async = true;
-      s.src = "https://www.googletagmanager.com/gtag/js?id=" + encodeURIComponent(C.ga4Id);
-      document.head.appendChild(s);
-      window.dataLayer = window.dataLayer || [];
-      window.gtag = function () { window.dataLayer.push(arguments); };
-      window.gtag("js", new Date()); window.gtag("config", C.ga4Id, { anonymize_ip: true });
-    }
-    if (C.clarityId && !window.clarity) {
-      (function (c, l, a, r, i, t, y) {
-        c[a] = c[a] || function () { (c[a].q = c[a].q || []).push(arguments); };
-        t = l.createElement(r); t.async = 1; t.src = "https://www.clarity.ms/tag/" + i;
-        y = l.getElementsByTagName(r)[0]; y.parentNode.insertBefore(t, y);
-      })(window, document, "clarity", "script", C.clarityId);
-    }
-  }
-
-  var banner = $("#consent");
-  function setConsent(v) {
-    consent = v; store.set("consent", v); banner.hidden = true;
-    if (v === "yes") { loadAnalytics(); track("page_view"); observeProducts(); }
-  }
-  $("#consent-yes").addEventListener("click", function () { setConsent("yes"); });
-  $("#consent-no").addEventListener("click", function () { setConsent("no"); });
-  $("#cookie-settings").addEventListener("click", function (e) { e.preventDefault(); banner.hidden = false; });
-
-  // ---------- ürün kartları ----------
+  // ---------- güven şeridi ----------
   var tl = $("#trust-list");
   (C.trust || []).forEach(function (t) {
     var li = document.createElement("li");
@@ -79,6 +33,7 @@
     tl.appendChild(li);
   });
 
+  // ---------- ürün kartları ----------
   var fmt = new Intl.NumberFormat("tr-TR");
   var grid = $("#product-grid");
   $("#price-note").textContent = C.priceNote || "";
@@ -133,12 +88,10 @@
     submitted = false; started = false;
     $("#lead-body").hidden = false; $("#lead-done").hidden = true; $("#lead-error").hidden = true;
     $$("input[name=products]", form).forEach(function (i) { i.checked = ids.indexOf(i.value) > -1; });
-    form.corporate.checked = where === "corp";
     syncProductLabel();
     if (!dlg.open) dlg.showModal();
     track("form_open", { where: where, products: ids.join(",") });
   }
-  $$("[data-corp]").forEach(function (b) { b.addEventListener("click", function () { openLead([], "corp"); track("cta_click", { where: "corp" }); }); });
 
   function closeLead() {
     if (dlg.open) dlg.close();
@@ -159,8 +112,7 @@
     var msg = "";
     if (!name) msg = "Lütfen ad soyadınızı yazın.";
     else if (phone.replace(/\D/g, "").length < 10) msg = "Lütfen geçerli bir telefon numarası yazın.";
-    else if (!form.profession.value) msg = "Lütfen mesleğinizi seçin.";
-    else if (!ids.length && !form.corporate.checked) msg = "Lütfen en az bir set seçin.";
+    else if (!ids.length) msg = "Lütfen en az bir set seçin.";
     else if (form.email.value && !/^\S+@\S+\.\S+$/.test(form.email.value)) msg = "E-posta adresi geçersiz görünüyor.";
     else if (!form.kvkk.checked) msg = "Devam etmek için aydınlatma metnini onaylamanız gerekir.";
     if (msg) { err.textContent = msg; err.hidden = false; track("form_error", { reason: msg }); return; }
@@ -169,14 +121,12 @@
     var lead = {
       type: "lead", ts: new Date().toISOString(),
       name: name, phone: phone, email: form.email.value.trim(),
-      profession: form.profession.value, city: form.city.value.trim(), institution: form.institution.value.trim(),
-      qty: form.qty.value, products: titles(ids), corporate: form.corporate.checked ? "evet" : "hayır",
+      qty: form.qty.value, products: titles(ids),
       price_feedback: (form.price_feedback.value || ""), note: form.note.value.trim(),
-      kvkk: "onaylandı", vid: consent === "yes" ? visitorId() : "", ref: document.referrer || ""
+      kvkk: "onaylandı", vid: vid, ref: document.referrer || ""
     };
     post(lead).then(function () {
-      submitted = true; track("form_submit", { products: ids.join(","), corporate: lead.corporate });
-      if (window.gtag && consent === "yes") window.gtag("event", "generate_lead");
+      submitted = true; track("form_submit", { products: ids.join(",") });
       var num = (C.whatsappNumber || "").replace(/\D/g, "");
       var text = encodeURIComponent("Merhaba, " + titles(ids) + " için talep bıraktım. Ad: " + name);
       $("#wa-link").href = "https://wa.me/" + num + "?text=" + text;
@@ -195,6 +145,6 @@
   $("#kvkk-close").addEventListener("click", function () { kv.close(); });
 
   // ---------- başlangıç ----------
-  if (consent === "yes") { loadAnalytics(); track("page_view"); observeProducts(); }
-  else if (consent !== "no") { banner.hidden = false; }
+  track("page_view");
+  observeProducts();
 })();

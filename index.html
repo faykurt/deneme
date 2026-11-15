@@ -40,14 +40,6 @@
       <h2>Setler</h2>
       <p class="sub" id="price-note"></p>
       <div class="grid" id="product-grid"></div>
-
-      <div class="corp">
-        <div>
-          <h3>Kurum veya toplu alım mı?</h3>
-          <p>Hastane, üniversite, klinik veya birden fazla set için kurumsal teklif isteyebilirsiniz.</p>
-        </div>
-        <button class="btn btn-ghost" type="button" data-corp="1">Kurumsal teklif iste</button>
-      </div>
     </div>
   </section>
 
@@ -56,7 +48,7 @@
       <h2>Nasıl işliyor?</h2>
       <ol class="steps">
         <li><strong>Seti seçin.</strong> Orijinal ya da yerli üretim Bayley-4 seti.</li>
-        <li><strong>Talebinizi bırakın.</strong> Ad, telefon ve meslek bilgisi yeterli, bir dakika sürer.</li>
+        <li><strong>Talebinizi bırakın.</strong> Ad soyad, telefon ve e-posta yeterli, bir dakika sürer.</li>
         <li><strong>WhatsApp'tan ulaşalım.</strong> Güncel fiyat, teslim süresi ve ödeme koşullarını ileteceğiz. Ödeme teslimattan sonradır.</li>
       </ol>
       <p class="fine">Yeterli talep oluşursa temin/üretim sürecini başlatırız. Talep oluşmazsa sizi bilgilendiririz; hiçbir durumda ön ödeme yapmış olmazsınız.</p>
@@ -77,7 +69,7 @@
 <footer class="foot">
   <div class="wrap">
     <p><strong>Önemli:</strong> Bayley®, Pearson'ın tescilli markasıdır. Bu site Pearson ile bağlantılı, onun tarafından onaylanmış veya desteklenmiş değildir. Marka adı yalnızca uyumluluğu belirtmek için kullanılmıştır. Bu sayfa satış sayfası değil, ön talep sayfasıdır.</p>
-    <p><a href="#kvkk" data-open-kvkk>KVKK Aydınlatma Metni</a> · <a href="#" id="cookie-settings">Çerez tercihleri</a></p>
+    <p><a href="#kvkk" data-open-kvkk>KVKK Aydınlatma Metni</a></p>
   </div>
 </footer>
 
@@ -106,30 +98,6 @@
         <input name="email" type="email" autocomplete="email">
       </label>
       <div class="row">
-        <label>Meslek / unvan *
-          <select name="profession" required>
-            <option value="">Seçin</option>
-            <option>Çocuk sağlığı ve hastalıkları uzmanı</option>
-            <option>Gelişimsel pediatri uzmanı</option>
-            <option>Çocuk nörolojisi uzmanı</option>
-            <option>Fiziksel tıp ve rehabilitasyon uzmanı</option>
-            <option>Çocuk psikiyatristi</option>
-            <option>Fizyoterapist</option>
-            <option>Ergoterapist</option>
-            <option>Psikolog</option>
-            <option>Dil ve konuşma terapisti</option>
-            <option>Akademisyen / öğrenci</option>
-            <option>Diğer</option>
-          </select>
-        </label>
-        <label>Şehir
-          <input name="city" autocomplete="address-level1">
-        </label>
-      </div>
-      <div class="row">
-        <label>Kurum
-          <input name="institution" autocomplete="organization">
-        </label>
         <label>Adet
           <input name="qty" type="number" min="1" max="999" value="1" inputmode="numeric">
         </label>
@@ -142,8 +110,6 @@
         <label><input type="radio" name="price_feedback" value="pahali"> Pahalı</label>
         <label><input type="radio" name="price_feedback" value="cok_pahali"> Çok pahalı</label>
       </fieldset>
-
-      <label class="check"><input type="checkbox" name="corporate"> Kurumsal / toplu alım için teklif istiyorum</label>
 
       <label>Not
         <textarea name="note" rows="2" placeholder="İstediğiniz özellik, teslim zamanı vb."></textarea>
@@ -180,7 +146,7 @@
     <p><strong>[TASLAK — yayından önce hukuk danışmanınıza onaylatın ve veri sorumlusu bilgilerini doldurun.]</strong></p>
     <p><strong>Veri sorumlusu:</strong> [Şirket / kişi unvanı, adres, e-posta]</p>
     <p><strong>İşlenen veriler:</strong> Ad soyad, telefon, e-posta, meslek, kurum, şehir, talep edilen ürün ve adet, notunuz; ayrıca çerez onayı verdiyseniz sayfa kullanım verileri.</p>
-    <p><strong>Amaç:</strong> Ön talebinizi değerlendirmek, sizinle WhatsApp/telefon/e-posta ile iletişime geçmek, talep düzeyini analiz etmek.</p>
+    <p><strong>Amaç:</strong> Ön talebinizi değerlendirmek, sizinle WhatsApp/telefon/e-posta ile iletişime geçmek, talep düzeyini anonim olarak analiz etmek.</p>
     <p><strong>Hukuki sebep:</strong> Açık rızanız ve talebinizin yerine getirilmesi.</p>
     <p><strong>Aktarım:</strong> Verileriniz yalnızca hizmet aldığımız barındırma ve analiz sağlayıcılarına (ör. Google) aktarılabilir. Yurt dışına aktarım bu sağlayıcılar nedeniyle söz konusu olabilir.</p>
     <p><strong>Saklama:</strong> Talep süreci sona erdikten sonra [süre] içinde silinir veya anonimleştirilir.</p>
@@ -188,14 +154,6 @@
   </div>
 </dialog>
 
-<!-- Çerez bandı -->
-<div id="consent" class="consent" role="dialog" aria-label="Çerez tercihi" hidden>
-  <p>Siteyi geliştirmek için anonim kullanım verisi (ör. hangi bölümlerin görüntülendiği) topluyoruz. İzin veriyor musunuz?</p>
-  <div class="consent-btns">
-    <button class="btn btn-small" type="button" id="consent-yes">Kabul et</button>
-    <button class="btn btn-small btn-ghost" type="button" id="consent-no">Reddet</button>
-  </div>
-</div>
 
 <script src="config.js"></script>
 <script src="app.js"></script>

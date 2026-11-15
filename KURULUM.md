@@ -16,11 +16,9 @@ Site tamamen statik (HTML/CSS/JS). Sunucu gerekmez.
 
 Sheet'te iki sekme oluşur: **Talepler** (kişiler) ve **Olaylar** (huni verisi).
 
-## 3. Analitik (isteğe bağlı)
-- `ga4Id`: Google Analytics 4 ölçüm kimliği (`G-…`)
-- `clarityId`: Microsoft Clarity proje kimliği (ısı haritası/oturum kaydı)
-
-Analitik ve olay kaydı yalnızca ziyaretçi çerez bandında **Kabul et** derse çalışır.
+## 3. Analitik
+Sitede çerez, GA4 veya Clarity yoktur; çerez onay bandı da bu yüzden yoktur. Olaylar yalnızca kendi Google Sheet'inize anonim olarak yazılır. Her sayfa yüklemesi için bellekte rastgele bir kimlik üretilir, tarayıcıda saklanmaz. Aynı kişi siteye ikinci kez gelirse yeni ziyaretçi sayılır.
+GA4 veya Clarity eklemek isterseniz çerez onay bandı da eklenmelidir.
 
 ## 4. Ölçülen olaylar (huni)
 `page_view` → `price_seen` (kart ekranda görüldü) → `cta_click` → `form_open` → `form_start` → `form_submit`
@@ -40,4 +38,4 @@ Sheet'te "Olaylar" sekmesinden benzersiz `Ziyaretçi ID` sayısını her aşama 
 - [ ] Pearson görsellerini kullanmayın; kendi fotoğraflarınızı ekleyin.
 
 ## Test modu
-`endpoint` boşsa talepler/olaylar sadece tarayıcıda saklanır (`localStorage`: `local_leads`, `local_events`) ve konsola yazılır.
+`endpoint` boşsa hiçbir şey kaydedilmez, veriler yalnızca tarayıcı konsoluna yazılır.

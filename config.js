@@ -6,14 +6,8 @@ window.SITE_CONFIG = {
   whatsappNumber: "90XXXXXXXXXX",
 
   // Talepler ve olaylar için Google Apps Script web uygulaması adresi (KURULUM.md, 2. adım).
-  // Boş bırakılırsa veriler yalnızca ziyaretçinin tarayıcısında saklanır (test modu).
+  // Boş bırakılırsa hiçbir şey kaydedilmez (test modu).
   endpoint: "",
-
-  // Google Analytics 4 ölçüm kimliği. Örn: G-ABCDE12345  (boşsa devre dışı)
-  ga4Id: "",
-
-  // Microsoft Clarity proje kimliği (boşsa devre dışı)
-  clarityId: "",
 
   // Fiyatlar TASLAKTIR. Gerçek fiyatlarla değiştirin. (TL, KDV dahil/hariç notunu da güncelleyin)
   priceNote: "Fiyatlar tahminidir; kur ve temin koşullarına göre kesinleşir. KDV ayrıca belirtilecektir.",
