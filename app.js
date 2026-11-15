@@ -114,7 +114,6 @@
     else if (phone.replace(/\D/g, "").length < 10) msg = "Lütfen geçerli bir telefon numarası yazın.";
     else if (!ids.length) msg = "Lütfen en az bir set seçin.";
     else if (form.email.value && !/^\S+@\S+\.\S+$/.test(form.email.value)) msg = "E-posta adresi geçersiz görünüyor.";
-    else if (!form.kvkk.checked) msg = "Devam etmek için aydınlatma metnini onaylamanız gerekir.";
     if (msg) { err.textContent = msg; err.hidden = false; track("form_error", { reason: msg }); return; }
 
     var btn = $("#lead-submit"); btn.disabled = true; btn.textContent = "Gönderiliyor…";
@@ -123,7 +122,7 @@
       name: name, phone: phone, email: form.email.value.trim(),
       qty: form.qty.value, products: titles(ids),
       price_feedback: (form.price_feedback.value || ""), note: form.note.value.trim(),
-      kvkk: "onaylandı", vid: vid, ref: document.referrer || ""
+      vid: vid, ref: document.referrer || ""
     };
     post(lead).then(function () {
       submitted = true; track("form_submit", { products: ids.join(",") });
@@ -139,10 +138,6 @@
     });
   });
 
-  // ---------- KVKK ----------
-  var kv = $("#kvkk-dialog");
-  $$("[data-open-kvkk]").forEach(function (a) { a.addEventListener("click", function (e) { e.preventDefault(); kv.showModal(); }); });
-  $("#kvkk-close").addEventListener("click", function () { kv.close(); });
 
   // ---------- başlangıç ----------
   track("page_view");

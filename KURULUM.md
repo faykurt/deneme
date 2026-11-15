@@ -31,7 +31,6 @@ Sheet'te "Olaylar" sekmesinden benzersiz `Ziyaretçi ID` sayısını her aşama 
 - Alan adını (`.com`) satın alıp hosting panelinden bağlayın.
 
 ## 6. Yayından önce kontrol listesi
-- [ ] KVKK metnindeki `[...]` alanlarını doldurup hukukçuya onaylatın.
 - [ ] WhatsApp numarasını ve fiyatları girin.
 - [ ] `endpoint` ile bir deneme talebi gönderip Sheet'e düştüğünü doğrulayın.
 - [ ] "Bayley" marka kullanımı ve 3D baskı ürünlerin hukuki durumu için avukat görüşü alın.
