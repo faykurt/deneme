@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Bayley Değerlendirme Seti – Ön Talep Listesi</title>
+<meta name="description" content="Bayley-4 ve Bayley-III gelişim değerlendirme setleri için ön talep listesi. Orijinal ve 3D baskı seçenekleri. Ödeme alınmaz.">
+<meta name="robots" content="index,follow">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap top-in">
+    <a class="brand" href="#top" aria-label="Ana sayfa">
+      <svg width="28" height="28" viewBox="0 0 28 28" aria-hidden="true"><rect x="2" y="12" width="10" height="10" rx="2" fill="#2f7d6d"/><rect x="14" y="12" width="10" height="10" rx="2" fill="#e9a23b"/><rect x="8" y="3" width="10" height="10" rx="2" fill="#3b6fb6"/></svg>
+      <span>Gelişim Seti Talep</span>
+    </a>
+    <a class="btn btn-small" href="#urunler" data-track="cta_header">Setleri gör</a>
+  </div>
+</header>
+
+<main id="top">
+  <section class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Hekimler ve gelişim uzmanları için</p>
+      <h1>Bayley-4 ve Bayley-III değerlendirme setleri için ön talep listesi</h1>
+      <p class="lead">Erken çocukluk gelişim değerlendirmesinde kullanılan setlerin orijinal ve 3D baskı seçeneklerini temin etmeyi planlıyoruz. Talebinizi bırakın, fiyat ve teslim bilgisiyle <strong>WhatsApp'tan size ulaşalım.</strong></p>
+      <div class="hero-actions">
+        <a class="btn" href="#urunler" data-track="cta_hero">Setleri ve fiyatları gör</a>
+        <a class="btn btn-ghost" href="#nasil" data-track="cta_how">Nasıl işliyor?</a>
+      </div>
+      <p class="fine">Bu sayfada ödeme alınmaz. Yalnızca ön talep toplanır; talep bırakmak satın alma taahhüdü değildir.</p>
+    </div>
+  </section>
+
+  <section id="urunler" class="section">
+    <div class="wrap">
+      <h2>Setler</h2>
+      <p class="sub" id="price-note"></p>
+      <div class="grid" id="product-grid"></div>
+
+      <div class="corp">
+        <div>
+          <h3>Kurum veya toplu alım mı?</h3>
+          <p>Hastane, üniversite, klinik veya birden fazla set için kurumsal teklif isteyebilirsiniz.</p>
+        </div>
+        <button class="btn btn-ghost" type="button" data-corp="1">Kurumsal teklif iste</button>
+      </div>
+    </div>
+  </section>
+
+  <section id="nasil" class="section alt">
+    <div class="wrap">
+      <h2>Nasıl işliyor?</h2>
+      <ol class="steps">
+        <li><strong>Seti seçin.</strong> Orijinal ya da 3D baskı, Bayley-4 ya da Bayley-III.</li>
+        <li><strong>Talebinizi bırakın.</strong> Ad, telefon ve meslek bilgisi yeterli, bir dakika sürer.</li>
+        <li><strong>WhatsApp'tan ulaşalım.</strong> Güncel fiyat, teslim süresi ve ödeme seçeneklerini ileteceğiz.</li>
+      </ol>
+      <p class="fine">Yeterli talep oluşursa temin/üretim sürecini başlatırız. Talep oluşmazsa sizi bilgilendiririz ve ödeme yapmış olmazsınız.</p>
+    </div>
+  </section>
+
+  <section class="section">
+    <div class="wrap">
+      <h2>Sık sorulan sorular</h2>
+      <details><summary>Şimdi ödeme yapmam gerekiyor mu?</summary><p>Hayır. Bu aşamada yalnızca talebinizi alıyoruz. Ödeme bilgisi istemiyoruz.</p></details>
+      <details><summary>3D baskı set ile orijinal set arasındaki fark nedir?</summary><p>Orijinal set üreticiden temin edilir. 3D baskı set, manipülatiflerin yerelde üretilmiş uyumlu karşılığıdır. Ölçüm geçerliliği ve kullanım koşulları konusunda sizi talep sonrası ayrıca bilgilendiririz.</p></details>
+      <details><summary>Kişisel verilerim ne için kullanılacak?</summary><p>İletişim bilgileriniz yalnızca talebiniz hakkında sizinle iletişim kurmak için kullanılır. Ayrıntı için <a href="#kvkk" data-open-kvkk>aydınlatma metni</a>.</p></details>
+    </div>
+  </section>
+</main>
+
+<footer class="foot">
+  <div class="wrap">
+    <p><strong>Önemli:</strong> Bayley®, Pearson'ın tescilli markasıdır. Bu site Pearson ile bağlantılı, onun tarafından onaylanmış veya desteklenmiş değildir. Marka adı yalnızca uyumluluğu belirtmek için kullanılmıştır. Bu sayfa satış sayfası değil, ön talep sayfasıdır.</p>
+    <p><a href="#kvkk" data-open-kvkk>KVKK Aydınlatma Metni</a> · <a href="#" id="cookie-settings">Çerez tercihleri</a></p>
+  </div>
+</footer>
+
+<!-- Talep formu -->
+<dialog id="lead-dialog" aria-labelledby="lead-title">
+  <form id="lead-form" method="dialog" novalidate>
+    <div class="dlg-head">
+      <h2 id="lead-title">Talep bırakın</h2>
+      <button type="button" class="x" id="lead-close" aria-label="Kapat">×</button>
+    </div>
+
+    <div id="lead-body">
+      <p class="sub">Seçtiğiniz set: <strong id="lead-product">—</strong></p>
+
+      <fieldset class="chips" id="product-chips">
+        <legend>İlgilendiğiniz setler</legend>
+      </fieldset>
+
+      <label>Ad soyad *
+        <input name="name" autocomplete="name" required>
+      </label>
+      <label>Telefon (WhatsApp) *
+        <input name="phone" type="tel" autocomplete="tel" inputmode="tel" placeholder="05XX XXX XX XX" required>
+      </label>
+      <label>E-posta
+        <input name="email" type="email" autocomplete="email">
+      </label>
+      <div class="row">
+        <label>Meslek / unvan *
+          <select name="profession" required>
+            <option value="">Seçin</option>
+            <option>Çocuk sağlığı ve hastalıkları uzmanı</option>
+            <option>Gelişimsel pediatri uzmanı</option>
+            <option>Çocuk nörolojisi uzmanı</option>
+            <option>Fiziksel tıp ve rehabilitasyon uzmanı</option>
+            <option>Çocuk psikiyatristi</option>
+            <option>Fizyoterapist</option>
+            <option>Ergoterapist</option>
+            <option>Psikolog</option>
+            <option>Dil ve konuşma terapisti</option>
+            <option>Akademisyen / öğrenci</option>
+            <option>Diğer</option>
+          </select>
+        </label>
+        <label>Şehir
+          <input name="city" autocomplete="address-level1">
+        </label>
+      </div>
+      <div class="row">
+        <label>Kurum
+          <input name="institution" autocomplete="organization">
+        </label>
+        <label>Adet
+          <input name="qty" type="number" min="1" max="999" value="1" inputmode="numeric">
+        </label>
+      </div>
+
+      <fieldset class="radios">
+        <legend>Gördüğünüz fiyat size nasıl geldi?</legend>
+        <label><input type="radio" name="price_feedback" value="uygun"> Uygun</label>
+        <label><input type="radio" name="price_feedback" value="makul"> Makul</label>
+        <label><input type="radio" name="price_feedback" value="pahali"> Pahalı</label>
+        <label><input type="radio" name="price_feedback" value="cok_pahali"> Çok pahalı</label>
+      </fieldset>
+
+      <label class="check"><input type="checkbox" name="corporate"> Kurumsal / toplu alım için teklif istiyorum</label>
+
+      <label>Not
+        <textarea name="note" rows="2" placeholder="İstediğiniz özellik, teslim zamanı vb."></textarea>
+      </label>
+
+      <input type="text" name="website" tabindex="-1" autocomplete="off" class="hp" aria-hidden="true">
+
+      <label class="check"><input type="checkbox" name="kvkk" required> <span><a href="#kvkk" data-open-kvkk>Aydınlatma metnini</a> okudum; iletişim bilgilerimin talebim hakkında bana ulaşmak için işlenmesine onay veriyorum. *</span></label>
+
+      <p class="err" id="lead-error" role="alert" hidden></p>
+      <button class="btn btn-block" type="submit" id="lead-submit">Talebi gönder</button>
+      <p class="fine">Ödeme alınmaz. Bilgileriniz üçüncü kişilerle paylaşılmaz.</p>
+    </div>
+
+    <div id="lead-done" hidden>
+      <div class="done">
+        <div class="tick" aria-hidden="true">✓</div>
+        <h3>Talebiniz alındı, teşekkürler.</h3>
+        <p><strong>En kısa sürede WhatsApp üzerinden size ulaşacağız</strong> ve fiyat ile teslim bilgisini ileteceğiz.</p>
+        <a class="btn btn-ghost" id="wa-link" href="#" target="_blank" rel="noopener">Önce biz yazmak isterim</a>
+        <button class="btn btn-small" type="button" id="done-close">Kapat</button>
+      </div>
+    </div>
+  </form>
+</dialog>
+
+<!-- KVKK -->
+<dialog id="kvkk-dialog" aria-labelledby="kvkk-title">
+  <div class="dlg-head">
+    <h2 id="kvkk-title">KVKK Aydınlatma Metni</h2>
+    <button type="button" class="x" id="kvkk-close" aria-label="Kapat">×</button>
+  </div>
+  <div class="kvkk">
+    <p><strong>[TASLAK — yayından önce hukuk danışmanınıza onaylatın ve veri sorumlusu bilgilerini doldurun.]</strong></p>
+    <p><strong>Veri sorumlusu:</strong> [Şirket / kişi unvanı, adres, e-posta]</p>
+    <p><strong>İşlenen veriler:</strong> Ad soyad, telefon, e-posta, meslek, kurum, şehir, talep edilen ürün ve adet, notunuz; ayrıca çerez onayı verdiyseniz sayfa kullanım verileri.</p>
+    <p><strong>Amaç:</strong> Ön talebinizi değerlendirmek, sizinle WhatsApp/telefon/e-posta ile iletişime geçmek, talep düzeyini analiz etmek.</p>
+    <p><strong>Hukuki sebep:</strong> Açık rızanız ve talebinizin yerine getirilmesi.</p>
+    <p><strong>Aktarım:</strong> Verileriniz yalnızca hizmet aldığımız barındırma ve analiz sağlayıcılarına (ör. Google) aktarılabilir. Yurt dışına aktarım bu sağlayıcılar nedeniyle söz konusu olabilir.</p>
+    <p><strong>Saklama:</strong> Talep süreci sona erdikten sonra [süre] içinde silinir veya anonimleştirilir.</p>
+    <p><strong>Haklarınız:</strong> KVKK madde 11 kapsamında bilgi isteme, düzeltme, silme ve itiraz haklarınızı [e-posta] adresine başvurarak kullanabilirsiniz.</p>
+  </div>
+</dialog>
+
+<!-- Çerez bandı -->
+<div id="consent" class="consent" role="dialog" aria-label="Çerez tercihi" hidden>
+  <p>Siteyi geliştirmek için anonim kullanım verisi (ör. hangi bölümlerin görüntülendiği) topluyoruz. İzin veriyor musunuz?</p>
+  <div class="consent-btns">
+    <button class="btn btn-small" type="button" id="consent-yes">Kabul et</button>
+    <button class="btn btn-small btn-ghost" type="button" id="consent-no">Reddet</button>
+  </div>
+</div>
+
+<script src="config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
