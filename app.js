@@ -121,7 +121,7 @@
       type: "lead", ts: new Date().toISOString(),
       name: name, phone: phone, email: form.email.value.trim(),
       qty: form.qty.value, products: titles(ids),
-      price_feedback: (form.price_feedback.value || ""), note: form.note.value.trim(),
+      price_feedback: (form.price_feedback.value || ""),
       vid: vid, ref: document.referrer || ""
     };
     post(lead).then(function () {

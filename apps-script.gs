@@ -11,8 +11,8 @@ function doPost(e) {
 
   if (d.type === "lead") {
     var sh = ss.getSheetByName("Talepler") || ss.insertSheet("Talepler");
-    if (sh.getLastRow() === 0) sh.appendRow(["Zaman","Ad soyad","Telefon","E-posta","Adet","Setler","Fiyat algısı","Not","Ziyaretçi ID","Referans"]);
-    sh.appendRow([d.ts,d.name,"'" + d.phone,d.email,d.qty,d.products,d.price_feedback,d.note,d.vid,d.ref]);
+    if (sh.getLastRow() === 0) sh.appendRow(["Zaman","Ad soyad","Telefon","E-posta","Adet","Setler","Fiyat algısı","Ziyaretçi ID","Referans"]);
+    sh.appendRow([d.ts,d.name,"'" + d.phone,d.email,d.qty,d.products,d.price_feedback,d.vid,d.ref]);
     if (NOTIFY_EMAIL) MailApp.sendEmail(NOTIFY_EMAIL, "Yeni talep: " + d.name, d.name + " / " + d.phone + "\n" + d.products + "\nAdet: " + d.qty);
   } else if (d.type === "event") {
     var ev = ss.getSheetByName("Olaylar") || ss.insertSheet("Olaylar");
