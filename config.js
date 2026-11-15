@@ -9,13 +9,13 @@ window.SITE_CONFIG = {
   // Boş bırakılırsa hiçbir şey kaydedilmez (test modu).
   endpoint: "",
 
-  // Fiyatlar TASLAKTIR. Gerçek fiyatlarla değiştirin. (TL, KDV dahil/hariç notunu da güncelleyin)
-  priceNote: "Fiyatlar tahminidir; kur ve temin koşullarına göre kesinleşir. KDV ayrıca belirtilecektir.",
-  // Güven maddeleri: YALNIZCA gerçekten yerine getirebileceğiniz sözleri bırakın.
+  // Fiyatlar TASLAKTIR. Gerçek fiyatlarla değiştirin.
+  priceNote: "Tahmini fiyatlar. Kesin fiyat WhatsApp'ta iletilir.",
+
+  // Talep gönderildikten sonra gösterilir. YALNIZCA gerçekten yerine getirebileceğiniz sözleri bırakın.
   trust: [
-    { icon: "💳", title: "Ön ödeme yok", text: "Ödeme, ürün teslim edildikten sonra yapılır." },
-    { icon: "↩️", title: "Ücretsiz iade", text: "Teslimatta memnun kalmazsanız iade kargo ücreti bizden." },
-    { icon: "💬", title: "WhatsApp'tan birebir destek", text: "Fiyat, teslim süresi ve içerik hakkında doğrudan yazışırsınız." },
+    { icon: "💳", text: "Ön ödeme yok. Ödeme teslimattan sonra." },
+    { icon: "↩️", text: "Ücretsiz iade." },
   ],
 
   products: [
@@ -23,8 +23,8 @@ window.SITE_CONFIG = {
       id: "b4-orijinal",
       set: "Bayley-4",
       type: "Orijinal",
-      title: "Bayley-4 Orijinal Set",
-      desc: "Üretici tarafından üretilen, yurt dışından temin edilecek orijinal komple set.",
+      title: "Orijinal Set",
+      desc: "Üreticinin komple seti, yurt dışından temin edilir.",
       price: 95000,
       currency: "₺",
       badge: "Orijinal",
@@ -33,8 +33,8 @@ window.SITE_CONFIG = {
       id: "b4-yerli",
       set: "Bayley-4",
       type: "Yerli Üretim",
-      title: "Bayley-4 Yerli Üretim Set",
-      desc: "Set içeriğinin bir bölümü yerelde 3D baskı ve diğer yöntemlerle üretilir. Orijinale göre daha ulaşılabilir fiyat.",
+      title: "Yerli Üretim Set",
+      desc: "İçeriğin bir kısmı yerelde, 3D baskı dahil yöntemlerle üretilir. Daha uygun fiyat.",
       price: 35000,
       currency: "₺",
       badge: "Yerli Üretim",

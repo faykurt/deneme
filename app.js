@@ -28,8 +28,7 @@
   var tl = $("#trust-list");
   (C.trust || []).forEach(function (t) {
     var li = document.createElement("li");
-    li.innerHTML = '<span class="ti" aria-hidden="true"></span><div><strong></strong><span></span></div>';
-    $(".ti", li).textContent = t.icon; $("strong", li).textContent = t.title; $("div > span", li).textContent = t.text;
+    li.textContent = t.icon + " " + t.text;
     tl.appendChild(li);
   });
 
@@ -39,11 +38,11 @@
   $("#price-note").textContent = C.priceNote || "";
   (C.products || []).forEach(function (p) {
     var el = document.createElement("article");
-    el.className = "card"; el.dataset.pid = p.id;
+    el.className = "card" + (p.type !== "Orijinal" ? " yerli" : ""); el.dataset.pid = p.id;
     el.innerHTML =
-      '<span class="tag ' + (p.type !== "Orijinal" ? "t3d" : "") + '">' + p.badge + '</span>' +
+      '<span class="tag">' + p.badge + '</span>' +
       '<h3></h3><p></p>' +
-      '<div class="price">' + p.currency + fmt.format(p.price) + '<small>tahmini birim fiyat</small></div>' +
+      '<div class="price">' + p.currency + fmt.format(p.price) + '</div>' +
       '<button class="btn" type="button">Talep bırak</button>';
     $("h3", el).textContent = p.title; $("p", el).textContent = p.desc;
     $(".btn", el).addEventListener("click", function () { openLead([p.id], "card"); track("cta_click", { product: p.id, where: "card" }); });
@@ -63,7 +62,6 @@
   }
 
   $$("[data-track]").forEach(function (a) { a.addEventListener("click", function () { track("cta_click", { where: a.dataset.track }); }); });
-  $$("details").forEach(function (d) { d.addEventListener("toggle", function () { if (d.open) track("faq_open", { q: $("summary", d).textContent }); }); });
 
   // ---------- talep formu ----------
   var dlg = $("#lead-dialog"), form = $("#lead-form"), chips = $("#product-chips");
@@ -76,19 +74,13 @@
   });
 
   function titles(ids) {
-    return (C.products || []).filter(function (p) { return ids.indexOf(p.id) > -1; }).map(function (p) { return p.title; }).join(", ") || "Seçilmedi";
+    return (C.products || []).filter(function (p) { return ids.indexOf(p.id) > -1; }).map(function (p) { return p.set + " " + p.title; }).join(", ") || "Seçilmedi";
   }
-  function syncProductLabel() {
-    var ids = $$("input[name=products]:checked", form).map(function (i) { return i.value; });
-    $("#lead-product").textContent = titles(ids);
-  }
-  chips.addEventListener("change", syncProductLabel);
 
   function openLead(ids, where) {
     submitted = false; started = false;
     $("#lead-body").hidden = false; $("#lead-done").hidden = true; $("#lead-error").hidden = true;
     $$("input[name=products]", form).forEach(function (i) { i.checked = ids.indexOf(i.value) > -1; });
-    syncProductLabel();
     if (!dlg.open) dlg.showModal();
     track("form_open", { where: where, products: ids.join(",") });
   }
