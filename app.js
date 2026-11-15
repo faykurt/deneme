@@ -69,7 +69,7 @@
 
   (C.products || []).forEach(function (p) {
     var l = document.createElement("label");
-    l.innerHTML = '<input type="checkbox" name="products" value="' + p.id + '"> ' + p.title;
+    l.innerHTML = '<input type="checkbox" name="products" value="' + p.id + '"> ' + p.title + ' (' + p.currency + fmt.format(p.price) + ')';
     chips.appendChild(l);
   });
 
