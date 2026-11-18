@@ -3,7 +3,6 @@
 Site tamamen statik (HTML/CSS/JS). Sunucu gerekmez.
 
 ## 1. Ayarları doldurun — `config.js`
-- `whatsappNumber`: örn. `905551112233`
 - Fiyatlar (`products[].price`) **taslaktır**, gerçek fiyatlarla değiştirin.
 - Marka/ürün adlarını hukuk danışmanınızla netleştirin.
 
@@ -31,7 +30,7 @@ Sheet'te "Olaylar" sekmesinden benzersiz `Ziyaretçi ID` sayısını her aşama 
 - Alan adını (`.com`) satın alıp hosting panelinden bağlayın.
 
 ## 6. Yayından önce kontrol listesi
-- [ ] WhatsApp numarasını ve fiyatları girin.
+- [ ] Fiyatları kontrol edin.
 - [ ] `endpoint` ile bir deneme talebi gönderip Sheet'e düştüğünü doğrulayın.
 - [ ] "Bayley" marka kullanımı ve 3D baskı ürünlerin hukuki durumu için avukat görüşü alın.
 - [ ] Pearson görsellerini kullanmayın; kendi fotoğraflarınızı ekleyin.

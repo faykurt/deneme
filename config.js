@@ -2,9 +2,6 @@
    SİTE AYARLARI — canlıya almadan önce burayı doldurun
    ============================================================ */
 window.SITE_CONFIG = {
-  // WhatsApp numarası: ülke koduyla, başında + ve boşluk olmadan. Örn: 905551112233
-  whatsappNumber: "90XXXXXXXXXX",
-
   // Talepler ve olaylar için Google Apps Script web uygulaması adresi (KURULUM.md, 2. adım).
   // Boş bırakılırsa hiçbir şey kaydedilmez (test modu).
   endpoint: "",

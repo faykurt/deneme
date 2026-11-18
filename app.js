@@ -115,10 +115,6 @@
     };
     post(lead).then(function () {
       submitted = true; track("form_submit", { products: ids.join(",") });
-      var num = (C.whatsappNumber || "").replace(/\D/g, "");
-      var text = encodeURIComponent("Merhaba, " + titles(ids) + " için talep bıraktım. Ad: " + name);
-      $("#wa-link").href = "https://wa.me/" + num + "?text=" + text;
-      $("#wa-link").hidden = !/^\d{10,15}$/.test(num);
       $("#lead-body").hidden = true; $("#lead-done").hidden = false;
       form.reset(); btn.disabled = false; btn.textContent = "Talebi gönder";
     }).catch(function () {
