@@ -42,7 +42,7 @@
     el.innerHTML =
       '<span class="tag">' + p.badge + '</span>' +
       '<h3></h3><p></p>' +
-      '<div class="price">' + p.currency + fmt.format(p.price) + '</div>' +
+      '<div class="price">' + p.priceText + '</div>' +
       '<button class="btn" type="button">Talep bırak</button>';
     $("h3", el).textContent = p.title; $("p", el).textContent = p.desc;
     $(".btn", el).addEventListener("click", function () { openLead([p.id], "card"); track("cta_click", { product: p.id, where: "card" }); });
@@ -69,7 +69,7 @@
 
   (C.products || []).forEach(function (p) {
     var l = document.createElement("label");
-    l.innerHTML = '<input type="checkbox" name="products" value="' + p.id + '"> ' + p.title + ' (' + p.currency + fmt.format(p.price) + ')';
+    l.innerHTML = '<input type="checkbox" name="products" value="' + p.id + '"> ' + p.title + ' (' + p.priceText + ')';
     chips.appendChild(l);
   });
 
@@ -103,7 +103,8 @@
     var ids = $$("input[name=products]:checked", form).map(function (i) { return i.value; });
     var msg = "";
     if (!name) msg = "Lütfen ad soyadınızı yazın.";
-    else if (phone.replace(/\D/g, "").length < 10) msg = "Lütfen geçerli bir telefon numarası yazın.";
+    else if (!phone && !form.email.value.trim()) msg = "Lütfen telefon veya e-posta yazın.";
+    else if (phone && phone.replace(/\D/g, "").length < 10) msg = "Telefon numarası geçersiz görünüyor.";
     else if (!ids.length) msg = "Lütfen en az bir set seçin.";
     else if (form.email.value && !/^\S+@\S+\.\S+$/.test(form.email.value)) msg = "E-posta adresi geçersiz görünüyor.";
     if (msg) { err.textContent = msg; err.hidden = false; track("form_error", { reason: msg }); return; }

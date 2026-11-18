@@ -9,8 +9,8 @@ window.SITE_CONFIG = {
   // Boş bırakılırsa hiçbir şey kaydedilmez (test modu).
   endpoint: "",
 
-  // Fiyatlar TASLAKTIR. Gerçek fiyatlarla değiştirin.
-  priceNote: "Tahmini fiyatlar. Kesin fiyat WhatsApp'ta iletilir.",
+  // Fiyat aralıkları (£). Değiştirmek için priceText alanlarını düzenleyin.
+  priceNote: "Tahmini fiyat aralıkları. Kesin fiyat WhatsApp'ta iletilir.",
 
   // Talep gönderildikten sonra gösterilir. YALNIZCA gerçekten yerine getirebileceğiniz sözleri bırakın.
   trust: [
@@ -25,8 +25,7 @@ window.SITE_CONFIG = {
       type: "Orijinal",
       title: "Orijinal Set",
       desc: "Üreticinin komple seti, yurt dışından temin edilir.",
-      price: 95000,
-      currency: "₺",
+      priceText: "£1.600 – £1.800",
       badge: "Orijinal",
     },
     {
@@ -34,9 +33,8 @@ window.SITE_CONFIG = {
       set: "Bayley-4",
       type: "Yerli Üretim",
       title: "Yerli Üretim Set",
-      desc: "İçeriğin bir kısmı yerelde, 3D baskı dahil yöntemlerle üretilir. Daha uygun fiyat.",
-      price: 35000,
-      currency: "₺",
+      desc: "Orijinal setteki ürünlerin ağırlık, gramaj ve renk gibi özelliklerine göre birebir örneği üretilir.",
+      priceText: "£500 – £600",
       badge: "Yerli Üretim",
     },
   ],
