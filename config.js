@@ -4,7 +4,7 @@
 window.SITE_CONFIG = {
   // Talepler ve olaylar için Google Apps Script web uygulaması adresi (KURULUM.md, 2. adım).
   // Boş bırakılırsa hiçbir şey kaydedilmez (test modu).
-  endpoint: "",
+  endpoint: "https://script.google.com/macros/s/AKfycbzuLAAl2IJyUFAmP0rYH3q3tkEaXhxcdH8tnd4GG8eiUffaz_sktN4ZqbdQdpvl9OTzsA/exec",
 
   // Fiyat aralıkları (£). Değiştirmek için priceText alanlarını düzenleyin.
   priceNote: "Fiyatlar tahminidir. Sipariş adetleri netleştikten sonra kesin fiyatlar tarafınıza iletilecektir.",
