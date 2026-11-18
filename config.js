@@ -10,7 +10,7 @@ window.SITE_CONFIG = {
   endpoint: "",
 
   // Fiyat aralıkları (£). Değiştirmek için priceText alanlarını düzenleyin.
-  priceNote: "Tahmini fiyat aralıkları.",
+  priceNote: "Fiyatlar tahminidir. Sipariş adetleri netleştikten sonra kesin fiyatlar tarafınıza iletilecektir.",
 
   // Talep gönderildikten sonra gösterilir. YALNIZCA gerçekten yerine getirebileceğiniz sözleri bırakın.
   trust: [
@@ -33,7 +33,7 @@ window.SITE_CONFIG = {
       set: "Bayley-4",
       type: "Yerli Üretim",
       title: "Yerli Üretim Set",
-      desc: "Yerli üretimdir, orijinal ürün değildir. Orijinal setin ağırlık, gramaj ve renk özellikleri esas alınarak birebir ölçülerde üretilir.",
+      desc: "Yerli üretimdir, orijinal ürün değildir. Orijinal setin ağırlık, boyut ve renk özellikleri esas alınarak birebir ölçülerde üretilir.",
       priceText: "£500 – £600",
       badge: "Yerli Üretim",
     },
