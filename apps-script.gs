@@ -2,8 +2,6 @@
  * Google Apps Script — talepleri ve site olaylarını Google Sheets'e yazar.
  * Kurulum için KURULUM.md dosyasına bakın.
  */
-var NOTIFY_EMAIL = ""; // yeni talepte bildirim gitsin istiyorsanız e-posta yazın
-
 function doPost(e) {
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var d;
@@ -12,8 +10,7 @@ function doPost(e) {
   if (d.type === "lead") {
     var sh = ss.getSheetByName("Talepler") || ss.insertSheet("Talepler");
     if (sh.getLastRow() === 0) sh.appendRow(["Zaman","Ad soyad","Telefon","E-posta","Adet","Setler","Fiyat algısı","Ziyaretçi ID","Referans"]);
-    sh.appendRow([d.ts,d.name,"'" + d.phone,d.email,d.qty,d.products,d.price_feedback,d.vid,d.ref]);
-    if (NOTIFY_EMAIL) MailApp.sendEmail(NOTIFY_EMAIL, "Yeni talep: " + d.name, d.name + " / " + d.phone + "\n" + d.products + "\nAdet: " + d.qty);
+    sh.appendRow([d.ts,d.name,d.phone ? "'" + d.phone : "",d.email,d.qty,d.products,d.price_feedback,d.vid,d.ref]);
   } else if (d.type === "event") {
     var ev = ss.getSheetByName("Olaylar") || ss.insertSheet("Olaylar");
     if (ev.getLastRow() === 0) ev.appendRow(["Zaman","Ziyaretçi ID","Olay","Ürün","Detay","Mobil","Referans"]);

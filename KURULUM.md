@@ -9,7 +9,7 @@ Site tamamen statik (HTML/CSS/JS). Sunucu gerekmez.
 ## 2. Talepleri Google Sheets'e düşürün (ücretsiz)
 1. Yeni bir Google Sheet açın.
 2. **Uzantılar → Apps Script** → `apps-script.gs` içeriğini yapıştırın.
-3. İsterseniz `NOTIFY_EMAIL` alanına e-postanızı yazın (yeni talepte bildirim).
+3. (E-posta bildirimi yok; talepleri Sheet'ten takip edin.)
 4. **Dağıt → Yeni dağıtım → Web uygulaması**; *Yürüt:* Ben, *Erişim:* Herkes. URL'yi kopyalayın.
 5. URL'yi `config.js` içindeki `endpoint` alanına yapıştırın.
 
