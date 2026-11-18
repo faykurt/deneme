@@ -10,7 +10,7 @@ window.SITE_CONFIG = {
   endpoint: "",
 
   // Fiyat aralıkları (£). Değiştirmek için priceText alanlarını düzenleyin.
-  priceNote: "Tahmini fiyat aralıkları. Kesin fiyat WhatsApp'ta iletilir.",
+  priceNote: "Tahmini fiyat aralıkları.",
 
   // Talep gönderildikten sonra gösterilir. YALNIZCA gerçekten yerine getirebileceğiniz sözleri bırakın.
   trust: [
@@ -24,7 +24,7 @@ window.SITE_CONFIG = {
       set: "Bayley-4",
       type: "Orijinal",
       title: "Orijinal Set",
-      desc: "Üreticinin komple seti, yurt dışından temin edilir.",
+      desc: "Yurt dışından temin edilir.",
       priceText: "£1.600 – £1.800",
       badge: "Orijinal",
     },
@@ -33,7 +33,7 @@ window.SITE_CONFIG = {
       set: "Bayley-4",
       type: "Yerli Üretim",
       title: "Yerli Üretim Set",
-      desc: "Orijinal setteki ürünlerin ağırlık, gramaj ve renk gibi özelliklerine göre birebir örneği üretilir.",
+      desc: "Yerli üretimdir, orijinal ürün değildir. Orijinal setin ağırlık, gramaj ve renk özellikleri esas alınarak birebir ölçülerde üretilir.",
       priceText: "£500 – £600",
       badge: "Yerli Üretim",
     },

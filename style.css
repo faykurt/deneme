@@ -74,3 +74,5 @@ input[type=checkbox],input[type=radio]{width:20px;height:20px;accent-color:var(-
 @media(prefers-reduced-motion:reduce){html{scroll-behavior:auto}.btn{transition:none}}
 .fine{font-size:.85rem;color:var(--muted);margin:0;max-width:56ch}
 .hint{font-size:.85rem;color:var(--muted);margin:12px 0 0}
+.picked{margin:14px 0 0;padding:12px 14px;border:1px solid var(--primary);background:#eef5fd;border-radius:10px;display:grid;gap:2px}
+.picked span{font-size:.8rem;color:var(--muted);font-weight:600}

@@ -64,14 +64,8 @@
   $$("[data-track]").forEach(function (a) { a.addEventListener("click", function () { track("cta_click", { where: a.dataset.track }); }); });
 
   // ---------- talep formu ----------
-  var dlg = $("#lead-dialog"), form = $("#lead-form"), chips = $("#product-chips");
+  var dlg = $("#lead-dialog"), form = $("#lead-form"), current = [];
   var started = false, submitted = false;
-
-  (C.products || []).forEach(function (p) {
-    var l = document.createElement("label");
-    l.innerHTML = '<input type="checkbox" name="products" value="' + p.id + '"> ' + p.title + ' (' + p.priceText + ')';
-    chips.appendChild(l);
-  });
 
   function titles(ids) {
     return (C.products || []).filter(function (p) { return ids.indexOf(p.id) > -1; }).map(function (p) { return p.set + " " + p.title; }).join(", ") || "Seçilmedi";
@@ -80,7 +74,9 @@
   function openLead(ids, where) {
     submitted = false; started = false;
     $("#lead-body").hidden = false; $("#lead-done").hidden = true; $("#lead-error").hidden = true;
-    $$("input[name=products]", form).forEach(function (i) { i.checked = ids.indexOf(i.value) > -1; });
+    current = ids;
+    var pr = (C.products || []).filter(function (p) { return p.id === ids[0]; })[0];
+    $("#picked-title").textContent = pr ? pr.title + " (" + pr.priceText + ")" : "";
     if (!dlg.open) dlg.showModal();
     track("form_open", { where: where, products: ids.join(",") });
   }
@@ -100,7 +96,7 @@
     var err = $("#lead-error"); err.hidden = true;
     if (form.website.value) { return; } // bot tuzağı
     var name = form.name.value.trim(), phone = form.phone.value.replace(/[^\d+]/g, "");
-    var ids = $$("input[name=products]:checked", form).map(function (i) { return i.value; });
+    var ids = current;
     var msg = "";
     if (!name) msg = "Lütfen ad soyadınızı yazın.";
     else if (!phone && !form.email.value.trim()) msg = "Lütfen telefon veya e-posta yazın.";
