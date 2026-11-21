@@ -65,7 +65,8 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Uygulamadan mevcut etkinlikler düzenlenebilir ve silinebilir.
 - Uygulamanın yazdığı etkinliklerin başında küçük bir işaret (💭) olur. Takvime bağlı bir not silinirse etkinliği de silmek isteyip istemediği sorulur. Tarihi olan ama takvime eklenmemiş notlar farklı görünümle gösterilir.
 - "Takvime ekle": öneri kartında ve not kartında bulunur. İki mod: **normal ekle** (takvim açılır, kullanıcı yeri seçer) ve **otomatik öner** (uygulama uygun bir zaman aralığı seçip yerleştirir, kullanıcı sonra değiştirebilir). Önerilen aralığın saati ve tarihi değiştirilebilir. Ayrıca takvimde bir zaman aralığı seçilip ona not bağlanabilir.
-- Uyku ve mesai saatleri kullanıcı tarafından tanımlanır, hafta içi ve hafta sonu ayrı. Mesai içinde "öğle arası" tanımlanabilir (kısa öneriler orada gelebilir). Bunların dışı "boş" sayılır.
+- Uyku saatleri kullanıcı tarafından tanımlanır, hafta içi ve hafta sonu ayrı. Mesai saati tanımı yoktur. Uyku dışında, etkinlik ve iş bloğu olmayan zaman "boş" sayılır.
+- **İş bloğu:** Ayarlar'da bir kelime belirlenir (varsayılan "İş"). Başlığında bu kelime geçen takvim etkinliği iş bloğudur. İş notları sadece iş bloğunun içinde önerilir. Blok içindeki başka bir etkinlik (toplantı gibi) o saatleri dolu yapar. İş bloğunun içi diğer kategoriler için boş sayılmaz. Blok yoksa (izin günü, hafta sonu) iş notu gelmez.
 - İzin günleri hafta sonu gibi sayılır. Türkiye resmi tatilleri otomatik alınır, kişisel izinleri kullanıcı tanımlar. Arife günlerinde öğleden sonrası tatil sayılır.
 - Samsung Hatırlatıcı (Reminder) kapsam dışı.
 
@@ -73,7 +74,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Öneriyi **yapay zeka** seçer (kural tabanlı değil, çünkü kurallar hep aynı sonucu verir). Günlük öneriler ve hafta sonu planı yapay zeka tarafından hazırlanır.
 - Mekanizma (onaylandı): telefon günde birkaç kez (gün bölümü başlarında ve uygulama açılınca) yapay zekadan bir öneri paketi alır (bildirim önerileri + ana sayfa önerileri). Bildirimler bu paketten telefonda zamanlanır. İnternet yoksa son paket kullanılır. Takvim ya da notlar değişirse uygulama açılınca paket yenilenir. Bildirim anında yapay zeka çağrılmaz (maliyet ve arka plan güvenilirliği için).
 - Zamanlama karma: kategori başına saat aralıkları (uygulama başta önerir, kullanıcı onaylar/düzenler), uygulama aralık içinde takvimde boş olan en uygun anı seçer.
-- Konum tetikleme ilk sürümde yok (Samsung'un pil yönetimi nedeniyle güvenilmez olabilir, sonraya ertelendi). İş notları, kullanıcının takvimde iş için kapattığı bloğun içinde önerilir (bloğun nasıl tanınacağı açık soru), blok dışında gelmez. Hafta sonu ve izin günlerinde iş notu önerilmez. Diğer notlar kategori saat aralıklarına göre gelir.
+- Konum tetikleme ilk sürümde yok (Samsung'un pil yönetimi nedeniyle güvenilmez olabilir, sonraya ertelendi). İş notları, kullanıcının takvimde iş için kapattığı bloğun içinde önerilir (bkz. bölüm 6), blok dışında gelmez. Hafta sonu ve izin günlerinde iş notu önerilmez. Diğer notlar kategori saat aralıklarına göre gelir.
 - Sıklık: günde en fazla 3 öneri bildirimi, hafta içi ve hafta sonu aynı (Ayarlar'dan değiştirilebilir). "Sonra hatırlat"la ertelenenler de bu 3'e dahildir. Bildirim hakkı, yapılma olasılığı en yüksek önerilere verilir. Ertelenenler birikip bildirim sayısını şişirmez.
 - Bildirim metni belirli bir öneri ("şunu yapmak ister misin?") ya da genel ("önerilerine bak") olabilir. Bildirimde aksiyon butonu yoktur.
 - Öğrenme sinyali: bir notun art arda üç kez ertelenmesi ve bildirime hiç dokunulmaması. Yapay zeka bu sinyallerle ilgili türü daha seyrek önerir.
@@ -81,7 +82,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Öneri kartı seçenekleri: **Yaptım** (tamamlanmış sayılır ve arşive gider; adımlı notlarda sadece o adımı tamamlar, adımı olmayan notlarda "tamamen mi, bugünlük mü" diye sorar), **Sonra hatırlat** (ertesi gün uygun bir boşlukta; günlük 3 bildirim sınırı yüzünden bildirim garantisi yoktur, ertelenen not en azından ertesi gün ana sayfa önerilerine girer), **Sil** (notu siler, adımlı notlarda sadece o adımı siler, 5 saniye "Geri al" çıkar), **Takvime ekle**. "Uymuyor" seçeneği yok. Arşivdeki notlar geri çıkarılabilir.
 - Hafta sonu planı: bildirim **yok**, uygulamada görünen bir alan. Cuma boyunca hafta sonu fikirleri görünür, Cuma 22:00'de Cumartesi planına dönüşür, Cumartesi 22:00'de Pazar planına dönüşür. Plan gün bölümlüdür, saatli değildir. İki bölüm: Öğle (12:00-18:00) ve Akşam (18:00-24:00). Sabah bölümü yok (bu sadece hafta sonu planı için geçerli, hafta içi öneriler kategori saat aralıklarına göre sabah dahil normal devam eder). Uyku saati tanımı bu aralıkları kısaltır. Uyku saatine denk gelse de hazırlanır. Resmi tatil ve izinlerden önceki akşam da hazırlanır. Plan hafta sonu boyunca ana sayfada kalır.
 - Tarih hatırlatması: kullanıcı not içinde hatırlatma seçmediyse hatırlatma yoktur. Seçtiyse ne zaman hatırlatılacağını da kendisi seçer. Hazır seçenekler: 5 dk önce, 30 dk önce, 1 saat önce, 1 gün önce, 1 hafta önce, aynı gün sabah 09:00. Serbest tarih/saat de seçilebilir. Günlük 3 öneri sınırına dahil değildir.
-- Sessiz saatler: ayrı sessiz mod yok, uyku/mesai tanımı ve takvim doluluğu yeter.
+- Sessiz saatler: ayrı sessiz mod yok, uyku tanımı ve takvim doluluğu yeter.
 
 ## 8. Ekranlar
 - Alt menü: Ana sayfa, Takvim, Notlar, Ayarlar. Sesli not butonu alt menünün ortasında, her ekranda görünür.
@@ -100,10 +101,10 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Etkileşimli sahne, sana benzeyen karakter, animasyonlar (kahve dumanı, ışık huzmesi, sesli not sırasında yazma animasyonu vb.), ambiyans sesi: 2. ve 3. sürümlerde detaylarıyla kararlaştırılacak.
 
 ## 8c. Ayarlar ve ilk kurulum
-- İlk açılışta kısa bir kurulum sihirbazı: API anahtarı, takvim seçimi, uyku/mesai saatleri, kategoriler, izinler.
+- İlk açılışta kısa bir kurulum sihirbazı: API anahtarı, takvim seçimi, uyku saatleri, iş bloğu kelimesi, kategoriler, izinler.
 - Ev ve iş yeri konumu girişi (konum tetikleme) ilk sürümde yok.
 - Başlangıç kategorilerini uygulama önerir, kullanıcı onaylar/düzenler.
-- Uyku/mesai saatleri, kategori başı öneri saat aralıkları, izin günleri, günlük bildirim sınırı, API anahtarı Ayarlar'dadır.
+- Uyku saatleri, iş bloğu kelimesi, kategori başı öneri saat aralıkları, izin günleri, günlük bildirim sınırı, API anahtarı Ayarlar'dadır.
 
 ## 9. Yapay zeka ve teknik
 - Anthropic API: model **Claude Sonnet 5.5** (`claude-sonnet-5-5`), efor **medium**. Model ve efor Ayarlar'dan değiştirilebilir (varsayılan Sonnet 5.5 / medium).
@@ -119,7 +120,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - İkon: piksel art tarzında düşünce balonu, sıcak turuncu zemin, içinde küçük bir ampul.
 
 ## 11. Açık sorular
-- İş bloğunun takvimde nasıl tanınacağı ve Ayarlar'daki mesai tanımının bundan sonra ne olacağı.
+Yok. Tasarım kararları tamamlandı. Kod yazımı kullanıcı "yap" diyene kadar başlamaz.
 
 ## 12. Sürüm planı ve geliştirme fikirleri
 Benzer uygulamalardan gelen öneriler. Sürüm planı kullanıcı tarafından onaylandı.

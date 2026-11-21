@@ -15,7 +15,7 @@ Tasarımın tamamı `KARARLAR.md` dosyasında. Burası ilk sürümde olmayan, so
 - Takvimde aralık seçip not bağlama: nottan "Takvime ekle" var.
 - Tarihli ama takvime eklenmemiş notların takvimde ayrı görünmesi.
 - Resmi tatillerin otomatik alınması ve arife: izin günlerini (tatiller dahil) kullanıcı girer.
-- Öğle arası tanımı: mesai tek parça.
+- Öğle arası tanımı: iş bloğu tek parça.
 - Eski notları yoklama ve "Uzun zamandır dokunulmayanlar" bölümü: ilk aylarda zaten eski not olmayacak.
 - "Yaptın mı?" sorusu: durumu kullanıcı kendisi değiştirir.
 - Paylaşırken sesli yorum: yazılı yorum var.
