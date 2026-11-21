@@ -10,7 +10,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Flutter, sadece Android. Cihaz: Samsung A52, Android 14. Tek cihaz.
 - Karar: GitHub Actions ile APK derlenir. Kod GitHub'a pushlanır, GitHub APK'yı derleyip Release olarak yayınlar, telefona APK ile kurulur. Güncelleme için Obtainium önerildi. Aynı imza anahtarı kullanılacak ki güncelleme veriyi silmesin.
 - Tüm süreç (ilk kurulum dahil) telefondan yürütülecek, bilgisayar kullanılmayacak. Kullanıcı her güncellemeyi telefondan Claude'a anlatır.
-- Depo `faykurt/deneme` şu an **public**. Private mı public mı kalacağı yeniden konuşulacak (kullanıcı "private'ı öylesine söylemiştim" dedi). İmza anahtarı depoya konmaz, GitHub Secrets'a eklenir (telefon tarayıcısından, masaüstü site modunda).
+- Depo `faykurt/deneme` şu an **public**. Public olarak başlanır, private sonra değerlendirilecek. İmza anahtarı depoya konmaz, GitHub Secrets'a eklenir (telefon tarayıcısından, masaüstü site modunda).
 - Veri ilk aşamada sadece telefonda (yedek sonradan eklenebilir).
 - Kurulum notları: Samsung pil ayarı "Sınırsız" yapılmalı. Gerekli izinler: bildirim, mikrofon, takvim, konum ("her zaman"), bilinmeyen kaynaklardan kurulum. Samsung Otomatik Engelleyici (Auto Blocker) kapatılmalı, Play Protect uyarısına "Yine de yükle" denmeli.
 
@@ -26,8 +26,11 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Her nota yapay zeka düzenlenebilir bir süre tahmini koyar.
 - Kategoriye özel alanlar olabilir ama doldurmak zorunlu değildir. Örnek: Dizi/Film için ad, tür, kim önerdi. Yemek→Tarif için malzemeler, yapılış. (Diğer kategoriler açık soru.)
 - Not içindeki tarih tanınır, takvime ekleme önerisi sunulur. Saatsiz tarihlerde hatırlatma 09:00'da verilir, saatsiz notlarda "5 dk önce" gibi seçenekler gizlenir.
-- Tekrarlayan notlar olabilir, tekrar aralığını kullanıcı seçer.
-- Onay penceresi: sesli not bitince otomatik doldurulmuş bir pencere açılır (kategori, tarih vb.). Direkt onaylanabilir ya da değiştirilebilir. Her şey sonra notun içinden düzenlenebilir. (Paylaş, yazılı not ve internetsiz durum için akış açık soru.)
+- Tekrarlayan notlar olabilir, tekrar aralığını kullanıcı seçer. Tamamlanan tekrar sayılır, bir sonraki tekrar planlanır, tamamlananlar arşivde kayıt olarak kalır.
+- Onay penceresi: sesli not bitince (ya da yazılı not gönderilince) otomatik bir pencere açılır. Not kaydedilmiştir, yapay zekanın atadığı kategori, tarih, süre vb. hazır gelir. Kullanıcı onaylar, "daha sonra onaylarım" der ya da düzenler.
+- Onay bekleyen notlar Notlar sekmesinde ayrı bir bölümde toplanır, ana sayfada "X onay bekleyen notun var" uyarısı çıkar.
+- İnternet yokken not ham haliyle kaydedilir, otomatik atama yapılmaz. Bağlantı gelince yapay zeka doldurur ve not onay bekleyenlere düşer.
+- Paylaş menüsünden gelen notlar doğrudan kaydedilir ve onay bekleyenlere düşer (kullanıcı onayı bekliyor). Her şey sonra notun içinden düzenlenebilir.
 - Bilinen kısıt: Instagram paylaşımı çoğunlukla link verir ve içeriği okunamayabilir, ekran görüntüsü daha güvenilir.
 
 ## 4. Kategoriler
@@ -41,26 +44,29 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 ## 5. Adımlar ve durumlar
 - Yalnızca uygulama notu "yapılabilir bir iş" olarak anlarsa "adımlara böl" seçeneği çıkar, adımlar otomatik önerilir (yaklaşık süreyle). Kullanıcı onaylar ya da atlar. Adımlar ve süreler düzenlenebilir.
 - Adım kartında "Yaptım" sadece o adımın üstünü çizer, "Sil" sadece o adımı siler. Tüm adımlar bitince not, arşive gitmeden önce kullanıcıya sorar.
-- Bir adım bitince sıradaki adım hemen gösterilir.
-- Durumlar: yapılıyor, yapıldı, bekliyor gibi (tam liste ve kurallar açık soru). Bekliyor durumu seçilince pencere açılır, "hatırlatma ister misin" diye sorar, süre oradan seçilir.
+- Adımlar sıralıdır: öncekiler bitmeden sonraki önerilmez. Bir adım bitince sıradaki hemen gösterilir. Yapay zeka başta adım önerir (bekleme adımı dahil), kullanıcı onaylar, kendisi ekler ve siler.
+- Durumları kullanıcı **elle** yönetir. Çalışma listesi: Yapılacak, Yapılıyor, Bekliyor, Yapıldı (liste kullanıcı onayını bekliyor). Not takvime eklendiyse bitiş saatinde uygulama "yaptın mı?" diye sorar, durum oradan değiştirilir. Bekliyor durumu seçilince pencere açılır, "hatırlatma ister misin" diye sorar, süre oradan seçilir.
 - Devam eden işler için ek aşamalar eklenebilir (örn. dizi, kitap, tez bölümü).
 
 ## 6. Takvim
 - Samsung Takvim'e bağlanır (telefonun takvim deposu üzerinden), iki yönlü okuma/yazma. Sadece Samsung takvimi sayılır.
 - Uygulamada ay görünümü varsayılan. Gün ve hafta görünümü seçilebilir.
-- Etkinlik alanları: başlık, başlangıç ve bitiş saati, tekrar (günlük, haftalık, aylık, yıllık, hafta içi her gün, bitiş tarihi seçilebilir). Tüm gün etkinlik eklenebilir, o gün tamamen dolu sayılır.
+- Etkinlik alanları: başlık, başlangıç ve bitiş saati, tekrar (günlük, haftalık, aylık, yıllık, hafta içi her gün, bitiş tarihi seçilebilir). Kullanıcının eklediği tüm gün etkinlik o günü tamamen dolu sayar. Resmi tatil, doğum günü gibi tüm gün etkinlikler günü dolu saymaz (o günlerde de öneri alınabilir). Bunların telefonda nasıl ayırt edileceği kullanıcı onayını bekliyor.
 - Uygulamadan mevcut etkinlikler düzenlenebilir ve silinebilir.
 - Uygulamanın yazdığı etkinliklerin başında küçük bir işaret (💭) olur. Takvime bağlı bir not silinirse etkinliği de silmek isteyip istemediği sorulur. Tarihi olan ama takvime eklenmemiş notlar farklı görünümle gösterilir.
-- "Takvime ekle": öneri kartında, not kartında bir seçenek olarak bulunur. Tıklayınca takvim açılır, kullanıcı notu istediği yere yerleştirir. Ayrıca takvimde bir zaman aralığı seçilip ona not bağlanabilir.
+- "Takvime ekle": öneri kartında ve not kartında bulunur. İki mod: **normal ekle** (takvim açılır, kullanıcı yeri seçer) ve **otomatik öner** (uygulama uygun bir zaman aralığı seçip yerleştirir, kullanıcı sonra değiştirebilir). Önerilen aralığın saati ve tarihi değiştirilebilir. Ayrıca takvimde bir zaman aralığı seçilip ona not bağlanabilir.
 - Uyku ve mesai saatleri kullanıcı tarafından tanımlanır, hafta içi ve hafta sonu ayrı. Mesai içinde "öğle arası" tanımlanabilir (kısa öneriler orada gelebilir). Bunların dışı "boş" sayılır.
 - İzin günleri hafta sonu gibi sayılır. Türkiye resmi tatilleri otomatik alınır, kişisel izinleri kullanıcı tanımlar. Arife günlerinde öğleden sonrası tatil sayılır.
 - Samsung Hatırlatıcı (Reminder) kapsam dışı.
 
 ## 7. Öneri ve hatırlatma
-- Öneriyi **yapay zeka** seçer (kural tabanlı değil, çünkü kurallar hep aynı sonucu verir). Günlük öneriler ve hafta sonu planı yapay zeka tarafından hazırlanır. (Mekanizmanın ayrıntıları açık soru.)
+- Öneriyi **yapay zeka** seçer (kural tabanlı değil, çünkü kurallar hep aynı sonucu verir). Günlük öneriler ve hafta sonu planı yapay zeka tarafından hazırlanır.
+- Mekanizma (onaylandı): telefon günde birkaç kez (gün bölümü başlarında ve uygulama açılınca) yapay zekadan bir öneri paketi alır (bildirim önerileri + ana sayfa önerileri). Bildirimler bu paketten telefonda zamanlanır. İnternet yoksa son paket kullanılır. Takvim ya da notlar değişirse uygulama açılınca paket yenilenir. Bildirim anında yapay zeka çağrılmaz (maliyet ve arka plan güvenilirliği için).
 - Zamanlama karma: kategori başına saat aralıkları (uygulama başta önerir, kullanıcı onaylar/düzenler), uygulama aralık içinde takvimde boş olan en uygun anı seçer.
-- Konum: sadece ev ve iş yeri. **İş notları yalnızca iş konumundayken önerilir** (saat bakılmaksızın, hafta sonu işe gidilse bile). Diğer notlar saate göre gelir. Ev ya da iş dışındayken de saat kurallarına uygun öneri gelebilir. Eve varılan anda öneri gelmez, vardıktan yaklaşık yarım saat sonra uygun hale gelir. "Her zaman konum izni" verilecek, kapatılırsa uygulama sadece saate göre çalışır.
-- Sıklık: günde en fazla 3 öneri bildirimi, hafta içi ve hafta sonu aynı (Ayarlar'dan değiştirilebilir).
+- Konum: sadece ev ve iş yeri. **İş notları yalnızca iş konumundayken ve mesai aralığındayken önerilir**, mesai bittikten sonra gelmez. Diğer notlar saate göre gelir. Ev ya da iş dışındayken de saat kurallarına uygun öneri gelebilir. Eve varılan anda öneri gelmez, vardıktan yaklaşık yarım saat sonra uygun hale gelir. "Her zaman konum izni" verilecek, kapatılırsa uygulama sadece saate göre çalışır.
+- Sıklık: günde en fazla 3 öneri bildirimi, hafta içi ve hafta sonu aynı (Ayarlar'dan değiştirilebilir). "Sonra hatırlat"la ertelenenler de bu 3'e dahildir. Bildirim hakkı, yapılma olasılığı en yüksek önerilere verilir. Ertelenenler birikip bildirim sayısını şişirmez.
+- Bildirim metni belirli bir öneri ("şunu yapmak ister misin?") ya da genel ("önerilerine bak") olabilir. Bildirimde aksiyon butonu yoktur.
+- Öğrenme sinyali: bir notun art arda üç kez ertelenmesi ve bildirime hiç dokunulmaması. Yapay zeka bu sinyallerle ilgili türü daha seyrek önerir.
 - Bildirimde tek öneri ve kısa bir neden vardır ("20 dk boşsun, 2 haftadır bekliyor"), bildirim üzerinde buton yoktur, dokununca uygulama o öneriyle açılır. Ana sayfada 2-3 öneri gösterilir, gün bölümü (sabah/öğle/akşam) değişince yenilenir.
 - Öneri kartı seçenekleri: **Yaptım** (tamamlanmış olarak arşive gider), **Sonra hatırlat** (ertesi gün uygun bir boşlukta), **Sil** (notu siler, 5 saniye "Geri al" çıkar), **Takvime ekle**. "Uymuyor" seçeneği yok. Arşivdeki notlar geri çıkarılabilir.
 - Hafta sonu planı: bildirim **yok**, uygulamada görünen bir alan. Cuma boyunca hafta sonu fikirleri görünür, Cuma 22:00'de Cumartesi planına dönüşür, Cumartesi 22:00'de Pazar planına dönüşür. Plan gün bölümlüdür (sabah/öğle/akşam), saatli değildir. Uyku saatine denk gelse de hazırlanır. Resmi tatil ve izinlerden önceki akşam da hazırlanır. Plan hafta sonu boyunca ana sayfada kalır.
@@ -90,7 +96,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Uyku/mesai saatleri, kategori başı öneri saat aralıkları, izin günleri, günlük bildirim sınırı, API anahtarı Ayarlar'dadır.
 
 ## 9. Yapay zeka ve teknik
-- Anthropic API: model **Claude Sonnet 5.5** (`claude-sonnet-5-5`), efor **medium**. (Ayarlardan değiştirilebilirlik açık soru.)
+- Anthropic API: model **Claude Sonnet 5.5** (`claude-sonnet-5-5`), efor **medium**. Model ve efor Ayarlar'dan değiştirilebilir (varsayılan Sonnet 5.5 / medium).
 - Yapay zeka şunları yapar: kategori, başlık, süre tahmini, adım çıkarma, tarih tanıma, görsel okuma, günlük öneri ve hafta sonu planı, birden fazla fikri ayırma.
 - Ücretli, kullandığın kadar öde, Claude üyeliğinden ayrı. Kullanıcı bunu kabul etti.
 - API anahtarı koda/APK'ya gömülmez, Ayarlar'dan bir kere girilir, telefonda saklanır.
@@ -103,19 +109,13 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - İkon: piksel art tarzında düşünce balonu, sıcak turuncu zemin, içinde küçük bir ampul.
 
 ## 11. Açık sorular
-- Öğrenme sinyali ("Uymuyor" seçeneği olmadığı için reddedilenler nasıl anlaşılacak).
-- Görmezden gelinen bildirim.
-- "Takvime ekle"de uygun saatlerin vurgulanıp vurgulanmayacağı.
-- Paylaş, yazılı not ve internetsiz durumda onay akışı ("Onay bekleyenler" alanı).
-- Durumların tam listesi ve devam eden işlerde "Yaptım".
-- Adımların sırası ve bekleme adımını kimin ekleyeceği.
-- İş notlarının konumdayken saat kuralı, işe varışta gecikme.
+- Paylaş menüsünden gelen notların doğrudan kaydedilip onay bekleyenlere düşmesi (kullanıcı onayı).
+- Durum listesi onayı, "Yapılıyor"daki notların önerilip önerilmeyeceği, "yaptın mı?" sorusunun bildirim olup olmadığı ve günlük 3 sınırına dahil olup olmadığı.
+- Kategoriye özel alanlar: Kitap, Oyun, Tez için hangi alanlar.
+- İş konumuna varışta gecikme, hafta sonu işe gidilen günün mesai saati.
 - Hafta sonu planındaki gün bölümlerinin saatleri.
-- Kategoriye özel alanlar (diğer kategoriler), tekrarlayan notta "Yaptım".
+- Tüm gün etkinliklerin doluluk olarak ayırt edilme yöntemi (Meşgul/Müsait).
 - Widget'a ek kısayollar (hızlı ayar kutucuğu, uygulama kısayolları).
-- Tüm gün etkinliklerin doluluk sayılması, "Sonra hatırlat"ın günlük 3 sınırına dahil olup olmadığı.
-- Yapay zekanın öneri üretme mekanizması (öneri paketi), model ayarı.
-- Depo public mi private mı, Obtainium.
 
 ## 12. Sonra konuşulacak
 Benzer uygulamalardan öneriler (Claude tekrar sunacak): "Şu an boşum" butonu, eski notları yoklama, "kim önerdi" alanı, dizi/film bilgisi, yedek, esnek plan, büyüyen sahne, enerji etiketi, doğal dille arama, 2 dakika kuralı.
