@@ -8,7 +8,9 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 
 ## 2. Platform ve dağıtım
 - Flutter, sadece Android. Cihaz: Samsung A52, Android 14. Tek cihaz.
-- Önerilen yol (kullanıcı henüz açıkça onaylamadı): kod GitHub'a pushlanır, GitHub Actions APK derler, telefona APK ile kurulur. Güncelleme için Obtainium önerildi. Aynı imza anahtarı kullanılacak ki güncelleme veriyi silmesin.
+- Karar: GitHub Actions ile APK derlenir. Kod GitHub'a pushlanır, GitHub APK'yı derleyip Release olarak yayınlar, telefona APK ile kurulur. Güncelleme için Obtainium önerildi. Aynı imza anahtarı kullanılacak ki güncelleme veriyi silmesin.
+- Tüm süreç (ilk kurulum dahil) telefondan yürütülecek, bilgisayar kullanılmayacak. Kullanıcı her güncellemeyi telefondan Claude'a anlatır.
+- Depo `faykurt/deneme` şu an **public**. İmza anahtarı depoya konmaz, GitHub Secrets'a eklenir (telefon tarayıcısından, masaüstü site modunda).
 - Veri ilk aşamada sadece telefonda (yedek sonradan eklenebilir).
 
 ## 3. Not alma
@@ -51,7 +53,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Öneri seçenekleri: Yaptım (tamamlanmış olarak arşive gider, silinmez), Sonra hatırlat (sabit 1 gün sonra), Sil (notu tamamen siler).
 - Reddedilen türler zamanla daha az önerilir.
 - Hafta sonu özeti: Cuma 22:00 (cumartesi için), Cumartesi 22:00 (pazar için). İlgili günün planı hafta sonu boyunca ana sayfada kalır.
-- Tarih hatırlatması: kullanıcı not içinde hatırlatma seçmediyse hatırlatma yoktur. Seçtiyse ne zaman hatırlatılacağını da kendisi seçer, uygulama o zamanda hatırlatır. Günlük 3 öneri sınırına dahil değildir.
+- Tarih hatırlatması: kullanıcı not içinde hatırlatma seçmediyse hatırlatma yoktur. Seçtiyse ne zaman hatırlatılacağını da kendisi seçer, uygulama o zamanda hatırlatır. Zaman seçimi hem hazır seçeneklerle (örn. 1 saat önce, 1 gün önce, 1 hafta önce) hem serbest tarih/saatle yapılabilir. Günlük 3 öneri sınırına dahil değildir.
 - Sessiz saatler: ayrı sessiz mod yok, uyku/mesai tanımı ve takvim doluluğu yeter.
 
 ## 8. Ekranlar
@@ -63,7 +65,10 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 ## 8b. Tema ve görsel (ilk sürüm)
 - Açık temayla başlanır. Koyu tema ve telefona göre otomatik seçenek sonraya kalır.
 - Ana sayfada arka planda piksel art bir görsel olur, kartlar/pencereler onun üzerinde durur. Görselleri Claude kodla hazırlar (basit/sade kalite, sonra hazır görselle değiştirilebilir).
-- 3 görsel: sabah, öğle, akşam. Saate göre otomatik geçer. Konu: doğa temalı, sıcak tonlar.
+- Tek sahne, 3 ışık varyantı. Saate göre otomatik geçer. Konu: doğa temalı, sıcak tonlar.
+  - Sabah (06:00-11:00): güneş yeni doğuyor.
+  - Öğle (11:00-17:00): güneş tepede.
+  - Akşam (17:00-06:00): güneş yok, ortam ışıkları (lamba, ateş vb.) var.
 - Diğer ekranlar (Takvim, Notlar, Ayarlar): sade arka plan, ana sayfadaki görseli kullanmaz.
 - Etkileşimli sahne, sana benzeyen karakter, animasyonlar (kahve dumanı, ışık huzmesi, sesli not sırasında yazma animasyonu vb.), ambiyans sesi: 2. ve 3. sürümlerde detaylarıyla kararlaştırılacak.
 
@@ -83,7 +88,6 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 **Aklımda**
 
 ## 11. Açık konular
-- Uygulama ikonu.
-- Sabah/öğle/akşam görsellerinin saat sınırları ve gece saatlerinde hangi görselin kullanılacağı.
-- GitHub Actions + APK yolunun açık onayı (alternatifler tartışılıyor).
-- Not başına hatırlatma seçenekleri: zaman seçiminin biçimi (hazır seçenekler mi, serbest tarih/saat mi).
+- Uygulama ikonu: Claude birkaç seçenek önerecek, kullanıcı seçecek.
+- Depo public kalacak mı, private mı yapılacak (Obtainium ve indirme erişimini etkiler).
+- Hazır hatırlatma seçeneklerinin tam listesi.
