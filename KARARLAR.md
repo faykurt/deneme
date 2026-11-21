@@ -81,7 +81,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 
 ## 8. Ekranlar
 - Alt menü: Ana sayfa, Takvim, Notlar, Ayarlar. Sesli not butonu alt menünün ortasında, her ekranda görünür.
-- Ana sayfa (sade): bugünün takvimi, 2-3 öneri, hafta sonu önerileri/planı, hızlı sesli/yazılı not alanı.
+- Ana sayfa (sade): bugünün takvimi, 2-3 öneri, hafta sonu önerileri/planı, hızlı sesli/yazılı not alanı, "Şu an ne yapabilirim?" butonu, onay bekleyen not uyarısı.
 - Notlar: klasör görünümü (varsayılan) ve liste görünümü (arama, sıralama). Arama ikisinde de var. Arşiv, Notlar sekmesinde ayrı bir bölüm.
 - Dil: Türkçe. Özel isimler (film, mekan, uygulama adı) çevrilmez.
 
