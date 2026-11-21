@@ -24,7 +24,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Uzun sesli notlara yapay zeka kısa bir başlık verir. Özel isimlere (İngilizce film/dizi adları vb.) yapay zeka dokunmaz. Not: ses tanımanın kendisi bu isimleri bozabilir, bunu uygulama engelleyemez, kullanıcı notta düzeltir.
 - Tek kayıtta birden fazla fikir söylenirse yapay zeka bunları ayrı notlar olarak önerir.
 - Her nota yapay zeka düzenlenebilir bir süre tahmini koyar.
-- Kategoriye özel alanlar olabilir, hiçbiri zorunlu değildir. Dizi/Film: ad, tür, kim önerdi. Tarif: malzemeler, yapılış. Kitap ve Oyun için yazar/kim önerdi önemli değil, onun yerine fiyat ve satın alma araması var (3b). Tez için özel alan yok.
+- Kategoriye özel alanlar olabilir, hiçbiri zorunlu değildir. Dizi/Film: ad, tür ("kim önerdi" alanı kaldırıldı). Tarif: malzemeler, yapılış. Kitap ve Oyun için yazar/kim önerdi önemli değil, onun yerine fiyat ve satın alma araması var (3b). Tez için özel alan yok.
 - Not içindeki tarih tanınır, takvime ekleme önerisi sunulur. Saatsiz tarihlerde hatırlatma 09:00'da verilir, saatsiz notlarda "5 dk önce" gibi seçenekler gizlenir.
 - Tekrarlayan notlar olabilir, tekrar aralığını kullanıcı seçer. Tamamlanan tekrar sayılır, bir sonraki tekrar planlanır, tamamlananlar arşivde kayıt olarak kalır.
 - Onay penceresi: sesli not bitince (ya da yazılı not gönderilince) otomatik bir pencere açılır. Not kaydedilmiştir, yapay zekanın atadığı kategori, tarih, süre vb. hazır gelir. Kullanıcı onaylar, "daha sonra onaylarım" der ya da düzenler.
@@ -35,7 +35,9 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 
 ## 3b. Fiyat ve satın alma araması (Kitap, Oyun)
 - Kitap notunda: kitabı alabileceğin yerler (3-4 mağaza, en uygun fiyat, bağlantı) bulunur. Oyun notunda: fiyatı ve hangi platformlarda olduğu bulunur. Amaç satın alma işini hızlandırmak.
-- Ayrıntılar (ne zaman çalışacağı, hangi mağazalar ve platformlar, web arama aracı, doğruluk sınırı, ek maliyet) açık soru.
+- Otomatik aranmaz. Kullanıcı kitap veya oyun notundaki "Nerede bulurum?" butonuna basınca çalışır.
+- Sadece Türkiye içi mağazalar (TL). Kitapta mağaza tercihi ya da hariç tutma yok. Oyunda sadece Xbox için fiyat ve bulunabilirlik gösterilir.
+- Anthropic API'nin web arama aracıyla yapılır. Doğruluk sınırı: fiyatlar eski olabilir, bazı mağazalar bulunamayabilir, sonuçlar bağlantıyla gelir ve kullanıcı mağazada kendisi doğrular. Ek maliyet vardır, rakam kurulum aşamasında güncel fiyat listesinden doğrulanacak.
 
 ## 4. Kategoriler
 - İç içe, en fazla 2 seviye. Bir not alt kategori seçmeden doğrudan ana kategoriye de girebilir.
@@ -67,13 +69,13 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Öneriyi **yapay zeka** seçer (kural tabanlı değil, çünkü kurallar hep aynı sonucu verir). Günlük öneriler ve hafta sonu planı yapay zeka tarafından hazırlanır.
 - Mekanizma (onaylandı): telefon günde birkaç kez (gün bölümü başlarında ve uygulama açılınca) yapay zekadan bir öneri paketi alır (bildirim önerileri + ana sayfa önerileri). Bildirimler bu paketten telefonda zamanlanır. İnternet yoksa son paket kullanılır. Takvim ya da notlar değişirse uygulama açılınca paket yenilenir. Bildirim anında yapay zeka çağrılmaz (maliyet ve arka plan güvenilirliği için).
 - Zamanlama karma: kategori başına saat aralıkları (uygulama başta önerir, kullanıcı onaylar/düzenler), uygulama aralık içinde takvimde boş olan en uygun anı seçer.
-- Konum: sadece ev ve iş yeri. **İş notları yalnızca iş konumundayken ve mesai aralığındayken önerilir**, mesai bittikten sonra gelmez. İş konumuna varınca da vardıktan yaklaşık yarım saat sonra uygun hale gelir. Hafta sonu ve izin günlerinde iş notu önerilmez (iş konumunda olunsa bile). Diğer notlar saate göre gelir. Ev ya da iş dışındayken de saat kurallarına uygun öneri gelebilir. Eve varılan anda öneri gelmez, vardıktan yaklaşık yarım saat sonra uygun hale gelir. "Her zaman konum izni" verilecek, kapatılırsa uygulama sadece saate göre çalışır.
+- Konum: sadece ev ve iş yeri. **İş notları yalnızca iş konumundayken ve mesai aralığındayken önerilir**, mesai bittikten sonra gelmez. İş konumuna varınca da vardıktan yarım saat sonra uygun hale gelir (kullanıcı bunun yeterli olduğunu söyledi). Hafta sonu ve izin günlerinde iş notu önerilmez (iş konumunda olunsa bile). Diğer notlar saate göre gelir. Ev ya da iş dışındayken de saat kurallarına uygun öneri gelebilir. Eve varılan anda öneri gelmez, vardıktan yaklaşık yarım saat sonra uygun hale gelir. "Her zaman konum izni" verilecek, kapatılırsa uygulama sadece saate göre çalışır.
 - Sıklık: günde en fazla 3 öneri bildirimi, hafta içi ve hafta sonu aynı (Ayarlar'dan değiştirilebilir). "Sonra hatırlat"la ertelenenler de bu 3'e dahildir. Bildirim hakkı, yapılma olasılığı en yüksek önerilere verilir. Ertelenenler birikip bildirim sayısını şişirmez.
 - Bildirim metni belirli bir öneri ("şunu yapmak ister misin?") ya da genel ("önerilerine bak") olabilir. Bildirimde aksiyon butonu yoktur.
 - Öğrenme sinyali: bir notun art arda üç kez ertelenmesi ve bildirime hiç dokunulmaması. Yapay zeka bu sinyallerle ilgili türü daha seyrek önerir.
 - Bildirimde tek öneri ve kısa bir neden vardır ("20 dk boşsun, 2 haftadır bekliyor"), bildirim üzerinde buton yoktur, dokununca uygulama o öneriyle açılır. Ana sayfada 2-3 öneri gösterilir, gün bölümü (sabah/öğle/akşam) değişince yenilenir.
 - Öneri kartı seçenekleri: **Yaptım** (tamamlanmış olarak arşive gider), **Sonra hatırlat** (ertesi gün uygun bir boşlukta), **Sil** (notu siler, 5 saniye "Geri al" çıkar), **Takvime ekle**. "Uymuyor" seçeneği yok. Arşivdeki notlar geri çıkarılabilir.
-- Hafta sonu planı: bildirim **yok**, uygulamada görünen bir alan. Cuma boyunca hafta sonu fikirleri görünür, Cuma 22:00'de Cumartesi planına dönüşür, Cumartesi 22:00'de Pazar planına dönüşür. Plan gün bölümlüdür, saatli değildir. İki bölüm: Öğle (12:00-17:00) ve Akşam (18:00-24:00). Sabah bölümü yok. Uyku saati tanımı bu aralıkları kısaltır. Uyku saatine denk gelse de hazırlanır. Resmi tatil ve izinlerden önceki akşam da hazırlanır. Plan hafta sonu boyunca ana sayfada kalır.
+- Hafta sonu planı: bildirim **yok**, uygulamada görünen bir alan. Cuma boyunca hafta sonu fikirleri görünür, Cuma 22:00'de Cumartesi planına dönüşür, Cumartesi 22:00'de Pazar planına dönüşür. Plan gün bölümlüdür, saatli değildir. İki bölüm: Öğle (12:00-18:00) ve Akşam (18:00-24:00). Sabah bölümü yok. Uyku saati tanımı bu aralıkları kısaltır. Uyku saatine denk gelse de hazırlanır. Resmi tatil ve izinlerden önceki akşam da hazırlanır. Plan hafta sonu boyunca ana sayfada kalır.
 - Tarih hatırlatması: kullanıcı not içinde hatırlatma seçmediyse hatırlatma yoktur. Seçtiyse ne zaman hatırlatılacağını da kendisi seçer. Hazır seçenekler: 5 dk önce, 30 dk önce, 1 saat önce, 1 gün önce, 1 hafta önce, aynı gün sabah 09:00. Serbest tarih/saat de seçilebilir. Günlük 3 öneri sınırına dahil değildir.
 - Sessiz saatler: ayrı sessiz mod yok, uyku/mesai tanımı ve takvim doluluğu yeter.
 
@@ -113,9 +115,23 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - İkon: piksel art tarzında düşünce balonu, sıcak turuncu zemin, içinde küçük bir ampul.
 
 ## 11. Açık sorular
-- Fiyat ve satın alma araması (3b): ne zaman çalışacağı, hangi mağazalar ve platformlar, doğruluk sınırı, ek maliyet.
-- Hafta sonu planında 17:00-18:00 arasının boş kalıp kalmayacağı.
-- İş konumuna varış gecikmesinin ("yarım saat") nasıl yorumlanacağı (kullanıcı onayı).
+- Önerilen sürüm planının onayı (aşağıdaki bölüm 12).
+- 2 dakika kuralı (Ö10) isteniyor mu.
 
-## 12. Sonra konuşulacak
-Benzer uygulamalardan öneriler (Claude tekrar sunacak): "Şu an boşum" butonu, eski notları yoklama, "kim önerdi" alanı, dizi/film bilgisi, yedek, esnek plan, büyüyen sahne, enerji etiketi, doğal dille arama, 2 dakika kuralı.
+## 12. Sürüm planı ve geliştirme fikirleri
+Benzer uygulamalardan gelen öneriler. Kullanıcı hepsini beğendi, hangi sürümde olacağı onay bekliyor (önerilen dağılım aşağıda).
+
+Önerilen **ilk sürüm (v1)**:
+- "Şu an ne yapabilirim?" butonu (Ö1): ana sayfada ne kadar vaktin olduğu seçilir (örn. 15 dk, 1 saat, bütün akşam), uygulama o süreye uyan 2-3 şey gösterir. Metin değiştirilebilir.
+- Eski notları yoklama (Ö2): 2-3 aydır dokunulmamış notlar için hafta sonu planında "Hâlâ ilgileniyor musun?" sorulur. Ayrıca Notlar sekmesinde "Uzun zamandır dokunulmayanlar" bölümü olur, kullanıcı oradan bakıp silebilir.
+- Yedek (Ö5): tek dokunuşla tüm notlar bir dosyaya kaydedilir (Drive'a ya da telefona).
+
+Sonraki sürümler:
+- Esnek plan (Ö6): takvime yazılan bir öneri yeni bir etkinlikle çakışırsa uygulama başka bir boş saat önerir.
+- Büyüyen sahne (Ö7): işler bittikçe sahne iyileşir ve değişir (2. sürüm, etkileşimli sahneyle birlikte).
+- Enerji etiketi (Ö8): işler "yorgunken yapılabilir" ya da "odak ister" diye etiketlenir.
+- Doğal dille arama (Ö9): "bu film neydi", "bu tarif neydi" gibi sorular sorulur.
+- Dizi/film bilgisi (Ö4): afiş, süre, hangi platformda olduğu. Geliştirme fikri olarak tutuluyor.
+
+Kaldırılan: "Kim önerdi?" alanı (Ö3).
+Henüz karar verilmedi: 2 dakika kuralı (Ö10).
