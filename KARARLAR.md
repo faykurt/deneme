@@ -115,13 +115,12 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - İkon: piksel art tarzında düşünce balonu, sıcak turuncu zemin, içinde küçük bir ampul.
 
 ## 11. Açık sorular
-- Önerilen sürüm planının onayı (aşağıdaki bölüm 12).
-- 2 dakika kuralı (Ö10) isteniyor mu.
+Yok. Tasarım kararları tamamlandı, kullanıcının son onayı bekleniyor. Kod yazımı kullanıcı "yap" diyene kadar başlamaz.
 
 ## 12. Sürüm planı ve geliştirme fikirleri
-Benzer uygulamalardan gelen öneriler. Kullanıcı hepsini beğendi, hangi sürümde olacağı onay bekliyor (önerilen dağılım aşağıda).
+Benzer uygulamalardan gelen öneriler. Sürüm planı kullanıcı tarafından onaylandı.
 
-Önerilen **ilk sürüm (v1)**:
+**İlk sürüm (v1)** ekleri:
 - "Şu an ne yapabilirim?" butonu (Ö1): ana sayfada ne kadar vaktin olduğu seçilir (örn. 15 dk, 1 saat, bütün akşam), uygulama o süreye uyan 2-3 şey gösterir. Metin değiştirilebilir.
 - Eski notları yoklama (Ö2): 2-3 aydır dokunulmamış notlar için hafta sonu planında "Hâlâ ilgileniyor musun?" sorulur. Ayrıca Notlar sekmesinde "Uzun zamandır dokunulmayanlar" bölümü olur, kullanıcı oradan bakıp silebilir.
 - Yedek (Ö5): tek dokunuşla tüm notlar bir dosyaya kaydedilir (Drive'a ya da telefona).
@@ -134,4 +133,4 @@ Sonraki sürümler:
 - Dizi/film bilgisi (Ö4): afiş, süre, hangi platformda olduğu. Geliştirme fikri olarak tutuluyor.
 
 Kaldırılan: "Kim önerdi?" alanı (Ö3).
-Henüz karar verilmedi: 2 dakika kuralı (Ö10).
+Eklenmeyecek: 2 dakika kuralı (Ö10). Kullanırken eksik hissedilirse sonra değerlendirilir.
