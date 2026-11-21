@@ -19,19 +19,23 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Link: sayfa başlığı ve önizleme alınmaya çalışılır, alınamazsa olduğu gibi kalır.
 - Fotoğraf: kopyası notta saklanır, bir notta birden fazla olabilir. Uygulama içinden kamerayla çekip not oluşturulabilir.
 - Sesli not: tek dokunuşla başlar, kullanıcı "Bitir"e basana kadar devam eder, Android ses tanıma ile Türkçe metne çevrilir, ses dosyası saklanmaz. İnternetsiz çalışma: önce çevrimdışı Türkçe ses paketi denenir (A), olmazsa internet yokken "yazılı not al" uyarısı verilir (B).
-- Ana ekranda iki widget butonu: sesli not ve yazılı not. Sesli not widget'ı doğrudan kayıt ekranını açar. Yazılı not widget'ı açılınca klavye hazır gelir.
+- Ana ekranda iki widget butonu: sesli not ve yazılı not. Sesli not widget'ı doğrudan kayıt ekranını açar. Yazılı not widget'ı açılınca klavye hazır gelir. Hızlı ayar kutucuğu ve uygulama kısayolları şimdilik yok.
 - Android paylaş menüsünde "Aklımda" ikonu görünür (ekran görüntüsü sonrası paylaş dahil). Tıklayınca içerik doğrudan kaydedilir. Paylaşırken isteğe bağlı kısa yorum ve sesli not eklenebilir. Galeri otomatik taranmaz.
 - Uzun sesli notlara yapay zeka kısa bir başlık verir. Özel isimlere (İngilizce film/dizi adları vb.) yapay zeka dokunmaz. Not: ses tanımanın kendisi bu isimleri bozabilir, bunu uygulama engelleyemez, kullanıcı notta düzeltir.
 - Tek kayıtta birden fazla fikir söylenirse yapay zeka bunları ayrı notlar olarak önerir.
 - Her nota yapay zeka düzenlenebilir bir süre tahmini koyar.
-- Kategoriye özel alanlar olabilir ama doldurmak zorunlu değildir. Örnek: Dizi/Film için ad, tür, kim önerdi. Yemek→Tarif için malzemeler, yapılış. (Diğer kategoriler açık soru.)
+- Kategoriye özel alanlar olabilir, hiçbiri zorunlu değildir. Dizi/Film: ad, tür, kim önerdi. Tarif: malzemeler, yapılış. Kitap ve Oyun için yazar/kim önerdi önemli değil, onun yerine fiyat ve satın alma araması var (3b). Tez için özel alan yok.
 - Not içindeki tarih tanınır, takvime ekleme önerisi sunulur. Saatsiz tarihlerde hatırlatma 09:00'da verilir, saatsiz notlarda "5 dk önce" gibi seçenekler gizlenir.
 - Tekrarlayan notlar olabilir, tekrar aralığını kullanıcı seçer. Tamamlanan tekrar sayılır, bir sonraki tekrar planlanır, tamamlananlar arşivde kayıt olarak kalır.
 - Onay penceresi: sesli not bitince (ya da yazılı not gönderilince) otomatik bir pencere açılır. Not kaydedilmiştir, yapay zekanın atadığı kategori, tarih, süre vb. hazır gelir. Kullanıcı onaylar, "daha sonra onaylarım" der ya da düzenler.
 - Onay bekleyen notlar Notlar sekmesinde ayrı bir bölümde toplanır, ana sayfada "X onay bekleyen notun var" uyarısı çıkar.
 - İnternet yokken not ham haliyle kaydedilir, otomatik atama yapılmaz. Bağlantı gelince yapay zeka doldurur ve not onay bekleyenlere düşer.
-- Paylaş menüsünden gelen notlar doğrudan kaydedilir ve onay bekleyenlere düşer (kullanıcı onayı bekliyor). Her şey sonra notun içinden düzenlenebilir.
+- Paylaş menüsünden gelen notlar doğrudan kaydedilir ve onay bekleyenlere düşer. Her şey sonra notun içinden düzenlenebilir.
 - Bilinen kısıt: Instagram paylaşımı çoğunlukla link verir ve içeriği okunamayabilir, ekran görüntüsü daha güvenilir.
+
+## 3b. Fiyat ve satın alma araması (Kitap, Oyun)
+- Kitap notunda: kitabı alabileceğin yerler (3-4 mağaza, en uygun fiyat, bağlantı) bulunur. Oyun notunda: fiyatı ve hangi platformlarda olduğu bulunur. Amaç satın alma işini hızlandırmak.
+- Ayrıntılar (ne zaman çalışacağı, hangi mağazalar ve platformlar, web arama aracı, doğruluk sınırı, ek maliyet) açık soru.
 
 ## 4. Kategoriler
 - İç içe, en fazla 2 seviye. Bir not alt kategori seçmeden doğrudan ana kategoriye de girebilir.
@@ -45,13 +49,13 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Yalnızca uygulama notu "yapılabilir bir iş" olarak anlarsa "adımlara böl" seçeneği çıkar, adımlar otomatik önerilir (yaklaşık süreyle). Kullanıcı onaylar ya da atlar. Adımlar ve süreler düzenlenebilir.
 - Adım kartında "Yaptım" sadece o adımın üstünü çizer, "Sil" sadece o adımı siler. Tüm adımlar bitince not, arşive gitmeden önce kullanıcıya sorar.
 - Adımlar sıralıdır: öncekiler bitmeden sonraki önerilmez. Bir adım bitince sıradaki hemen gösterilir. Yapay zeka başta adım önerir (bekleme adımı dahil), kullanıcı onaylar, kendisi ekler ve siler.
-- Durumları kullanıcı **elle** yönetir. Çalışma listesi: Yapılacak, Yapılıyor, Bekliyor, Yapıldı (liste kullanıcı onayını bekliyor). Not takvime eklendiyse bitiş saatinde uygulama "yaptın mı?" diye sorar, durum oradan değiştirilir. Bekliyor durumu seçilince pencere açılır, "hatırlatma ister misin" diye sorar, süre oradan seçilir.
+- Durumları kullanıcı **elle** yönetir. Liste: Yapılacak, Yapılıyor, Bekliyor, Yapıldı. "Yapılıyor" durumundaki notlar öneride gelmez. Not takvime eklendiyse etkinlik bitişinden 5 dakika sonra "yaptın mı?" sorusu çıkar. Bu bildirim değildir, uygulamayı açınca görünür. Durum oradan değiştirilir. Bekliyor durumu seçilince pencere açılır, "hatırlatma ister misin" diye sorar, süre oradan seçilir.
 - Devam eden işler için ek aşamalar eklenebilir (örn. dizi, kitap, tez bölümü).
 
 ## 6. Takvim
 - Samsung Takvim'e bağlanır (telefonun takvim deposu üzerinden), iki yönlü okuma/yazma. Sadece Samsung takvimi sayılır.
 - Uygulamada ay görünümü varsayılan. Gün ve hafta görünümü seçilebilir.
-- Etkinlik alanları: başlık, başlangıç ve bitiş saati, tekrar (günlük, haftalık, aylık, yıllık, hafta içi her gün, bitiş tarihi seçilebilir). Kullanıcının eklediği tüm gün etkinlik o günü tamamen dolu sayar. Resmi tatil, doğum günü gibi tüm gün etkinlikler günü dolu saymaz (o günlerde de öneri alınabilir). Bunların telefonda nasıl ayırt edileceği kullanıcı onayını bekliyor.
+- Etkinlik alanları: başlık, başlangıç ve bitiş saati, tekrar (günlük, haftalık, aylık, yıllık, hafta içi her gün, bitiş tarihi seçilebilir). Kullanıcının eklediği tüm gün etkinlik o günü tamamen dolu sayar. Resmi tatil, doğum günü gibi tüm gün etkinlikler günü dolu saymaz (o günlerde de öneri alınabilir). Ayırt etme: Android'in etkinliklerdeki Meşgul/Müsait bilgisine bakılır (tatiller genelde Müsait gelir). Uygulamada tüm gün etkinlik eklerken "Günü dolu say" anahtarı olur. Telefonda ilk sürümde doğrulanacak.
 - Uygulamadan mevcut etkinlikler düzenlenebilir ve silinebilir.
 - Uygulamanın yazdığı etkinliklerin başında küçük bir işaret (💭) olur. Takvime bağlı bir not silinirse etkinliği de silmek isteyip istemediği sorulur. Tarihi olan ama takvime eklenmemiş notlar farklı görünümle gösterilir.
 - "Takvime ekle": öneri kartında ve not kartında bulunur. İki mod: **normal ekle** (takvim açılır, kullanıcı yeri seçer) ve **otomatik öner** (uygulama uygun bir zaman aralığı seçip yerleştirir, kullanıcı sonra değiştirebilir). Önerilen aralığın saati ve tarihi değiştirilebilir. Ayrıca takvimde bir zaman aralığı seçilip ona not bağlanabilir.
@@ -63,13 +67,13 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Öneriyi **yapay zeka** seçer (kural tabanlı değil, çünkü kurallar hep aynı sonucu verir). Günlük öneriler ve hafta sonu planı yapay zeka tarafından hazırlanır.
 - Mekanizma (onaylandı): telefon günde birkaç kez (gün bölümü başlarında ve uygulama açılınca) yapay zekadan bir öneri paketi alır (bildirim önerileri + ana sayfa önerileri). Bildirimler bu paketten telefonda zamanlanır. İnternet yoksa son paket kullanılır. Takvim ya da notlar değişirse uygulama açılınca paket yenilenir. Bildirim anında yapay zeka çağrılmaz (maliyet ve arka plan güvenilirliği için).
 - Zamanlama karma: kategori başına saat aralıkları (uygulama başta önerir, kullanıcı onaylar/düzenler), uygulama aralık içinde takvimde boş olan en uygun anı seçer.
-- Konum: sadece ev ve iş yeri. **İş notları yalnızca iş konumundayken ve mesai aralığındayken önerilir**, mesai bittikten sonra gelmez. Diğer notlar saate göre gelir. Ev ya da iş dışındayken de saat kurallarına uygun öneri gelebilir. Eve varılan anda öneri gelmez, vardıktan yaklaşık yarım saat sonra uygun hale gelir. "Her zaman konum izni" verilecek, kapatılırsa uygulama sadece saate göre çalışır.
+- Konum: sadece ev ve iş yeri. **İş notları yalnızca iş konumundayken ve mesai aralığındayken önerilir**, mesai bittikten sonra gelmez. İş konumuna varınca da vardıktan yaklaşık yarım saat sonra uygun hale gelir. Hafta sonu ve izin günlerinde iş notu önerilmez (iş konumunda olunsa bile). Diğer notlar saate göre gelir. Ev ya da iş dışındayken de saat kurallarına uygun öneri gelebilir. Eve varılan anda öneri gelmez, vardıktan yaklaşık yarım saat sonra uygun hale gelir. "Her zaman konum izni" verilecek, kapatılırsa uygulama sadece saate göre çalışır.
 - Sıklık: günde en fazla 3 öneri bildirimi, hafta içi ve hafta sonu aynı (Ayarlar'dan değiştirilebilir). "Sonra hatırlat"la ertelenenler de bu 3'e dahildir. Bildirim hakkı, yapılma olasılığı en yüksek önerilere verilir. Ertelenenler birikip bildirim sayısını şişirmez.
 - Bildirim metni belirli bir öneri ("şunu yapmak ister misin?") ya da genel ("önerilerine bak") olabilir. Bildirimde aksiyon butonu yoktur.
 - Öğrenme sinyali: bir notun art arda üç kez ertelenmesi ve bildirime hiç dokunulmaması. Yapay zeka bu sinyallerle ilgili türü daha seyrek önerir.
 - Bildirimde tek öneri ve kısa bir neden vardır ("20 dk boşsun, 2 haftadır bekliyor"), bildirim üzerinde buton yoktur, dokununca uygulama o öneriyle açılır. Ana sayfada 2-3 öneri gösterilir, gün bölümü (sabah/öğle/akşam) değişince yenilenir.
 - Öneri kartı seçenekleri: **Yaptım** (tamamlanmış olarak arşive gider), **Sonra hatırlat** (ertesi gün uygun bir boşlukta), **Sil** (notu siler, 5 saniye "Geri al" çıkar), **Takvime ekle**. "Uymuyor" seçeneği yok. Arşivdeki notlar geri çıkarılabilir.
-- Hafta sonu planı: bildirim **yok**, uygulamada görünen bir alan. Cuma boyunca hafta sonu fikirleri görünür, Cuma 22:00'de Cumartesi planına dönüşür, Cumartesi 22:00'de Pazar planına dönüşür. Plan gün bölümlüdür (sabah/öğle/akşam), saatli değildir. Uyku saatine denk gelse de hazırlanır. Resmi tatil ve izinlerden önceki akşam da hazırlanır. Plan hafta sonu boyunca ana sayfada kalır.
+- Hafta sonu planı: bildirim **yok**, uygulamada görünen bir alan. Cuma boyunca hafta sonu fikirleri görünür, Cuma 22:00'de Cumartesi planına dönüşür, Cumartesi 22:00'de Pazar planına dönüşür. Plan gün bölümlüdür, saatli değildir. İki bölüm: Öğle (12:00-17:00) ve Akşam (18:00-24:00). Sabah bölümü yok. Uyku saati tanımı bu aralıkları kısaltır. Uyku saatine denk gelse de hazırlanır. Resmi tatil ve izinlerden önceki akşam da hazırlanır. Plan hafta sonu boyunca ana sayfada kalır.
 - Tarih hatırlatması: kullanıcı not içinde hatırlatma seçmediyse hatırlatma yoktur. Seçtiyse ne zaman hatırlatılacağını da kendisi seçer. Hazır seçenekler: 5 dk önce, 30 dk önce, 1 saat önce, 1 gün önce, 1 hafta önce, aynı gün sabah 09:00. Serbest tarih/saat de seçilebilir. Günlük 3 öneri sınırına dahil değildir.
 - Sessiz saatler: ayrı sessiz mod yok, uyku/mesai tanımı ve takvim doluluğu yeter.
 
@@ -109,13 +113,9 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - İkon: piksel art tarzında düşünce balonu, sıcak turuncu zemin, içinde küçük bir ampul.
 
 ## 11. Açık sorular
-- Paylaş menüsünden gelen notların doğrudan kaydedilip onay bekleyenlere düşmesi (kullanıcı onayı).
-- Durum listesi onayı, "Yapılıyor"daki notların önerilip önerilmeyeceği, "yaptın mı?" sorusunun bildirim olup olmadığı ve günlük 3 sınırına dahil olup olmadığı.
-- Kategoriye özel alanlar: Kitap, Oyun, Tez için hangi alanlar.
-- İş konumuna varışta gecikme, hafta sonu işe gidilen günün mesai saati.
-- Hafta sonu planındaki gün bölümlerinin saatleri.
-- Tüm gün etkinliklerin doluluk olarak ayırt edilme yöntemi (Meşgul/Müsait).
-- Widget'a ek kısayollar (hızlı ayar kutucuğu, uygulama kısayolları).
+- Fiyat ve satın alma araması (3b): ne zaman çalışacağı, hangi mağazalar ve platformlar, doğruluk sınırı, ek maliyet.
+- Hafta sonu planında 17:00-18:00 arasının boş kalıp kalmayacağı.
+- İş konumuna varış gecikmesinin ("yarım saat") nasıl yorumlanacağı (kullanıcı onayı).
 
 ## 12. Sonra konuşulacak
 Benzer uygulamalardan öneriler (Claude tekrar sunacak): "Şu an boşum" butonu, eski notları yoklama, "kim önerdi" alanı, dizi/film bilgisi, yedek, esnek plan, büyüyen sahne, enerji etiketi, doğal dille arama, 2 dakika kuralı.
