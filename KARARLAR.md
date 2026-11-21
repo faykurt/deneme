@@ -10,7 +10,8 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Flutter, sadece Android. Cihaz: Samsung A52, Android 14. Tek cihaz.
 - Karar: GitHub Actions ile APK derlenir. Kod GitHub'a pushlanır, GitHub APK'yı derleyip Release olarak yayınlar, telefona APK ile kurulur. Güncelleme için Obtainium önerildi. Aynı imza anahtarı kullanılacak ki güncelleme veriyi silmesin.
 - Tüm süreç (ilk kurulum dahil) telefondan yürütülecek, bilgisayar kullanılmayacak. Kullanıcı her güncellemeyi telefondan Claude'a anlatır.
-- Depo `faykurt/deneme` şu an **public**. İmza anahtarı depoya konmaz, GitHub Secrets'a eklenir (telefon tarayıcısından, masaüstü site modunda).
+- Depo `faykurt/deneme` **private** olacak (kullanıcı kararı; ayarı kullanıcı kendisi GitHub Settings'ten yapar, Claude yapamaz). İmza anahtarı depoya konmaz, GitHub Secrets'a eklenir (telefon tarayıcısından, masaüstü site modunda).
+- Private depoda APK'yı indirmek için GitHub'a giriş yapılmış tarayıcı gerekir. Obtainium kullanılacaksa salt-okunur bir erişim anahtarı (token) kurulumu gerekir; kurulum aşamasında karara bağlanacak.
 - Veri ilk aşamada sadece telefonda (yedek sonradan eklenebilir).
 
 ## 3. Not alma
@@ -53,7 +54,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Öneri seçenekleri: Yaptım (tamamlanmış olarak arşive gider, silinmez), Sonra hatırlat (sabit 1 gün sonra), Sil (notu tamamen siler).
 - Reddedilen türler zamanla daha az önerilir.
 - Hafta sonu özeti: Cuma 22:00 (cumartesi için), Cumartesi 22:00 (pazar için). İlgili günün planı hafta sonu boyunca ana sayfada kalır.
-- Tarih hatırlatması: kullanıcı not içinde hatırlatma seçmediyse hatırlatma yoktur. Seçtiyse ne zaman hatırlatılacağını da kendisi seçer, uygulama o zamanda hatırlatır. Zaman seçimi hem hazır seçeneklerle (örn. 1 saat önce, 1 gün önce, 1 hafta önce) hem serbest tarih/saatle yapılabilir. Günlük 3 öneri sınırına dahil değildir.
+- Tarih hatırlatması: kullanıcı not içinde hatırlatma seçmediyse hatırlatma yoktur. Seçtiyse ne zaman hatırlatılacağını da kendisi seçer, uygulama o zamanda hatırlatır. Zaman seçimi hem hazır seçeneklerle (5 dk önce, 30 dk önce, 1 saat önce, 1 gün önce, 1 hafta önce, aynı gün sabah 09:00) hem serbest tarih/saatle yapılabilir. Günlük 3 öneri sınırına dahil değildir.
 - Sessiz saatler: ayrı sessiz mod yok, uyku/mesai tanımı ve takvim doluluğu yeter.
 
 ## 8. Ekranlar
@@ -84,10 +85,9 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Ses tanıma: Android'in kendi özelliği (API ücreti yok).
 - İnternet yokken not kaydedilir, işleme bağlantı gelince yapılır.
 
-## 10. Adı
-**Aklımda**
+## 10. Adı ve ikon
+- Ad: **Aklımda**
+- İkon: düşünce balonu (sıcak turuncu zemin, içinde küçük bir yıldız veya ampul; son hali üretim aşamasında netleşir).
 
 ## 11. Açık konular
-- Uygulama ikonu: Claude birkaç seçenek önerecek, kullanıcı seçecek.
-- Depo public kalacak mı, private mı yapılacak (Obtainium ve indirme erişimini etkiler).
-- Hazır hatırlatma seçeneklerinin tam listesi.
+- Yok. Tasarım kararları tamamlandı. Kod yazımı kullanıcı "yap" diyene kadar başlamaz.
