@@ -45,13 +45,13 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 ## 7. Öneri ve hatırlatma
 - Zamanlama karma: kategori başına saat aralıkları (uygulama başta önerir, kullanıcı onaylar/düzenler), uygulama aralık içinde takvimde boş olan en uygun anı seçer. Örnek: hobi mesai/uyku saatinde gelmez, tez kullanıcının belirlediği saatlerde gelir.
 - Konuma göre tetikleme: sadece ev ve iş yeri. İş notları işteyken, diğerleri evdeyken önerilir. Saat konumdan önceliklidir. "Her zaman konum izni" verilecek.
-- Sıklık: günde en fazla 3 öneri bildirimi (hafta sonu biraz fazla, üst sınır ayrıca kararlaştırılmadı — aşağıda açık konularda).
+- Sıklık: günde en fazla 3 öneri bildirimi, hafta içi ve hafta sonu aynı.
 - Bildirimde tek öneri vardır, bildirim üzerinde buton yoktur, dokununca uygulama açılır. Ana sayfada 2-3 öneri gösterilir.
 - Öneri seçimi: boşluk süresine uyum, bekleme süresi, yaklaşan tarih ve önceki reddetmeler dengeli kullanılır.
 - Öneri seçenekleri: Yaptım (tamamlanmış olarak arşive gider, silinmez), Sonra hatırlat (sabit 1 gün sonra), Sil (notu tamamen siler).
 - Reddedilen türler zamanla daha az önerilir.
 - Hafta sonu özeti: Cuma 22:00 (cumartesi için), Cumartesi 22:00 (pazar için). İlgili günün planı hafta sonu boyunca ana sayfada kalır.
-- Tarih hatırlatması: kullanıcı not başına hatırlatma seçer (örn. 1 gün önce, 1 hafta önce). Günlük 3 öneri sınırına dahil değildir.
+- Tarih hatırlatması: kullanıcı not içinde hatırlatma seçmediyse hatırlatma yoktur. Seçtiyse ne zaman hatırlatılacağını da kendisi seçer, uygulama o zamanda hatırlatır. Günlük 3 öneri sınırına dahil değildir.
 - Sessiz saatler: ayrı sessiz mod yok, uyku/mesai tanımı ve takvim doluluğu yeter.
 
 ## 8. Ekranlar
@@ -59,6 +59,18 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Ana sayfa (sade): bugünün takvimi, 2-3 öneri, hafta sonu önerileri (hafta sonu planı), hızlı sesli/yazılı not alanı.
 - Notlar: klasör görünümü (varsayılan) ve liste görünümü (arama, sıralama). Arşiv, Notlar sekmesinde ayrı bir bölüm.
 - Dil: Türkçe. Özel isimler (film, mekan, uygulama adı) çevrilmez.
+
+## 8b. Tema ve görsel (ilk sürüm)
+- Açık temayla başlanır. Koyu tema ve telefona göre otomatik seçenek sonraya kalır.
+- Ana sayfada arka planda piksel art bir görsel olur, kartlar/pencereler onun üzerinde durur. Görselleri Claude kodla hazırlar (basit/sade kalite, sonra hazır görselle değiştirilebilir).
+- 3 görsel: sabah, öğle, akşam. Saate göre otomatik geçer. Konu: doğa temalı, sıcak tonlar.
+- Diğer ekranlar (Takvim, Notlar, Ayarlar): sade arka plan, ana sayfadaki görseli kullanmaz.
+- Etkileşimli sahne, sana benzeyen karakter, animasyonlar (kahve dumanı, ışık huzmesi, sesli not sırasında yazma animasyonu vb.), ambiyans sesi: 2. ve 3. sürümlerde detaylarıyla kararlaştırılacak.
+
+## 8c. Ayarlar
+- Ev ve iş yeri konumları Ayarlar'dan girilir.
+- Başlangıç kategorilerini uygulama önerir, kullanıcı onaylar/düzenler.
+- Uyku/mesai saatleri, kategori başı öneri saat aralıkları, izin günleri, API anahtarı Ayarlar'dadır.
 
 ## 9. Yapay zeka ve teknik
 - Anthropic API kullanılacak (kategori, adım çıkarma, tarih tanıma, görsel okuma). Ücretli, kullandığın kadar öde, Claude üyeliğinden ayrı. Kullanıcı bunu kabul etti.
@@ -71,9 +83,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 **Aklımda**
 
 ## 11. Açık konular
-- Tema ve görünüm (kullanıcı sonra anlatacak), açık/koyu/otomatik tercihi.
 - Uygulama ikonu.
-- Hafta sonu günlük bildirim üst sınırı (kaç tane).
-- Tarih hatırlatma seçeneklerinin tam listesi (1 gün önce, 1 hafta önce dışında: aynı gün sabah, saat önce vb.).
-- GitHub Actions + APK yolunun açık onayı.
-- Başlangıç kategori listesi ve ev/iş konumlarının nasıl girileceği (ayarlarda).
+- Sabah/öğle/akşam görsellerinin saat sınırları ve gece saatlerinde hangi görselin kullanılacağı.
+- GitHub Actions + APK yolunun açık onayı (alternatifler tartışılıyor).
+- Not başına hatırlatma seçenekleri: zaman seçiminin biçimi (hazır seçenekler mi, serbest tarih/saat mi).
