@@ -73,7 +73,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Öneriyi **yapay zeka** seçer (kural tabanlı değil, çünkü kurallar hep aynı sonucu verir). Günlük öneriler ve hafta sonu planı yapay zeka tarafından hazırlanır.
 - Mekanizma (onaylandı): telefon günde birkaç kez (gün bölümü başlarında ve uygulama açılınca) yapay zekadan bir öneri paketi alır (bildirim önerileri + ana sayfa önerileri). Bildirimler bu paketten telefonda zamanlanır. İnternet yoksa son paket kullanılır. Takvim ya da notlar değişirse uygulama açılınca paket yenilenir. Bildirim anında yapay zeka çağrılmaz (maliyet ve arka plan güvenilirliği için).
 - Zamanlama karma: kategori başına saat aralıkları (uygulama başta önerir, kullanıcı onaylar/düzenler), uygulama aralık içinde takvimde boş olan en uygun anı seçer.
-- Konum tetikleme ilk sürümde yok (Samsung'un pil yönetimi nedeniyle güvenilmez olabilir, sonraya ertelendi). İş notları kullanıcının tanımladığı mesai aralığında önerilir, mesai bittikten sonra gelmez. Hafta sonu ve izin günlerinde iş notu önerilmez. Diğer notlar kategori saat aralıklarına göre gelir.
+- Konum tetikleme ilk sürümde yok (Samsung'un pil yönetimi nedeniyle güvenilmez olabilir, sonraya ertelendi). İş notları, kullanıcının takvimde iş için kapattığı bloğun içinde önerilir (bloğun nasıl tanınacağı açık soru), blok dışında gelmez. Hafta sonu ve izin günlerinde iş notu önerilmez. Diğer notlar kategori saat aralıklarına göre gelir.
 - Sıklık: günde en fazla 3 öneri bildirimi, hafta içi ve hafta sonu aynı (Ayarlar'dan değiştirilebilir). "Sonra hatırlat"la ertelenenler de bu 3'e dahildir. Bildirim hakkı, yapılma olasılığı en yüksek önerilere verilir. Ertelenenler birikip bildirim sayısını şişirmez.
 - Bildirim metni belirli bir öneri ("şunu yapmak ister misin?") ya da genel ("önerilerine bak") olabilir. Bildirimde aksiyon butonu yoktur.
 - Öğrenme sinyali: bir notun art arda üç kez ertelenmesi ve bildirime hiç dokunulmaması. Yapay zeka bu sinyallerle ilgili türü daha seyrek önerir.
@@ -119,8 +119,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - İkon: piksel art tarzında düşünce balonu, sıcak turuncu zemin, içinde küçük bir ampul.
 
 ## 11. Açık sorular
-- İş notlarının mesai aralığında önerilmesinde, kullanıcının takvimde "iş" için kapattığı bloğun dolu sayılıp sayılmayacağı.
-- İlk sürümden çıkarılması önerilen maddelerin onayı (TODO.md).
+- İş bloğunun takvimde nasıl tanınacağı ve Ayarlar'daki mesai tanımının bundan sonra ne olacağı.
 
 ## 12. Sürüm planı ve geliştirme fikirleri
 Benzer uygulamalardan gelen öneriler. Sürüm planı kullanıcı tarafından onaylandı.

@@ -4,9 +4,9 @@ Tasarımın tamamı `KARARLAR.md` dosyasında. Burası ilk sürümde olmayan, so
 
 ## İlk sürümden çıkarıldı (onaylandı)
 - Fiyat ve satın alma araması (Kitap/Oyun, "Nerede bulurum?"). Tasarımı `KARARLAR.md` 3b'de.
-- Konum tetikleme: ev ve iş konumu, haritadan seçme. (İş notları ilk sürümde mesai saatine göre gelir.)
+- Konum tetikleme: ev ve iş konumu, haritadan seçme. (İş notları ilk sürümde takvimdeki iş bloğunda gelir.)
 
-## İlk sürümden çıkarılması önerilenler (kullanıcı onayı bekliyor)
+## İlk sürümden çıkarıldı, ikinci grup (onaylandı)
 İlk sürümde yerine ne olacağı yanında yazıyor.
 - Kategoriye özel alanlar (dizi/film, tarif): not metni ve kategori yeter.
 - Tekrarlayan notlar: tekrar sadece takvim etkinliklerinde.
