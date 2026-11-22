@@ -59,3 +59,8 @@ Onaylanan tasarım `KARARLAR.md` bölüm 7'de. Özet ve teknik notlar:
 - Kullanıcının İlk sürüm ekleri: "Şu an ne yapabilirim?", eski notları yoklama ve "Uzun zamandır dokunulmayanlar" bölümü `TODO.md`'de ertelenenler arasında olabilir; `KARARLAR.md` bölüm 12 ve `TODO.md` ile birlikte kontrol et.
 - Yapay zeka maliyeti: kullanıcının konsolda $5 kredisi var, otomatik yükleme kapalı. Harcama sayacı Ayarlar'da. Gerçek maliyeti kullanıcıdan "Spend this month" rakamıyla doğrula.
 - Eski kararlardan değişenler: Notlar varsayılan **liste**; not kaydedilince onay penceresi **açılmaz** (sadece "Kaydedildi" + "Şimdi analiz et"); ay görünümü tam sayfa; yapay zeka saatli çalışır; model otomatik seçilir (Ayarlar'da model/efor seçeneği yok).
+
+## Güncelleme: Görünüm (v0.4.15)
+- `Renk` (lib/ortak.dart) artık sabit değil, tema duyarlı getter'lar: `vurgu`, `vurguUstu`, `zemin`, `kart`, `yazi`, `hata`, `sinir`, `vurguKart()`. Eski adlar (turuncu/krem/kahve/acikKrem) kalktı. `const` ile kullanılamaz.
+- `lib/tema.dart`: `TemaAyari` (koyu varsayılan, shared_preferences `tema_koyu`); değişince tüm element ağacı `markNeedsBuild` ile yenilenir.
+- `lib/ekranlar/piksel_sahne.dart`: `SahneBolumu` + `PikselSahne` (CustomPainter, 36 sütunluk ızgara).

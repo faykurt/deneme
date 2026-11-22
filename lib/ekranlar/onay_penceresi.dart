@@ -17,7 +17,7 @@ Future<void> onayPenceresiAc(String notId, {bool canli = false}) async {
     context: ctx,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: Renk.krem,
+    backgroundColor: Renk.zemin,
     constraints: BoxConstraints(
       maxHeight: MediaQuery.of(ctx).size.height * 0.92,
     ),
@@ -235,14 +235,14 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
             children: [
               Icon(
                 hata == null ? Icons.check_circle : Icons.cloud_off,
-                color: Renk.turuncu,
+                color: Renk.vurgu,
                 size: 28,
               ),
               const SizedBox(width: 10),
               Text(
                 'Not kaydedildi',
                 style: yazi.titleLarge?.copyWith(
-                  color: Renk.kahve,
+                  color: Renk.yazi,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -252,14 +252,14 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
           Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              color: Renk.acikKrem,
+              color: Renk.kart,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
               n.metin.isEmpty ? '(fotoğraflı not)' : n.metin,
               maxLines: 6,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Renk.kahve),
+              style: TextStyle(color: Renk.yazi),
             ),
           ),
           const SizedBox(height: 16),
@@ -281,7 +281,7 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
                   ? '${hata.mesaj}\nNot güvende, işlenince burada onayını bekleyecek.'
                   : 'Yapay zeka sırada, biraz sonra düzenleyecek.',
               style: TextStyle(
-                color: hata != null ? Colors.red.shade800 : Renk.kahve,
+                color: hata != null ? Renk.hata : Renk.yazi,
               ),
             ),
           const SizedBox(height: 16),
@@ -311,13 +311,13 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
         children: [
           Row(
             children: [
-              const Icon(Icons.auto_awesome, color: Renk.turuncu),
+              Icon(Icons.auto_awesome, color: Renk.vurgu),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
                   n.onayli ? 'Notun' : 'Yapay zekanın önerisi',
                   style: yazi.titleLarge?.copyWith(
-                    color: Renk.kahve,
+                    color: Renk.yazi,
                     fontWeight: FontWeight.w600,
                   ),
                 ),
@@ -328,21 +328,21 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
           Container(
             padding: const EdgeInsets.all(12),
             decoration: BoxDecoration(
-              color: Renk.acikKrem,
+              color: Renk.kart,
               borderRadius: BorderRadius.circular(14),
             ),
             child: Text(
               n.metin.isEmpty ? '(fotoğraflı not)' : n.metin,
               maxLines: 5,
               overflow: TextOverflow.ellipsis,
-              style: const TextStyle(color: Renk.kahve),
+              style: TextStyle(color: Renk.yazi),
             ),
           ),
           if (coklu) ...[
             const SizedBox(height: 14),
             Card(
               elevation: 0,
-              color: Renk.turuncu.withValues(alpha: 0.14),
+              color: Renk.vurgu.withValues(alpha: 0.14),
               child: Padding(
                 padding: const EdgeInsets.all(14),
                 child: Column(
@@ -388,7 +388,7 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
               decoration: InputDecoration(
                 labelText: 'Başlık',
                 filled: true,
-                fillColor: Renk.acikKrem,
+                fillColor: Renk.kart,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -432,7 +432,7 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
                 child: Text(
                   'Uygun bir kategori bulunamadı, istersen sen seç.',
                   style: yazi.bodySmall?.copyWith(
-                    color: Renk.kahve.withValues(alpha: 0.7),
+                    color: Renk.yazi.withValues(alpha: 0.7),
                   ),
                 ),
               ),
@@ -443,7 +443,7 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
               decoration: InputDecoration(
                 labelText: 'Tahmini süre (dakika)',
                 filled: true,
-                fillColor: Renk.acikKrem,
+                fillColor: Renk.kart,
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(14),
                 ),
@@ -476,7 +476,7 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
               const SizedBox(height: 16),
               Card(
                 elevation: 0,
-                color: Renk.turuncu.withValues(alpha: 0.12),
+                color: Renk.vurgu.withValues(alpha: 0.12),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(
@@ -510,11 +510,11 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
                             contentPadding: EdgeInsets.zero,
                             leading: CircleAvatar(
                               radius: 12,
-                              backgroundColor: Renk.turuncu,
+                              backgroundColor: Renk.vurgu,
                               child: Text(
                                 '${i + 1}',
-                                style: const TextStyle(
-                                  color: Colors.white,
+                                style: TextStyle(
+                                  color: Renk.vurguUstu,
                                   fontSize: 12,
                                 ),
                               ),

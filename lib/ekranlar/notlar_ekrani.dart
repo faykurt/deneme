@@ -21,7 +21,7 @@ class _NotlarEkraniState extends State<NotlarEkrani> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Renk.krem,
+        backgroundColor: Renk.zemin,
         title: const Text('Notlar'),
         actions: [
           IconButton(
@@ -120,9 +120,9 @@ class _KlasorSatiri extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => ListTile(
-        leading: Icon(ikon, color: Renk.turuncu),
-        title: Text(ad, style: const TextStyle(color: Renk.kahve, fontWeight: FontWeight.w500)),
-        trailing: Text('$sayi', style: TextStyle(color: Renk.kahve.withValues(alpha: 0.6))),
+        leading: Icon(ikon, color: Renk.vurgu),
+        title: Text(ad, style: TextStyle(color: Renk.yazi, fontWeight: FontWeight.w500)),
+        trailing: Text('$sayi', style: TextStyle(color: Renk.yazi.withValues(alpha: 0.6))),
         onTap: onTap,
       );
 }
@@ -136,7 +136,7 @@ class _KlasorSayfasi extends StatelessWidget {
   Widget build(BuildContext context) {
     final depo = Depo.instance;
     return Scaffold(
-      appBar: AppBar(backgroundColor: Renk.krem, title: Text(depo.agac.tamAd(kategori.id))),
+      appBar: AppBar(backgroundColor: Renk.zemin, title: Text(depo.agac.tamAd(kategori.id))),
       body: ListenableBuilder(
         listenable: depo,
         builder: (context, _) {
@@ -169,7 +169,7 @@ class _ListeSayfasi extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        appBar: AppBar(backgroundColor: Renk.krem, title: Text(baslik)),
+        appBar: AppBar(backgroundColor: Renk.zemin, title: Text(baslik)),
         body: NotListesi(kaynak: kaynak, arsivMi: arsivMi),
       );
 }
@@ -239,7 +239,7 @@ class _NotListesiState extends State<NotListesi> {
           children: [
             if (_secimModu)
               Material(
-                color: Renk.turuncu.withValues(alpha: 0.18),
+                color: Renk.vurgu.withValues(alpha: 0.18),
                 child: Row(children: [
                   IconButton(icon: const Icon(Icons.close), onPressed: () => setState(_secili.clear)),
                   Text('${_secili.length} seçili'),
@@ -286,7 +286,7 @@ class _NotListesiState extends State<NotListesi> {
                         prefixIcon: const Icon(Icons.search),
                         isDense: true,
                         filled: true,
-                        fillColor: Renk.acikKrem,
+                        fillColor: Renk.kart,
                         border: OutlineInputBorder(borderRadius: BorderRadius.circular(24)),
                       ),
                     ),
@@ -314,7 +314,7 @@ class _NotListesiState extends State<NotListesi> {
                       child: Text(
                         _arama.isEmpty ? 'Burada henüz not yok.' : 'Aramaya uyan not bulunamadı.',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Renk.kahve.withValues(alpha: 0.6)),
+                        style: TextStyle(color: Renk.yazi.withValues(alpha: 0.6)),
                       ),
                     ),
                   for (final n in notlar)

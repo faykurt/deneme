@@ -107,7 +107,7 @@ class IzinGunleriEkrani extends StatelessWidget {
       builder: (context, _) {
         final gunler = ayar.izinGunleri.toList()..sort();
         return Scaffold(
-          appBar: AppBar(backgroundColor: Renk.krem, title: const Text('İzin günleri')),
+          appBar: AppBar(backgroundColor: Renk.zemin, title: const Text('İzin günleri')),
           floatingActionButton: FloatingActionButton.extended(
             onPressed: () async {
               final simdi = DateTime.now();
@@ -130,7 +130,7 @@ class IzinGunleriEkrani extends StatelessWidget {
                     child: Text(
                       'Henüz izin günü eklemedin.\nİzin günleri hafta sonu gibi sayılır: iş notu önerilmez.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Renk.kahve.withValues(alpha: 0.7)),
+                      style: TextStyle(color: Renk.yazi.withValues(alpha: 0.7)),
                     ),
                   ),
                 )

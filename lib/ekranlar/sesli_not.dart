@@ -151,7 +151,7 @@ class _SesliNotEkraniState extends State<SesliNotEkrani> {
     final yazi = Theme.of(context).textTheme;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Renk.krem,
+        backgroundColor: Renk.zemin,
         leading: IconButton(icon: const Icon(Icons.close), onPressed: _iptal, tooltip: 'İptal'),
         title: const Text('Sesli not'),
       ),
@@ -166,19 +166,19 @@ class _SesliNotEkraniState extends State<SesliNotEkrani> {
                 width: _dinliyor ? 120 : 100,
                 height: _dinliyor ? 120 : 100,
                 decoration: BoxDecoration(
-                  color: _hata != null ? Colors.grey : Renk.turuncu,
+                  color: _hata != null ? Colors.grey : Renk.vurgu,
                   shape: BoxShape.circle,
                   boxShadow: _dinliyor
-                      ? [BoxShadow(color: Renk.turuncu.withValues(alpha: 0.4), blurRadius: 30, spreadRadius: 8)]
+                      ? [BoxShadow(color: Renk.vurgu.withValues(alpha: 0.4), blurRadius: 30, spreadRadius: 8)]
                       : null,
                 ),
-                child: const Icon(Icons.mic, color: Colors.white, size: 56),
+                child: Icon(Icons.mic, color: Renk.vurguUstu, size: 56),
               ),
               const SizedBox(height: 16),
               Text(
                 _hata ?? (_dinliyor ? 'Dinliyorum… Bitince "Bitir"e bas.' : 'Hazırlanıyor…'),
                 textAlign: TextAlign.center,
-                style: yazi.titleSmall?.copyWith(color: _hata != null ? Colors.red.shade800 : Renk.kahve),
+                style: yazi.titleSmall?.copyWith(color: _hata != null ? Renk.hata : Renk.yazi),
               ),
               const SizedBox(height: 20),
               Expanded(
@@ -186,22 +186,22 @@ class _SesliNotEkraniState extends State<SesliNotEkrani> {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Renk.acikKrem,
+                    color: Renk.kart,
                     borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: const Color(0x22000000)),
+                    border: Border.all(color: Renk.sinir),
                   ),
                   child: SingleChildScrollView(
                     reverse: true,
                     child: Text.rich(TextSpan(children: [
-                      TextSpan(text: _kesinlesen, style: const TextStyle(color: Renk.kahve)),
+                      TextSpan(text: _kesinlesen, style: TextStyle(color: Renk.yazi)),
                       if (_parca.isNotEmpty)
                         TextSpan(
                             text: '${_kesinlesen.isEmpty ? '' : ' '}$_parca',
-                            style: TextStyle(color: Renk.kahve.withValues(alpha: 0.55))),
+                            style: TextStyle(color: Renk.yazi.withValues(alpha: 0.55))),
                       if (_tumMetin.isEmpty)
                         TextSpan(
                             text: 'Konuştukların burada yazıya dönüşecek.',
-                            style: TextStyle(color: Renk.kahve.withValues(alpha: 0.4))),
+                            style: TextStyle(color: Renk.yazi.withValues(alpha: 0.4))),
                     ]), style: yazi.titleMedium),
                   ),
                 ),

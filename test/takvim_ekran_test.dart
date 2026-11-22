@@ -32,7 +32,7 @@ class _SahtePathProvider extends PathProviderPlatform with MockPlatformInterface
 Widget _sar(Widget w) => MaterialApp(
       navigatorKey: navigatorKey,
       locale: const Locale('tr'),
-      theme: ThemeData(scaffoldBackgroundColor: Renk.krem),
+      theme: ThemeData(scaffoldBackgroundColor: Renk.zemin),
       home: w,
     );
 

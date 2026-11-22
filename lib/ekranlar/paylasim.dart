@@ -40,7 +40,7 @@ Future<void> paylasimiIsle(List<SharedMediaFile> dosyalar) async {
   await showModalBottomSheet<void>(
     context: ctx,
     isScrollControlled: true,
-    backgroundColor: Renk.krem,
+    backgroundColor: Renk.zemin,
     builder: (_) => _KaydedildiPenceresi(not: not),
   );
 }
@@ -94,11 +94,11 @@ class _KaydedildiPenceresiState extends State<_KaydedildiPenceresi> {
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          const Row(children: [
-            Icon(Icons.check_circle, color: Renk.turuncu, size: 28),
+          Row(children: [
+            Icon(Icons.check_circle, color: Renk.vurgu, size: 28),
             SizedBox(width: 10),
             Text('Aklımda\'ya kaydedildi',
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Renk.kahve)),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: Renk.yazi)),
           ]),
           const SizedBox(height: 14),
           TextField(
@@ -108,7 +108,7 @@ class _KaydedildiPenceresiState extends State<_KaydedildiPenceresi> {
             decoration: InputDecoration(
               hintText: 'İstersen kısa bir yorum ekle',
               filled: true,
-              fillColor: Renk.acikKrem,
+              fillColor: Renk.kart,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             ),
             onSubmitted: (_) => _bitir(),

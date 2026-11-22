@@ -16,7 +16,7 @@ Future<void> yaziliNotAc({bool kameraIleBasla = false}) async {
     context: ctx,
     isScrollControlled: true,
     showDragHandle: true,
-    backgroundColor: Renk.krem,
+    backgroundColor: Renk.zemin,
     builder: (_) => _YaziliNotPenceresi(kameraIleBasla: kameraIleBasla),
   );
   if (not != null) await kayitSonrasi(not);
@@ -94,7 +94,7 @@ class _YaziliNotPenceresiState extends State<_YaziliNotPenceresi> {
             decoration: InputDecoration(
               hintText: 'Aklında ne var?',
               filled: true,
-              fillColor: Renk.acikKrem,
+              fillColor: Renk.kart,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16)),
             ),
           ),

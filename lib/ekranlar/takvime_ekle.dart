@@ -46,17 +46,17 @@ Future<void> takvimeEkle(BuildContext context, Not not) async {
   final secim = await showModalBottomSheet<String>(
     context: context,
     showDragHandle: true,
-    backgroundColor: Renk.krem,
+    backgroundColor: Renk.zemin,
     builder: (ctx) => SafeArea(
       child: Column(mainAxisSize: MainAxisSize.min, children: [
         ListTile(
-          leading: const Icon(Icons.edit_calendar, color: Renk.turuncu),
+          leading: Icon(Icons.edit_calendar, color: Renk.vurgu),
           title: const Text('Kendim seçeyim'),
           subtitle: const Text('Takvim ekranı açılır, günü ve saati sen belirlersin.'),
           onTap: () => Navigator.pop(ctx, 'kendim'),
         ),
         ListTile(
-          leading: const Icon(Icons.auto_awesome, color: Renk.turuncu),
+          leading: Icon(Icons.auto_awesome, color: Renk.vurgu),
           title: const Text('Otomatik öner'),
           subtitle: const Text('Uygun boş bir zamanı uygulama bulur, sonra değiştirebilirsin.'),
           onTap: () => Navigator.pop(ctx, 'otomatik'),

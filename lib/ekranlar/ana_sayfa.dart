@@ -6,6 +6,7 @@ import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'kayit_sonrasi.dart';
+import 'piksel_sahne.dart';
 import 'onay_bekleyenler.dart';
 import 'sesli_not.dart';
 import 'yaptin_mi.dart';
@@ -18,8 +19,27 @@ class AnaSayfa extends StatefulWidget {
   State<AnaSayfa> createState() => _AnaSayfaState();
 }
 
-class _AnaSayfaState extends State<AnaSayfa> {
+class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
   final _hizliNot = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _hizliNot.dispose();
+    super.dispose();
+  }
+
+  // Uygulamaya dönülünce gün bölümü (sabah/öğle/akşam) değişmiş olabilir.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed && mounted) setState(() {});
+  }
 
   String get _selam {
     final s = DateTime.now().hour;
@@ -42,20 +62,31 @@ class _AnaSayfaState extends State<AnaSayfa> {
   Widget build(BuildContext context) {
     final yazi = Theme.of(context).textTheme;
     return Scaffold(
-      body: SafeArea(
+      body: Stack(children: [
+        Positioned.fill(child: PikselSahne(bolum: SahneBolumu.simdi())),
+        SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
           children: [
-            Text(_selam, style: yazi.headlineMedium?.copyWith(color: Renk.kahve, fontWeight: FontWeight.bold)),
-            const SizedBox(height: 4),
-            Text('Aklındakileri buraya bırak.', style: yazi.bodyLarge?.copyWith(color: Renk.kahve)),
+            Container(
+              padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
+              decoration: BoxDecoration(
+                color: Renk.kart.withValues(alpha: 0.9),
+                borderRadius: BorderRadius.circular(20),
+              ),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text(_selam, style: yazi.headlineMedium?.copyWith(color: Renk.yazi, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 2),
+                Text('Aklındakileri buraya bırak.', style: yazi.bodyLarge?.copyWith(color: Renk.yazi)),
+              ]),
+            ),
             const SizedBox(height: 20),
             Container(
               padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
               decoration: BoxDecoration(
-                color: Renk.acikKrem,
+                color: Renk.kart.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(28),
-                border: Border.all(color: Renk.turuncu.withValues(alpha: 0.5)),
+                border: Border.all(color: Renk.vurgu.withValues(alpha: 0.5)),
               ),
               child: Row(children: [
                 Expanded(
@@ -87,12 +118,12 @@ class _AnaSayfaState extends State<AnaSayfa> {
                     padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
                     child: Card(
                       elevation: 0,
-                      color: Colors.white,
+                      color: Renk.kart,
                       shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(16),
-                          side: BorderSide(color: Renk.turuncu.withValues(alpha: 0.4))),
+                          side: BorderSide(color: Renk.vurgu.withValues(alpha: 0.4))),
                       child: ListTile(
-                        leading: const Icon(Icons.key, color: Renk.turuncu),
+                        leading: Icon(Icons.key, color: Renk.vurgu),
                         title: const Text('Yapay zekayı aç'),
                         subtitle: const Text('Notların kendiliğinden düzenlenmesi için anahtarını ekle.'),
                         trailing: const Icon(Icons.chevron_right),
@@ -105,7 +136,7 @@ class _AnaSayfaState extends State<AnaSayfa> {
                   return Padding(
                     padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
                     child: Text(hata.mesaj,
-                        style: TextStyle(color: Colors.red.shade800, fontSize: 13)),
+                        style: TextStyle(color: Renk.hata, fontSize: 13)),
                   );
                 }
                 return const SizedBox.shrink();
@@ -114,7 +145,7 @@ class _AnaSayfaState extends State<AnaSayfa> {
             const SizedBox(height: 24),
             Card(
               elevation: 0,
-              color: Renk.turuncu.withValues(alpha: 0.12),
+              color: Renk.vurguKart(0.14),
               shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
               child: Padding(
                 padding: const EdgeInsets.all(20),
@@ -125,7 +156,7 @@ class _AnaSayfaState extends State<AnaSayfa> {
                     child: Text(
                       'Önerilerin ve bugünün takvimi yakında burada olacak. '
                       'Şimdilik aklına geleni kaydetmeye başlayabilirsin.',
-                      style: yazi.bodyMedium?.copyWith(color: Renk.kahve),
+                      style: yazi.bodyMedium?.copyWith(color: Renk.yazi),
                     ),
                   ),
                 ]),
@@ -136,16 +167,25 @@ class _AnaSayfaState extends State<AnaSayfa> {
               listenable: Depo.instance,
               builder: (context, _) {
                 final sayi = Depo.instance.aktifNotlar.length;
-                return Text(
-                  sayi == 0 ? 'Henüz notun yok.' : 'Aklımda\'da $sayi notun var.',
-                  textAlign: TextAlign.center,
-                  style: yazi.bodySmall?.copyWith(color: Renk.kahve.withValues(alpha: 0.6)),
+                return Center(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: Renk.kart.withValues(alpha: 0.9),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Text(
+                      sayi == 0 ? 'Henüz notun yok.' : 'Aklımda\'da $sayi notun var.',
+                      style: yazi.bodySmall?.copyWith(color: Renk.yazi.withValues(alpha: 0.75)),
+                    ),
+                  ),
                 );
               },
             ),
           ],
         ),
-      ),
+        ),
+      ]),
     );
   }
 }

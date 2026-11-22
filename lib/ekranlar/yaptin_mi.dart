@@ -64,22 +64,22 @@ class _YaptinMiKartlariState extends State<YaptinMiKartlari> {
               padding: const EdgeInsets.only(top: 12),
               child: Card(
                 elevation: 0,
-                color: Colors.white,
+                color: Renk.kart,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
-                  side: BorderSide(color: Renk.turuncu.withValues(alpha: 0.4)),
+                  side: BorderSide(color: Renk.vurgu.withValues(alpha: 0.4)),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(14),
                   child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    const Text('Yaptın mı?', style: TextStyle(color: Renk.turuncu, fontWeight: FontWeight.w600)),
+                    Text('Yaptın mı?', style: TextStyle(color: Renk.vurgu, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     InkWell(
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NotDetay(notId: n.id))),
                       child: Text(n.gorunenBaslik,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(color: Renk.kahve, fontSize: 16, fontWeight: FontWeight.w600)),
+                          style: TextStyle(color: Renk.yazi, fontSize: 16, fontWeight: FontWeight.w600)),
                     ),
                     const SizedBox(height: 10),
                     Wrap(spacing: 8, runSpacing: 4, children: [

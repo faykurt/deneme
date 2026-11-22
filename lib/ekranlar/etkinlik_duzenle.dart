@@ -249,7 +249,7 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(children: [
-        SizedBox(width: 62, child: Text(etiket, style: const TextStyle(color: Renk.kahve))),
+        SizedBox(width: 62, child: Text(etiket, style: TextStyle(color: Renk.yazi))),
         Expanded(
           flex: 3,
           child: OutlinedButton(
@@ -276,7 +276,7 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
     final ozel = _tekrar == TekrarTuru.ozel;
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Renk.krem,
+        backgroundColor: Renk.zemin,
         title: Text(_yeni ? 'Yeni etkinlik' : 'Etkinlik'),
         actions: [
           if (!_yeni)
@@ -295,7 +295,7 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
               labelText: 'Başlık',
               prefixText: _uygulamaninMi ? '$uygulamaIsareti ' : null,
               filled: true,
-              fillColor: Renk.acikKrem,
+              fillColor: Renk.kart,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             ),
           ),
@@ -331,7 +331,7 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
             decoration: InputDecoration(
               labelText: 'Tekrar',
               filled: true,
-              fillColor: Renk.acikKrem,
+              fillColor: Renk.kart,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             ),
             child: DropdownButtonHideUnderline(
@@ -350,7 +350,7 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
             Padding(
               padding: const EdgeInsets.only(top: 6),
               child: Text('Bu etkinliğin tekrarı özel olduğu için burada değiştirilemez.',
-                  style: TextStyle(color: Renk.kahve.withValues(alpha: 0.7), fontSize: 12)),
+                  style: TextStyle(color: Renk.yazi.withValues(alpha: 0.7), fontSize: 12)),
             ),
           if (_tekrar != TekrarTuru.yok && !ozel)
             Padding(
@@ -389,7 +389,7 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
             decoration: InputDecoration(
               labelText: 'Açıklama (isteğe bağlı)',
               filled: true,
-              fillColor: Renk.acikKrem,
+              fillColor: Renk.kart,
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
             ),
           ),

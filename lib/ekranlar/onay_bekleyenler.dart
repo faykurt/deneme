@@ -38,7 +38,7 @@ class OnayBekleyenlerEkrani extends StatelessWidget {
         final liste = depo.onayBekleyenler;
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Renk.krem,
+            backgroundColor: Renk.zemin,
             title: const Text('Onay bekleyenler'),
             actions: [
               if (liste.length > 1)
@@ -51,7 +51,7 @@ class OnayBekleyenlerEkrani extends StatelessWidget {
                     padding: const EdgeInsets.all(40),
                     child: Text('Onay bekleyen not yok. 🎉',
                         textAlign: TextAlign.center,
-                        style: TextStyle(color: Renk.kahve.withValues(alpha: 0.7), fontSize: 16)),
+                        style: TextStyle(color: Renk.yazi.withValues(alpha: 0.7), fontSize: 16)),
                   ),
                 )
               : ListView(
@@ -61,7 +61,7 @@ class OnayBekleyenlerEkrani extends StatelessWidget {
                       padding: const EdgeInsets.fromLTRB(16, 0, 16, 8),
                       child: Text('Bir notu açıp yapay zekanın önerilerini kontrol edebilir, onaylayabilirsin. '
                           'Onaylamasan da notlar çalışmaya devam eder.',
-                          style: TextStyle(color: Renk.kahve.withValues(alpha: 0.7), fontSize: 13)),
+                          style: TextStyle(color: Renk.yazi.withValues(alpha: 0.7), fontSize: 13)),
                     ),
                     for (final n in liste) NotKarti(not: n, onTap: () => onayPenceresiAc(n.id)),
                   ],
@@ -87,7 +87,7 @@ class OnayBandi extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
           child: Material(
-            color: Renk.turuncu.withValues(alpha: 0.16),
+            color: Renk.vurguKart(0.2),
             borderRadius: BorderRadius.circular(16),
             child: InkWell(
               borderRadius: BorderRadius.circular(16),
@@ -101,17 +101,17 @@ class OnayBandi extends StatelessWidget {
                   if (isleniyor)
                     const SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2))
                   else
-                    const Icon(Icons.pending_actions, color: Renk.turuncu),
+                    Icon(Icons.pending_actions, color: Renk.vurgu),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(
                       isleniyor && sayi == 0
                           ? 'Yapay zeka notlarını düzenliyor…'
                           : '$sayi onay bekleyen notun var',
-                      style: const TextStyle(color: Renk.kahve, fontWeight: FontWeight.w500),
+                      style: TextStyle(color: Renk.yazi, fontWeight: FontWeight.w500),
                     ),
                   ),
-                  if (sayi > 0) const Icon(Icons.chevron_right, color: Renk.kahve),
+                  if (sayi > 0) Icon(Icons.chevron_right, color: Renk.yazi),
                 ]),
               ),
             ),
@@ -138,7 +138,7 @@ class IslenecekBandi extends StatelessWidget {
         return Padding(
           padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
           child: Material(
-            color: Renk.kahve.withValues(alpha: 0.07),
+            color: Renk.kart,
             borderRadius: BorderRadius.circular(16),
             child: Padding(
               padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
@@ -147,7 +147,7 @@ class IslenecekBandi extends StatelessWidget {
                 const SizedBox(width: 10),
                 Expanded(
                   child: Text('$sayi not $ne düzenlenecek',
-                      style: const TextStyle(color: Renk.kahve, fontSize: 14)),
+                      style: TextStyle(color: Renk.yazi, fontSize: 14)),
                 ),
                 if (ai.mesgul)
                   const Padding(

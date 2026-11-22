@@ -102,7 +102,7 @@ class _NotDetayState extends State<NotDetay> {
         final yazi = Theme.of(context).textTheme;
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Renk.krem,
+            backgroundColor: Renk.zemin,
             title: Text(n.arsiv ? 'Not (arşivde)' : 'Not'),
             actions: [
               IconButton(
@@ -133,18 +133,18 @@ class _NotDetayState extends State<NotDetay> {
                   _ => 'yazılı not',
                 }}',
                 style: yazi.labelMedium?.copyWith(
-                  color: Renk.kahve.withValues(alpha: 0.6),
+                  color: Renk.yazi.withValues(alpha: 0.6),
                 ),
               ),
               if (n.onayBekliyor) ...[
                 const SizedBox(height: 10),
                 Material(
-                  color: Renk.turuncu.withValues(alpha: 0.16),
+                  color: Renk.vurgu.withValues(alpha: 0.16),
                   borderRadius: BorderRadius.circular(14),
                   child: ListTile(
-                    leading: const Icon(
+                    leading: Icon(
                       Icons.auto_awesome,
-                      color: Renk.turuncu,
+                      color: Renk.vurgu,
                     ),
                     title: const Text('Yapay zeka bu notu düzenledi'),
                     subtitle: const Text(
@@ -162,7 +162,7 @@ class _NotDetayState extends State<NotDetay> {
                   Expanded(
                     child: Text(
                       '⏳ Yapay zeka bu notu ${AiZamanlama.instance.sonrakiMetni(DateTime.now())} düzenleyecek.',
-                      style: yazi.bodySmall?.copyWith(color: Renk.kahve.withValues(alpha: 0.7)),
+                      style: yazi.bodySmall?.copyWith(color: Renk.yazi.withValues(alpha: 0.7)),
                     ),
                   ),
                   TextButton(
@@ -181,7 +181,7 @@ class _NotDetayState extends State<NotDetay> {
                 decoration: InputDecoration(
                   hintText: 'Not',
                   filled: true,
-                  fillColor: Renk.acikKrem,
+                  fillColor: Renk.kart,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
@@ -328,7 +328,7 @@ class _NotDetayState extends State<NotDetay> {
                   decoration: InputDecoration(
                     labelText: 'Yorum',
                     filled: true,
-                    fillColor: Renk.acikKrem,
+                    fillColor: Renk.kart,
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
@@ -413,7 +413,7 @@ class _NotDetayState extends State<NotDetay> {
     }
     final bas = n.takvimBaslangic == null ? null : DateTime.fromMillisecondsSinceEpoch(n.takvimBaslangic!);
     return Material(
-      color: Renk.turuncu.withValues(alpha: 0.12),
+      color: Renk.vurgu.withValues(alpha: 0.12),
       borderRadius: BorderRadius.circular(14),
       child: ListTile(
         leading: const Text('📅', style: TextStyle(fontSize: 22)),
@@ -476,7 +476,7 @@ class _NotDetayState extends State<NotDetay> {
       padding: const EdgeInsets.only(bottom: 4),
       child: Material(
         color: siradaki
-            ? Renk.turuncu.withValues(alpha: 0.12)
+            ? Renk.vurgu.withValues(alpha: 0.12)
             : Colors.transparent,
         borderRadius: BorderRadius.circular(12),
         clipBehavior: Clip.antiAlias,
@@ -491,7 +491,7 @@ class _NotDetayState extends State<NotDetay> {
             a.metin,
             style: TextStyle(
               decoration: a.yapildi ? TextDecoration.lineThrough : null,
-              color: a.yapildi ? Renk.kahve.withValues(alpha: 0.5) : Renk.kahve,
+              color: a.yapildi ? Renk.yazi.withValues(alpha: 0.5) : Renk.yazi,
             ),
           ),
           subtitle: Text(
@@ -656,11 +656,11 @@ class _KareButon extends StatelessWidget {
         width: 96,
         height: 96,
         decoration: BoxDecoration(
-          color: Renk.acikKrem,
+          color: Renk.kart,
           borderRadius: BorderRadius.circular(12),
-          border: Border.all(color: const Color(0x33000000)),
+          border: Border.all(color: Renk.sinir),
         ),
-        child: Icon(icon, color: Renk.kahve),
+        child: Icon(icon, color: Renk.yazi),
       ),
     ),
   );

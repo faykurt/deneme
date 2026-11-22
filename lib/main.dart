@@ -9,6 +9,7 @@ import 'ai/ai_zamanlama.dart';
 import 'takvim/takvim_ayarlari.dart';
 import 'ekranlar/iskelet.dart';
 import 'ortak.dart';
+import 'tema.dart';
 import 'veri/depo.dart';
 
 Future<void> main() async {
@@ -20,6 +21,7 @@ Future<void> main() async {
   await AiHarcama.instance.yukle();
   AiServisi.kullanimDinleyici = (model, girdi, cikti) => AiHarcama.instance.kaydet(model, girdi, cikti);
   await TakvimAyarlari.instance.yukle();
+  await TemaAyari.instance.yukle();
   runApp(const AklimdaApp());
 }
 
@@ -28,22 +30,21 @@ class AklimdaApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Aklımda',
-      navigatorKey: navigatorKey,
-      debugShowCheckedModeBanner: false,
-      locale: const Locale('tr'),
-      supportedLocales: const [Locale('tr')],
-      localizationsDelegates: const [
-        GlobalMaterialLocalizations.delegate,
-        GlobalWidgetsLocalizations.delegate,
-      ],
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Renk.turuncu, surface: Renk.krem),
-        scaffoldBackgroundColor: Renk.krem,
-        useMaterial3: true,
+    return ListenableBuilder(
+      listenable: TemaAyari.instance,
+      builder: (context, _) => MaterialApp(
+        title: 'Aklımda',
+        navigatorKey: navigatorKey,
+        debugShowCheckedModeBanner: false,
+        locale: const Locale('tr'),
+        supportedLocales: const [Locale('tr')],
+        localizationsDelegates: const [
+          GlobalMaterialLocalizations.delegate,
+          GlobalWidgetsLocalizations.delegate,
+        ],
+        theme: TemaAyari.instance.tema,
+        home: const Iskelet(),
       ),
-      home: const Iskelet(),
     );
   }
 }

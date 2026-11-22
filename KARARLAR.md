@@ -90,15 +90,12 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Notlar: liste görünümü (varsayılan; arama, sıralama) ve klasör görünümü. Arama ikisinde de var. Arşiv, Notlar sekmesinde ayrı bir bölüm.
 - Dil: Türkçe. Özel isimler (film, mekan, uygulama adı) çevrilmez.
 
-## 8b. Tema ve görsel (ilk sürüm)
-- Açık temayla başlanır. Koyu tema sonraki sürümlere kalır. Butonlar ve kartlar sıcak tonlarda.
-- Ana sayfada arka planda piksel art bir görsel olur, kartlar/pencereler onun üzerinde durur. Görselleri Claude kodla hazırlar (basit/sade kalite, sonra hazır görselle değiştirilebilir).
-- Tek sahne, 3 ışık varyantı. Saate göre otomatik ve anında değişir (yumuşak geçiş ve ortam sesi sonraya kalır). Konu: doğa temalı, sıcak tonlar.
-  - Sabah (06:00-11:00): güneş yeni doğuyor.
-  - Öğle (11:00-17:00): güneş tepede.
-  - Akşam (17:00-06:00): güneş yok, ortam ışıkları (lamba, ateş vb.) var.
-- Diğer ekranlar (Takvim, Notlar, Ayarlar): sade arka plan, ana sayfadaki görseli kullanmaz.
-- Etkileşimli sahne, sana benzeyen karakter, animasyonlar (kahve dumanı, ışık huzmesi, sesli not sırasında yazma animasyonu vb.), ambiyans sesi: 2. ve 3. sürümlerde detaylarıyla kararlaştırılacak.
+## 8b. Tema ve görsel (v0.4.15'te güncellendi)
+- Nötr gri arayüz, tek yeşil vurgu (ana butonlar, seçili öğeler, mikrofon). Turuncu/krem kaldırıldı. Kartlar ve not zeminleri sade nötr gri.
+- Varsayılan tema koyu. Ayarlar'dan açık gri seçilebilir (iki seçenek, telefona uyma yok).
+- Uygulama ikonunun zemini yeşil, düşünce balonu aynı. Widget koyu gri/yeşil.
+- Ana sayfada arka planda piksel art doğa sahnesi (kodla çizilir, `lib/ekranlar/piksel_sahne.dart`); kartlar üstünde durur. Saate göre anında değişir: sabah 06-11 (güneş doğuyor), öğle 11-17, akşam 17-06 (ay, yıldız, kamp ateşi). Renkler yeşil-gri uyumuna çekildi. Diğer ekranlar sade gri.
+- Yumuşak geçiş ve ortam sesi sonraya kalır.
 
 ## 8c. Ayarlar ve ilk kurulum
 - İlk açılışta kısa bir kurulum sihirbazı: API anahtarı, takvim seçimi, uyku saatleri, iş bloğu kelimesi, kategoriler, izinler.

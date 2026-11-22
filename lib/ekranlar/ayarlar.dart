@@ -14,6 +14,7 @@ import '../ai/ai_servisi.dart';
 import '../ai/ai_zamanlama.dart';
 import '../ai/isleyici.dart';
 import '../ortak.dart';
+import '../tema.dart';
 import '../takvim/takvim_ayarlari.dart';
 import 'onay_penceresi.dart';
 import 'takvim_ayar_pencereleri.dart';
@@ -151,9 +152,20 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(backgroundColor: Renk.krem, title: const Text('Ayarlar')),
+      appBar: AppBar(backgroundColor: Renk.zemin, title: const Text('Ayarlar')),
       body: ListView(
         children: [
+          ListenableBuilder(
+            listenable: TemaAyari.instance,
+            builder: (context, _) => SwitchListTile(
+              secondary: const Icon(Icons.dark_mode_outlined),
+              title: const Text('Koyu tema'),
+              subtitle: Text(TemaAyari.instance.koyu ? 'Koyu gri' : 'Açık gri'),
+              value: TemaAyari.instance.koyu,
+              onChanged: (v) => TemaAyari.instance.ayarla(v),
+            ),
+          ),
+          const Divider(),
           ListenableBuilder(
             listenable: Listenable.merge(
                 [AiAyarlar.instance, AiZamanlama.instance, AiHarcama.instance, AiIsleyici.instance, Depo.instance]),
@@ -164,7 +176,7 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
                 ListTile(
                   leading: _deniyor
                       ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
-                      : const Icon(Icons.auto_awesome, color: Renk.turuncu),
+                      : Icon(Icons.auto_awesome, color: Renk.vurgu),
                   title: const Text('Yapay zeka anahtarı'),
                   subtitle: Text(ai.anahtarVar
                       ? 'Kayıtlı (${ai.maskeli})'
@@ -221,7 +233,7 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
               final t = TakvimAyarlari.instance;
               return Column(children: [
                 ListTile(
-                  leading: const Icon(Icons.calendar_month_outlined, color: Renk.turuncu),
+                  leading: Icon(Icons.calendar_month_outlined, color: Renk.vurgu),
                   title: const Text('Kullanılan takvim'),
                   subtitle: Text(t.takvimAdi ?? 'Henüz seçilmedi'),
                   onTap: () async {
@@ -321,7 +333,7 @@ class KategoriYonetimi extends StatelessWidget {
   Widget build(BuildContext context) {
     final depo = Depo.instance;
     return Scaffold(
-      appBar: AppBar(backgroundColor: Renk.krem, title: const Text('Kategoriler')),
+      appBar: AppBar(backgroundColor: Renk.zemin, title: const Text('Kategoriler')),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () async {
           final ad = await _adSor(context, baslik: 'Yeni kategori');
@@ -339,7 +351,7 @@ class KategoriYonetimi extends StatelessWidget {
             children: [
               for (final ana in agac.anaKategoriler) ...[
                 ListTile(
-                  leading: const Icon(Icons.folder_outlined, color: Renk.turuncu),
+                  leading: Icon(Icons.folder_outlined, color: Renk.vurgu),
                   title: Text(ana.ad),
                   onTap: () async {
                     final ad = await _adSor(context, baslik: 'Yeniden adlandır', ilk: ana.ad);

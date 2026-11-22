@@ -14,12 +14,20 @@ final navigatorKey = GlobalKey<NavigatorState>();
 /// Alt menüde hangi sekmenin açık olduğu (başka ekranlardan sekme değiştirmek için).
 final ValueNotifier<int> sekmeSecici = ValueNotifier<int>(0);
 
-/// Uygulamanın sıcak renk paleti.
+/// Uygulamanın renkleri: nötr gri zemin, tek yeşil vurgu. Koyu ve açık tema.
 class Renk {
-  static const turuncu = Color(0xFFE8833A);
-  static const krem = Color(0xFFFFF4E0);
-  static const kahve = Color(0xFF4A2C1D);
-  static const acikKrem = Color(0xFFFFFAF0);
+  /// Tema değişince [TemaAyari] günceller.
+  static bool koyu = true;
+
+  static Color get vurgu => koyu ? const Color(0xFF5CC38A) : const Color(0xFF2F8F5B);
+  static Color get vurguUstu => koyu ? const Color(0xFF0C1F15) : Colors.white;
+  static Color get zemin => koyu ? const Color(0xFF131514) : const Color(0xFFECEDEC);
+  static Color get kart => koyu ? const Color(0xFF212423) : const Color(0xFFFAFAF9);
+  static Color get yazi => koyu ? const Color(0xFFE7E9E7) : const Color(0xFF232625);
+  static Color get hata => koyu ? const Color(0xFFEF9A9A) : const Color(0xFFC62828);
+  /// Yarı saydam görünmesin diye karta karıştırılmış vurgu zemini.
+  static Color vurguKart([double a = 0.16]) => Color.alphaBlend(vurgu.withValues(alpha: a), kart);
+  static Color get sinir => koyu ? const Color(0x33FFFFFF) : const Color(0x22000000);
 }
 
 String tarihYazisi(int ms) {
@@ -169,11 +177,11 @@ class NotKarti extends StatelessWidget {
     final metinOnizleme = not.metin.trim().split('\n').skip(not.baslik == null ? 1 : 0).join(' ').trim();
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      color: secili ? Renk.turuncu.withValues(alpha: 0.25) : Renk.acikKrem,
+      color: secili ? Renk.vurgu.withValues(alpha: 0.25) : Renk.kart,
       elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
-        side: BorderSide(color: secili ? Renk.turuncu : const Color(0x22000000)),
+        side: BorderSide(color: secili ? Renk.vurgu : Renk.sinir),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
@@ -190,19 +198,19 @@ class NotKarti extends StatelessWidget {
                   children: [
                     Row(children: [
                       if (not.kaynak == Kaynak.sesli)
-                        const Padding(
+                        Padding(
                             padding: EdgeInsets.only(right: 4),
-                            child: Icon(Icons.mic, size: 16, color: Renk.turuncu)),
+                            child: Icon(Icons.mic, size: 16, color: Renk.vurgu)),
                       if (not.kaynak == Kaynak.paylasim)
-                        const Padding(
+                        Padding(
                             padding: EdgeInsets.only(right: 4),
-                            child: Icon(Icons.share, size: 16, color: Renk.turuncu)),
+                            child: Icon(Icons.share, size: 16, color: Renk.vurgu)),
                       Expanded(
                         child: Text(not.gorunenBaslik,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: yazi.titleSmall?.copyWith(
-                              color: Renk.kahve,
+                              color: Renk.yazi,
                               fontWeight: FontWeight.w600,
                               decoration: not.durum == Durum.yapildi ? TextDecoration.lineThrough : null,
                             )),
@@ -213,7 +221,7 @@ class NotKarti extends StatelessWidget {
                       Text(metinOnizleme,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
-                          style: yazi.bodySmall?.copyWith(color: Renk.kahve.withValues(alpha: 0.75))),
+                          style: yazi.bodySmall?.copyWith(color: Renk.yazi.withValues(alpha: 0.75))),
                     ],
                     const SizedBox(height: 6),
                     Wrap(
@@ -222,7 +230,7 @@ class NotKarti extends StatelessWidget {
                       crossAxisAlignment: WrapCrossAlignment.center,
                       children: [
                         Text(tarihYazisi(not.olusturma),
-                            style: yazi.labelSmall?.copyWith(color: Renk.kahve.withValues(alpha: 0.6))),
+                            style: yazi.labelSmall?.copyWith(color: Renk.yazi.withValues(alpha: 0.6))),
                         if (not.durum != Durum.yapilacak) _Etiket(Durum.ad(not.durum)),
                         if (!not.islendi && AiAyarlar.instance.anahtarVar) const _Etiket('⏳ işlenecek'),
                         if (not.onayBekliyor) const _Etiket('onay bekliyor'),
@@ -257,9 +265,9 @@ class _Etiket extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
         decoration: BoxDecoration(
-          color: Renk.turuncu.withValues(alpha: 0.15),
+          color: Renk.vurgu.withValues(alpha: 0.15),
           borderRadius: BorderRadius.circular(10),
         ),
-        child: Text(yazi, style: const TextStyle(fontSize: 11, color: Renk.kahve)),
+        child: Text(yazi, style: TextStyle(fontSize: 11, color: Renk.yazi)),
       );
 }

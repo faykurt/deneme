@@ -115,14 +115,14 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
       floatingActionButton: FloatingActionButton.large(
         onPressed: sesliNotAc,
         tooltip: 'Sesli not',
-        backgroundColor: Renk.turuncu,
-        foregroundColor: Colors.white,
+        backgroundColor: Renk.vurgu,
+        foregroundColor: Renk.vurguUstu,
         shape: const CircleBorder(),
         child: const Icon(Icons.mic, size: 40),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
-        color: Renk.acikKrem,
+        color: Renk.kart,
         shape: const CircularNotchedRectangle(),
         notchMargin: 8,
         child: Row(
@@ -147,11 +147,11 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(secili ? seciliIkon : ikon, color: secili ? Renk.turuncu : Renk.kahve),
+            Icon(secili ? seciliIkon : ikon, color: secili ? Renk.vurgu : Renk.yazi),
             Text(ad,
                 style: TextStyle(
                   fontSize: 11,
-                  color: secili ? Renk.turuncu : Renk.kahve,
+                  color: secili ? Renk.vurgu : Renk.yazi,
                   fontWeight: secili ? FontWeight.w600 : FontWeight.normal,
                 )),
           ],

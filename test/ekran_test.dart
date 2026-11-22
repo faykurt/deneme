@@ -62,7 +62,7 @@ http.Response _ok(List<Map<String, dynamic>> fikirler) => http.Response.bytes(
 Widget _sar(Widget w) => MaterialApp(
       navigatorKey: navigatorKey,
       locale: const Locale('tr'),
-      theme: ThemeData(scaffoldBackgroundColor: Renk.krem),
+      theme: ThemeData(scaffoldBackgroundColor: Renk.zemin),
       home: w,
     );
 

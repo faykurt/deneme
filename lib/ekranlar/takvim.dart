@@ -168,7 +168,7 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
         final hazir = _depo.hazir;
         return Scaffold(
           appBar: AppBar(
-            backgroundColor: Renk.krem,
+            backgroundColor: Renk.zemin,
             title: hazir
                 ? Row(mainAxisSize: MainAxisSize.min, children: [
                     IconButton(
@@ -226,9 +226,9 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
       if (_depo.hata != null)
         Container(
           width: double.infinity,
-          color: Colors.red.shade50,
+          color: Renk.hata.withValues(alpha: 0.12),
           padding: const EdgeInsets.all(10),
-          child: Text(_depo.hata!, style: TextStyle(color: Colors.red.shade900, fontSize: 13)),
+          child: Text(_depo.hata!, style: TextStyle(color: Renk.hata, fontSize: 13)),
         ),
       Expanded(
         child: switch (_gorunum) {
@@ -267,13 +267,13 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
           const Text('📅', style: TextStyle(fontSize: 56)),
           const SizedBox(height: 12),
           Text('Takvimini bağlayalım',
-              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Renk.kahve, fontWeight: FontWeight.w600)),
+              style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Renk.yazi, fontWeight: FontWeight.w600)),
           const SizedBox(height: 8),
-          const Text(
+          Text(
             'Aklımda, telefonundaki Samsung Takvim\'i okuyup yazabilmek için takvim iznine ihtiyaç duyar. '
             'Böylece planlarını burada görür, notlarını takvime ekleyebilirsin.',
             textAlign: TextAlign.center,
-            style: TextStyle(color: Renk.kahve),
+            style: TextStyle(color: Renk.yazi),
           ),
           const SizedBox(height: 20),
           FilledButton.icon(
@@ -287,7 +287,7 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
               'İzin verilmedi. Telefonun Ayarlar → Uygulamalar → Aklımda → İzinler → Takvim bölümünden '
               '"İzin ver"i seçebilirsin.',
               textAlign: TextAlign.center,
-              style: TextStyle(color: Colors.red.shade800, fontSize: 13),
+              style: TextStyle(color: Renk.hata, fontSize: 13),
             ),
           ],
         ]),
@@ -307,12 +307,12 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
       padding: const EdgeInsets.all(16),
       children: [
         Text('Hangi takvimi kullanalım?',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Renk.kahve, fontWeight: FontWeight.w600)),
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(color: Renk.yazi, fontWeight: FontWeight.w600)),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           'Planlarını yazdığın takvimi seç. Aklımda sadece bu takvimdeki etkinlikleri okur ve yeni etkinlikleri buraya yazar. '
           'Etkinlik sayıları son ve gelecek 3 ayı gösterir.',
-          style: TextStyle(color: Renk.kahve),
+          style: TextStyle(color: Renk.yazi),
         ),
         const SizedBox(height: 12),
         if (liste.isEmpty)
@@ -323,9 +323,9 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
         for (final t in liste)
           Card(
             elevation: 0,
-            color: Renk.acikKrem,
+            color: Renk.kart,
             child: ListTile(
-              leading: CircleAvatar(backgroundColor: t.renk ?? Renk.turuncu, radius: 10),
+              leading: CircleAvatar(backgroundColor: t.renk ?? Renk.vurgu, radius: 10),
               title: Text(t.ad),
               subtitle: Text([
                 if (t.hesap != null && t.hesap!.isNotEmpty) t.hesap!,
@@ -357,7 +357,7 @@ class _EtkinlikKarti extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final renk = e.uygulamaninMi ? Renk.turuncu : Renk.kahve;
+    final renk = e.uygulamaninMi ? Renk.vurgu : Renk.yazi;
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
       elevation: 0,
@@ -373,12 +373,12 @@ class _EtkinlikKarti extends StatelessWidget {
             const SizedBox(width: 10),
             Expanded(
               child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(e.baslik, maxLines: 2, overflow: TextOverflow.ellipsis, style: const TextStyle(color: Renk.kahve, fontWeight: FontWeight.w600)),
-                Text(etkinlikSaati(e, gun: gun), style: TextStyle(color: Renk.kahve.withValues(alpha: 0.7), fontSize: 12)),
+                Text(e.baslik, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Renk.yazi, fontWeight: FontWeight.w600)),
+                Text(etkinlikSaati(e, gun: gun), style: TextStyle(color: Renk.yazi.withValues(alpha: 0.7), fontSize: 12)),
               ]),
             ),
-            if (e.tekrarli) const Icon(Icons.repeat, size: 16, color: Renk.kahve),
-            if (!e.meshgul) const Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.event_available, size: 16, color: Renk.kahve)),
+            if (e.tekrarli) Icon(Icons.repeat, size: 16, color: Renk.yazi),
+            if (!e.meshgul) Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.event_available, size: 16, color: Renk.yazi)),
           ]),
         ),
       ),
@@ -419,7 +419,7 @@ class _AyGorunumu extends StatelessWidget {
                       style: TextStyle(
                         fontSize: 12,
                         fontWeight: FontWeight.w600,
-                        color: i >= 5 ? Colors.red.shade400 : Renk.kahve.withValues(alpha: 0.7),
+                        color: i >= 5 ? Renk.hata : Renk.yazi.withValues(alpha: 0.7),
                       )),
                 ),
               ),
@@ -455,7 +455,7 @@ class _AyGorunumu extends StatelessWidget {
     return InkWell(
       onTap: () => onGunTikla(g),
       child: Container(
-        decoration: BoxDecoration(border: Border(top: BorderSide(color: Renk.kahve.withValues(alpha: 0.12)))),
+        decoration: BoxDecoration(border: Border(top: BorderSide(color: Renk.yazi.withValues(alpha: 0.12)))),
         padding: const EdgeInsets.fromLTRB(1, 2, 1, 0),
         child: Opacity(
           opacity: solukluk,
@@ -466,13 +466,13 @@ class _AyGorunumu extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                   decoration: bugunMu
-                      ? BoxDecoration(color: Renk.turuncu, borderRadius: BorderRadius.circular(8))
+                      ? BoxDecoration(color: Renk.vurgu, borderRadius: BorderRadius.circular(8))
                       : null,
                   child: Text('${g.day}',
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: bugunMu ? FontWeight.bold : FontWeight.w500,
-                        color: bugunMu ? Colors.white : (hafta ? Colors.red.shade400 : Renk.kahve),
+                        color: bugunMu ? Renk.vurguUstu : (hafta ? Renk.hata : Renk.yazi),
                       )),
                 ),
               ),
@@ -487,7 +487,7 @@ class _AyGorunumu extends StatelessWidget {
                       height: _fazlaYazisiYuksekligi,
                       child: Center(
                         child: Text('+$fazla',
-                            style: TextStyle(fontSize: 10, color: Renk.kahve.withValues(alpha: 0.7))),
+                            style: TextStyle(fontSize: 10, color: Renk.yazi.withValues(alpha: 0.7))),
                       ),
                     ),
                 ]),
@@ -500,12 +500,12 @@ class _AyGorunumu extends StatelessWidget {
   }
 
   Widget _chip(TakvimDeposu depo, TEtkinlik e) {
-    final renk = depo.renkOf(e) ?? (e.uygulamaninMi ? Renk.turuncu : Renk.kahve);
+    final renk = depo.renkOf(e) ?? (e.uygulamaninMi ? Renk.vurgu : Renk.yazi);
     final metin = Text(
       e.baslik,
       maxLines: 2,
       overflow: TextOverflow.clip,
-      style: TextStyle(fontSize: 9, height: 1.1, color: e.tumGun ? Colors.white : Renk.kahve),
+      style: TextStyle(fontSize: 9, height: 1.1, color: e.tumGun ? Colors.white : Renk.yazi),
     );
     return Container(
       height: _chipYuksekligi - 2,
@@ -535,7 +535,7 @@ class _GunPenceresi extends StatelessWidget {
     final yazi = Theme.of(context).textTheme;
     final ekranH = MediaQuery.of(context).size.height;
     return Dialog(
-      backgroundColor: Renk.acikKrem,
+      backgroundColor: Renk.kart,
       insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 40),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
       child: ConstrainedBox(
@@ -552,14 +552,14 @@ class _GunPenceresi extends StatelessWidget {
                     width: 44,
                     height: 44,
                     alignment: Alignment.center,
-                    decoration: BoxDecoration(color: Renk.turuncu, borderRadius: BorderRadius.circular(12)),
+                    decoration: BoxDecoration(color: Renk.vurgu, borderRadius: BorderRadius.circular(12)),
                     child: Text('${gun.day}',
-                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
+                        style: TextStyle(color: Renk.vurguUstu, fontSize: 22, fontWeight: FontWeight.bold)),
                   ),
                   const SizedBox(width: 12),
                   Expanded(
                     child: Text(DateFormat('EEEE', 'tr').format(gun),
-                        style: yazi.titleLarge?.copyWith(color: Renk.kahve, fontWeight: FontWeight.w600)),
+                        style: yazi.titleLarge?.copyWith(color: Renk.yazi, fontWeight: FontWeight.w600)),
                   ),
                   IconButton(
                       tooltip: 'Kapat', icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
@@ -571,7 +571,7 @@ class _GunPenceresi extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 28),
                           child: Text('Bu gün için etkinlik yok.',
                               textAlign: TextAlign.center,
-                              style: TextStyle(color: Renk.kahve.withValues(alpha: 0.6))),
+                              style: TextStyle(color: Renk.yazi.withValues(alpha: 0.6))),
                         )
                       : ListView(shrinkWrap: true, children: [
                           for (final e in liste) _satir(context, depo, e),
@@ -588,12 +588,12 @@ class _GunPenceresi extends StatelessWidget {
                         alignment: Alignment.centerLeft,
                         padding: const EdgeInsets.symmetric(horizontal: 18),
                         decoration: BoxDecoration(
-                          color: Renk.kahve.withValues(alpha: 0.08),
+                          color: Renk.yazi.withValues(alpha: 0.08),
                           borderRadius: BorderRadius.circular(28),
-                          border: Border.all(color: Renk.kahve.withValues(alpha: 0.2)),
+                          border: Border.all(color: Renk.yazi.withValues(alpha: 0.2)),
                         ),
                         child: Text('${DateFormat('d MMM', 'tr').format(gun)} için ekle',
-                            style: TextStyle(color: Renk.kahve.withValues(alpha: 0.75))),
+                            style: TextStyle(color: Renk.yazi.withValues(alpha: 0.75))),
                       ),
                     ),
                   ),
@@ -613,7 +613,7 @@ class _GunPenceresi extends StatelessWidget {
   }
 
   Widget _satir(BuildContext context, TakvimDeposu depo, TEtkinlik e) {
-    final renk = depo.renkOf(e) ?? (e.uygulamaninMi ? Renk.turuncu : Renk.kahve);
+    final renk = depo.renkOf(e) ?? (e.uygulamaninMi ? Renk.vurgu : Renk.yazi);
     final f = DateFormat('HH:mm');
     final alt = e.tumGun ? 'Gün boyu' : '${f.format(e.baslangic)} - ${f.format(e.bitis)}';
     return InkWell(
@@ -625,9 +625,9 @@ class _GunPenceresi extends StatelessWidget {
           SizedBox(
             width: 52,
             child: e.tumGun
-                ? const Icon(Icons.calendar_today_outlined, size: 20, color: Renk.kahve)
+                ? Icon(Icons.calendar_today_outlined, size: 20, color: Renk.yazi)
                 : Text(f.format(e.baslangic),
-                    style: const TextStyle(color: Renk.kahve, fontWeight: FontWeight.bold, fontSize: 16)),
+                    style: TextStyle(color: Renk.yazi, fontWeight: FontWeight.bold, fontSize: 16)),
           ),
           Container(width: 4, height: 40, decoration: BoxDecoration(color: renk, borderRadius: BorderRadius.circular(2))),
           const SizedBox(width: 12),
@@ -636,12 +636,12 @@ class _GunPenceresi extends StatelessWidget {
               Text(e.baslik,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(color: Renk.kahve, fontSize: 17, fontWeight: FontWeight.w500)),
+                  style: TextStyle(color: Renk.yazi, fontSize: 17, fontWeight: FontWeight.w500)),
               const SizedBox(height: 2),
-              Text(alt, style: TextStyle(color: Renk.kahve.withValues(alpha: 0.6), fontSize: 14)),
+              Text(alt, style: TextStyle(color: Renk.yazi.withValues(alpha: 0.6), fontSize: 14)),
             ]),
           ),
-          if (e.tekrarli) const Padding(padding: EdgeInsets.only(left: 6), child: Icon(Icons.repeat, size: 16, color: Renk.kahve)),
+          if (e.tekrarli) Padding(padding: EdgeInsets.only(left: 6), child: Icon(Icons.repeat, size: 16, color: Renk.yazi)),
         ]),
       ),
     );
@@ -673,7 +673,7 @@ class _HaftaGorunumu extends StatelessWidget {
                 child: Text(
                   DateFormat('d MMMM, EEEE', 'tr').format(g),
                   style: TextStyle(
-                    color: bugunMu ? Renk.turuncu : Renk.kahve,
+                    color: bugunMu ? Renk.vurgu : Renk.yazi,
                     fontWeight: bugunMu ? FontWeight.bold : FontWeight.w600,
                   ),
                 ),
@@ -681,7 +681,7 @@ class _HaftaGorunumu extends StatelessWidget {
               if (liste.isEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                  child: Text('—', style: TextStyle(color: Renk.kahve.withValues(alpha: 0.4))),
+                  child: Text('—', style: TextStyle(color: Renk.yazi.withValues(alpha: 0.4))),
                 ),
               for (final e in liste) _EtkinlikKarti(e: e, gun: g, onAc: onAc),
             ]);
@@ -731,10 +731,10 @@ class _GunGorunumu extends StatelessWidget {
                       child: Padding(
                         padding: const EdgeInsets.only(left: 8),
                         child: Text('${s.toString().padLeft(2, '0')}:00',
-                            style: TextStyle(fontSize: 11, color: Renk.kahve.withValues(alpha: 0.5))),
+                            style: TextStyle(fontSize: 11, color: Renk.yazi.withValues(alpha: 0.5))),
                       ),
                     ),
-                    Expanded(child: Divider(height: 8, color: Renk.kahve.withValues(alpha: 0.12))),
+                    Expanded(child: Divider(height: 8, color: Renk.yazi.withValues(alpha: 0.12))),
                   ]),
                 ),
               for (final y in yerlesim)
@@ -748,14 +748,14 @@ class _GunGorunumu extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                       decoration: BoxDecoration(
-                        color: (y.e.uygulamaninMi ? Renk.turuncu : Renk.kahve).withValues(alpha: 0.2),
+                        color: (y.e.uygulamaninMi ? Renk.vurgu : Renk.yazi).withValues(alpha: 0.2),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border(left: BorderSide(color: y.e.uygulamaninMi ? Renk.turuncu : Renk.kahve, width: 3)),
+                        border: Border(left: BorderSide(color: y.e.uygulamaninMi ? Renk.vurgu : Renk.yazi, width: 3)),
                       ),
                       child: Text('${y.e.baslik}\n${etkinlikSaati(y.e, gun: gun)}',
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
-                          style: const TextStyle(fontSize: 11, color: Renk.kahve)),
+                          style: TextStyle(fontSize: 11, color: Renk.yazi)),
                     ),
                   ),
                 ),
