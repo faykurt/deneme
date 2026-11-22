@@ -1,8 +1,12 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../ai/ai_ayarlar.dart';
+import '../ai/isleyici.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
+import 'kayit_sonrasi.dart';
+import 'onay_bekleyenler.dart';
 import 'sesli_not.dart';
 import 'yazili_not.dart';
 
@@ -29,8 +33,8 @@ class _AnaSayfaState extends State<AnaSayfa> {
     if (metin.isEmpty) return;
     _hizliNot.clear();
     FocusScope.of(context).unfocus();
-    await Depo.instance.notEkle(metin: metin, kaynak: Kaynak.yazili);
-    mesajGoster('Not kaydedildi');
+    final not = await Depo.instance.notEkle(metin: metin, kaynak: Kaynak.yazili);
+    await kayitSonrasi(not);
   }
 
   @override
@@ -68,6 +72,41 @@ class _AnaSayfaState extends State<AnaSayfa> {
                 IconButton(tooltip: 'Sesli not', icon: const Icon(Icons.mic_none), onPressed: sesliNotAc),
                 IconButton.filled(tooltip: 'Kaydet', icon: const Icon(Icons.arrow_upward), onPressed: _hizliKaydet),
               ]),
+            ),
+            const OnayBandi(),
+            ListenableBuilder(
+              listenable: Listenable.merge([AiAyarlar.instance, AiIsleyici.instance]),
+              builder: (context, _) {
+                final ai = AiAyarlar.instance;
+                final hata = AiIsleyici.instance.sonHata;
+                if (!ai.anahtarVar) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(0, 12, 0, 0),
+                    child: Card(
+                      elevation: 0,
+                      color: Colors.white,
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Renk.turuncu.withValues(alpha: 0.4))),
+                      child: ListTile(
+                        leading: const Icon(Icons.key, color: Renk.turuncu),
+                        title: const Text('Yapay zekayı aç'),
+                        subtitle: const Text('Notların kendiliğinden düzenlenmesi için anahtarını ekle.'),
+                        trailing: const Icon(Icons.chevron_right),
+                        onTap: () => sekmeSecici.value = 3,
+                      ),
+                    ),
+                  );
+                }
+                if (hata != null) {
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(4, 10, 4, 0),
+                    child: Text(hata.mesaj,
+                        style: TextStyle(color: Colors.red.shade800, fontSize: 13)),
+                  );
+                }
+                return const SizedBox.shrink();
+              },
             ),
             const SizedBox(height: 24),
             Card(

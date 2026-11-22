@@ -2,6 +2,7 @@ import 'package:flutter_localizations/flutter_localizations.dart' show GlobalWid
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'ai/ai_ayarlar.dart';
 import 'ekranlar/iskelet.dart';
 import 'ortak.dart';
 import 'veri/depo.dart';
@@ -10,6 +11,7 @@ Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('tr');
   await Depo.instance.ac();
+  await AiAyarlar.instance.yukle();
   runApp(const AklimdaApp());
 }
 

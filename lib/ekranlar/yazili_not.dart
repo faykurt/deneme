@@ -6,7 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
-import 'not_detay.dart';
+import 'kayit_sonrasi.dart';
 
 /// Yazılı not penceresini açar. [kameraIleBasla] true ise önce kamera açılır.
 Future<void> yaziliNotAc({bool kameraIleBasla = false}) async {
@@ -19,12 +19,7 @@ Future<void> yaziliNotAc({bool kameraIleBasla = false}) async {
     backgroundColor: Renk.krem,
     builder: (_) => _YaziliNotPenceresi(kameraIleBasla: kameraIleBasla),
   );
-  if (not != null) {
-    mesajGoster('Not kaydedildi',
-        eylem: 'Aç',
-        eylemFn: () => navigatorKey.currentState
-            ?.push(MaterialPageRoute(builder: (_) => NotDetay(notId: not.id))));
-  }
+  if (not != null) await kayitSonrasi(not);
 }
 
 /// Kameradan ya da galeriden fotoğraf seçtirir, dosya yollarını döner.

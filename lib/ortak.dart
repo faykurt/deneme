@@ -3,10 +3,14 @@ import 'dart:io';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
+import 'ai/ai_ayarlar.dart';
 import 'veri/depo.dart';
 import 'veri/modeller.dart';
 
 final navigatorKey = GlobalKey<NavigatorState>();
+
+/// Alt menüde hangi sekmenin açık olduğu (başka ekranlardan sekme değiştirmek için).
+final ValueNotifier<int> sekmeSecici = ValueNotifier<int>(0);
 
 /// Uygulamanın sıcak renk paleti.
 class Renk {
@@ -180,6 +184,8 @@ class NotKarti extends StatelessWidget {
                         Text(tarihYazisi(not.olusturma),
                             style: yazi.labelSmall?.copyWith(color: Renk.kahve.withValues(alpha: 0.6))),
                         if (not.durum != Durum.yapilacak) _Etiket(Durum.ad(not.durum)),
+                        if (!not.islendi && AiAyarlar.instance.anahtarVar) const _Etiket('⏳ işlenecek'),
+                        if (not.onayBekliyor) const _Etiket('onay bekliyor'),
                         for (final k in not.kategoriIdler) _Etiket(agac.tamAd(k)),
                       ],
                     ),

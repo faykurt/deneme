@@ -8,19 +8,14 @@ import 'package:speech_to_text/speech_to_text.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
-import 'not_detay.dart';
+import 'kayit_sonrasi.dart';
 
 /// Sesli not ekranını açar; not kaydedilirse "Kaydedildi" mesajı gösterir.
 Future<void> sesliNotAc() async {
   final nav = navigatorKey.currentState;
   if (nav == null) return;
   final not = await nav.push<Not>(MaterialPageRoute(builder: (_) => const SesliNotEkrani()));
-  if (not != null) {
-    mesajGoster('Sesli not kaydedildi',
-        eylem: 'Aç',
-        eylemFn: () => navigatorKey.currentState
-            ?.push(MaterialPageRoute(builder: (_) => NotDetay(notId: not.id))));
-  }
+  if (not != null) await kayitSonrasi(not, kayitMesaji: 'Sesli not kaydedildi');
 }
 
 class SesliNotEkrani extends StatefulWidget {

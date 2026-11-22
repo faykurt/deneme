@@ -38,6 +38,49 @@ class Kategori {
       );
 }
 
+/// Bir notun adımı. Adımlar sıralıdır.
+class Adim {
+  int? id;
+  final String notId;
+  int sira;
+  String metin;
+  int? sureDk;
+  String durum; // yapilacak | yapildi
+  bool bekleme;
+
+  Adim({
+    this.id,
+    required this.notId,
+    required this.sira,
+    required this.metin,
+    this.sureDk,
+    this.durum = Durum.yapilacak,
+    this.bekleme = false,
+  });
+
+  bool get yapildi => durum == Durum.yapildi;
+
+  factory Adim.fromMap(Map<String, Object?> m) => Adim(
+        id: m['id'] as int,
+        notId: m['not_id'] as String,
+        sira: m['sira'] as int,
+        metin: m['metin'] as String,
+        sureDk: m['sure_dk'] as int?,
+        durum: (m['durum'] as String?) ?? Durum.yapilacak,
+        bekleme: m['bekleme'] == 1,
+      );
+
+  Map<String, Object?> toMap() => {
+        if (id != null) 'id': id,
+        'not_id': notId,
+        'sira': sira,
+        'metin': metin,
+        'sure_dk': sureDk,
+        'durum': durum,
+        'bekleme': bekleme ? 1 : 0,
+      };
+}
+
 class Not {
   final String id;
   String metin;
@@ -59,8 +102,10 @@ class Not {
   int ertelemeSayisi;
   int gormezdenSayisi;
   String? takvimEtkinlikId;
+  String? aiJson;
   List<String> fotograflar;
   List<int> kategoriIdler;
+  List<Adim> adimlar;
 
   Not({
     required this.id,
@@ -83,10 +128,16 @@ class Not {
     this.ertelemeSayisi = 0,
     this.gormezdenSayisi = 0,
     this.takvimEtkinlikId,
+    this.aiJson,
     List<String>? fotograflar,
     List<int>? kategoriIdler,
+    List<Adim>? adimlar,
   })  : fotograflar = fotograflar ?? [],
-        kategoriIdler = kategoriIdler ?? [];
+        kategoriIdler = kategoriIdler ?? [],
+        adimlar = adimlar ?? [];
+
+  /// Yapay zeka işledi ama kullanıcı henüz onaylamadı.
+  bool get onayBekliyor => islendi && !onayli;
 
   /// Listede görünen başlık: yapay zeka başlığı yoksa metnin ilk satırı.
   String get gorunenBaslik {
@@ -119,6 +170,7 @@ class Not {
         'erteleme_sayisi': ertelemeSayisi,
         'gormezden_sayisi': gormezdenSayisi,
         'takvim_etkinlik_id': takvimEtkinlikId,
+        'ai_json': aiJson,
       };
 
   factory Not.fromMap(Map<String, Object?> m) => Not(
@@ -142,6 +194,7 @@ class Not {
         ertelemeSayisi: (m['erteleme_sayisi'] as int?) ?? 0,
         gormezdenSayisi: (m['gormezden_sayisi'] as int?) ?? 0,
         takvimEtkinlikId: m['takvim_etkinlik_id'] as String?,
+        aiJson: m['ai_json'] as String?,
       );
 }
 

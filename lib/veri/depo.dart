@@ -14,7 +14,7 @@ class Depo extends ChangeNotifier {
   Depo._();
   static final Depo instance = Depo._();
 
-  static const _surum = 1;
+  static const _surum = 2;
   late Database _db;
   late Directory fotografKlasoru;
   late String veritabaniYolu;
@@ -25,6 +25,7 @@ class Depo extends ChangeNotifier {
   KategoriAgaci get agac => KategoriAgaci(kategoriler);
   List<Not> get aktifNotlar => notlar.where((n) => !n.arsiv).toList();
   List<Not> get arsivNotlari => notlar.where((n) => n.arsiv).toList();
+  List<Not> get onayBekleyenler => notlar.where((n) => !n.arsiv && n.onayBekliyor).toList();
 
   Future<void> ac() async {
     final belgeler = await getApplicationDocumentsDirectory();
@@ -36,6 +37,7 @@ class Depo extends ChangeNotifier {
       version: _surum,
       onConfigure: (db) => db.execute('PRAGMA foreign_keys = ON'),
       onCreate: _olustur,
+      onUpgrade: yukselt,
     );
     await _silinenleriTemizle();
     await yenile();
@@ -64,7 +66,8 @@ class Depo extends ChangeNotifier {
         son_dokunma INTEGER NOT NULL,
         erteleme_sayisi INTEGER NOT NULL DEFAULT 0,
         gormezden_sayisi INTEGER NOT NULL DEFAULT 0,
-        takvim_etkinlik_id TEXT
+        takvim_etkinlik_id TEXT,
+        ai_json TEXT
       )''');
     await db.execute('''
       CREATE TABLE kategoriler (
@@ -93,7 +96,8 @@ class Depo extends ChangeNotifier {
         sira INTEGER NOT NULL,
         metin TEXT NOT NULL,
         sure_dk INTEGER,
-        durum TEXT NOT NULL DEFAULT 'yapilacak'
+        durum TEXT NOT NULL DEFAULT 'yapilacak',
+        bekleme INTEGER NOT NULL DEFAULT 0
       )''');
     // Başlangıç kategorileri (sonradan düzenlenebilir)
     const baslangic = <String, List<String>>{
@@ -115,12 +119,27 @@ class Depo extends ChangeNotifier {
     }
   }
 
+  /// 1 → 2: yapay zeka önerisi ve adımlarda bekleme işareti eklendi.
+  /// Eski (yapay zekadan önceki) notlar onaylı sayılır, "onay bekleyen" yığını oluşmaz.
+  static Future<void> yukselt(Database db, int eski, int yeni) async {
+    if (eski < 2) {
+      await db.execute('ALTER TABLE notlar ADD COLUMN ai_json TEXT');
+      await db.execute('ALTER TABLE adimlar ADD COLUMN bekleme INTEGER NOT NULL DEFAULT 0');
+      await db.execute('UPDATE notlar SET onayli = 1');
+    }
+  }
+
   Future<void> yenile() async {
     final kRows = await _db.query('kategoriler', orderBy: 'sira, id');
     kategoriler = kRows.map(Kategori.fromMap).toList();
     final nRows = await _db.query('notlar', where: 'silindi = 0', orderBy: 'olusturma DESC');
     final fRows = await _db.query('fotograflar', orderBy: 'sira, id');
     final nkRows = await _db.query('not_kategori');
+    final aRows = await _db.query('adimlar', orderBy: 'not_id, sira, id');
+    final adimMap = <String, List<Adim>>{};
+    for (final a in aRows) {
+      adimMap.putIfAbsent(a['not_id'] as String, () => []).add(Adim.fromMap(a));
+    }
     final fotoMap = <String, List<String>>{};
     for (final f in fRows) {
       fotoMap.putIfAbsent(f['not_id'] as String, () => []).add(f['dosya'] as String);
@@ -133,6 +152,7 @@ class Depo extends ChangeNotifier {
       final n = Not.fromMap(r);
       n.fotograflar = fotoMap[n.id] ?? [];
       n.kategoriIdler = katMap[n.id] ?? [];
+      n.adimlar = adimMap[n.id] ?? [];
       return n;
     }).toList();
     notifyListeners();
@@ -170,9 +190,10 @@ class Depo extends ChangeNotifier {
     return notlar.firstWhere((n) => n.id == not.id);
   }
 
-  Future<void> notGuncelle(Not not) async {
+  /// [dokunma] false ise "son dokunma" zamanı değişmez (yapay zeka arka planda işlerken).
+  Future<void> notGuncelle(Not not, {bool dokunma = true}) async {
     not.guncelleme = _simdi;
-    not.sonDokunma = not.guncelleme;
+    if (dokunma) not.sonDokunma = not.guncelleme;
     await _db.update('notlar', not.toMap(), where: 'id = ?', whereArgs: [not.id]);
     await yenile();
   }
@@ -266,9 +287,43 @@ class Depo extends ChangeNotifier {
   }
 
   // Kategori yönetimi
-  Future<void> kategoriEkle(String ad, {int? ustId}) async {
+  Future<int> kategoriEkle(String ad, {int? ustId}) async {
     final sira = kategoriler.where((k) => k.ustId == ustId).length;
-    await _db.insert('kategoriler', {'ad': ad.trim(), 'ust_id': ustId, 'sira': sira});
+    final id = await _db.insert('kategoriler', {'ad': ad.trim(), 'ust_id': ustId, 'sira': sira});
+    await yenile();
+    return id;
+  }
+
+  // Adımlar
+  /// Bir notun adımlarını verilen listeyle değiştirir (sıra listedeki sıradır).
+  Future<void> adimlariKaydet(String notId, List<Adim> adimlar) async {
+    await _db.transaction((tx) async {
+      await tx.delete('adimlar', where: 'not_id = ?', whereArgs: [notId]);
+      var sira = 0;
+      for (final a in adimlar) {
+        await tx.insert('adimlar', Adim(
+          notId: notId,
+          sira: sira++,
+          metin: a.metin,
+          sureDk: a.sureDk,
+          durum: a.durum,
+          bekleme: a.bekleme,
+        ).toMap());
+      }
+    });
+    await yenile();
+  }
+
+  Future<void> adimDurumu(int adimId, String durum) async {
+    await _db.update('adimlar', {'durum': durum}, where: 'id = ?', whereArgs: [adimId]);
+    await yenile();
+  }
+
+  /// Notları onaylı işaretler (yapay zekanın önerisi kabul edildi).
+  Future<void> onayla(Iterable<String> notIdler) async {
+    for (final id in notIdler) {
+      await _db.update('notlar', {'onayli': 1, 'guncelleme': _simdi}, where: 'id = ?', whereArgs: [id]);
+    }
     await yenile();
   }
 

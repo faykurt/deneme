@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:material_ui/material_ui.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+import '../ai/isleyici.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
@@ -35,6 +36,8 @@ Future<void> paylasimiIsle(List<SharedMediaFile> dosyalar) async {
     link: link,
     fotografYollari: fotograflar,
   );
+  // Yapay zeka arka planda düzenler, not onay bekleyenlere düşer.
+  AiIsleyici.instance.bekleyenleriIsle();
   final ctx = navigatorKey.currentContext;
   if (ctx == null || !ctx.mounted) return;
   await showModalBottomSheet<void>(

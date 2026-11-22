@@ -7,7 +7,12 @@ import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:share_plus/share_plus.dart';
 
+import '../ai/ai_ayarlar.dart';
+import '../ai/ai_modeller.dart';
+import '../ai/ai_servisi.dart';
+import '../ai/isleyici.dart';
 import '../ortak.dart';
+import 'onay_penceresi.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 
@@ -22,6 +27,83 @@ class AyarlarEkrani extends StatefulWidget {
 
 class _AyarlarEkraniState extends State<AyarlarEkrani> {
   bool _yedekleniyor = false;
+  bool _deniyor = false;
+
+  Future<void> _anahtarDialogu() async {
+    final c = TextEditingController();
+    final sonuc = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Yapay zeka anahtarı'),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text('console.anthropic.com adresinde oluşturduğun anahtarı yapıştır. '
+              'Anahtar sadece bu telefonda, şifreli olarak saklanır.'),
+          const SizedBox(height: 12),
+          TextField(
+            controller: c,
+            obscureText: true,
+            autocorrect: false,
+            enableSuggestions: false,
+            decoration: const InputDecoration(hintText: 'sk-ant-…', border: OutlineInputBorder()),
+          ),
+        ]),
+        actions: [
+          if (AiAyarlar.instance.anahtarVar)
+            TextButton(onPressed: () => Navigator.pop(ctx, '__sil__'), child: const Text('Anahtarı sil')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Vazgeç')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Kaydet ve dene')),
+        ],
+      ),
+    );
+    if (sonuc == null || !mounted) return;
+    if (sonuc == '__sil__') {
+      await AiAyarlar.instance.sil();
+      mesajGoster('Anahtar silindi');
+      return;
+    }
+    final temiz = sonuc.replaceAll(RegExp(r'\s+'), '');
+    if (temiz.isEmpty) return;
+    if (!temiz.startsWith('sk-ant-')) {
+      final yine = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Anahtar tuhaf görünüyor'),
+          content: const Text('Anthropic anahtarları "sk-ant-" ile başlar. Yine de kaydedilsin mi?'),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Yine de kaydet')),
+          ],
+        ),
+      );
+      if (yine != true) return;
+    }
+    await AiAyarlar.instance.kaydet(temiz);
+    await _baglantiyiDene();
+  }
+
+  Future<void> _baglantiyiDene() async {
+    final anahtar = AiAyarlar.instance.anahtar;
+    if (anahtar == null || _deniyor) return;
+    setState(() => _deniyor = true);
+    try {
+      await AiServisi.baglantiyiDene(anahtar);
+      AiIsleyici.instance.hatayiTemizle();
+      mesajGoster('Bağlantı başarılı ✓ Yapay zeka hazır.');
+      AiIsleyici.instance.bekleyenleriIsle();
+    } on AiHata catch (e) {
+      if (!mounted) return;
+      await showDialog<void>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Bağlantı kurulamadı'),
+          content: Text(e.mesaj),
+          actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('Tamam'))],
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _deniyor = false);
+    }
+  }
 
   /// Tüm notları ve fotoğrafları tek bir zip dosyasına koyup paylaşım menüsünü açar
   /// (Drive'a ya da telefona kaydetmek için).
@@ -51,6 +133,36 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
       appBar: AppBar(backgroundColor: Renk.krem, title: const Text('Ayarlar')),
       body: ListView(
         children: [
+          ListenableBuilder(
+            listenable: AiAyarlar.instance,
+            builder: (context, _) {
+              final ai = AiAyarlar.instance;
+              return Column(children: [
+                ListTile(
+                  leading: _deniyor
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.auto_awesome, color: Renk.turuncu),
+                  title: const Text('Yapay zeka anahtarı'),
+                  subtitle: Text(ai.anahtarVar
+                      ? 'Kayıtlı (${ai.maskeli})'
+                      : 'Henüz eklenmedi. Notların kendiliğinden düzenlenmesi için gerekli.'),
+                  onTap: _deniyor ? null : _anahtarDialogu,
+                ),
+                if (ai.anahtarVar)
+                  ListTile(
+                    leading: const Icon(Icons.network_check),
+                    title: const Text('Bağlantıyı dene'),
+                    onTap: _deniyor ? null : _baglantiyiDene,
+                  ),
+                ListTile(
+                  leading: const Icon(Icons.memory),
+                  title: const Text('Model'),
+                  subtitle: Text(aiModelBilgisi),
+                ),
+              ]);
+            },
+          ),
+          const Divider(),
           ListTile(
             leading: const Icon(Icons.folder_outlined),
             title: const Text('Kategorileri düzenle'),

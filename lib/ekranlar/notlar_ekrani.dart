@@ -4,6 +4,7 @@ import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'not_detay.dart';
+import 'onay_bekleyenler.dart';
 
 /// Notlar sekmesi: klasör görünümü (varsayılan) ve liste görünümü.
 class NotlarEkrani extends StatefulWidget {
@@ -30,9 +31,14 @@ class _NotlarEkraniState extends State<NotlarEkrani> {
           ),
         ],
       ),
-      body: _klasor
-          ? const _KlasorGorunumu()
-          : NotListesi(kaynak: () => Depo.instance.aktifNotlar, aramaVar: true),
+      body: Column(children: [
+        const OnayBandi(),
+        Expanded(
+          child: _klasor
+              ? const _KlasorGorunumu()
+              : NotListesi(kaynak: () => Depo.instance.aktifNotlar, aramaVar: true),
+        ),
+      ]),
     );
   }
 }

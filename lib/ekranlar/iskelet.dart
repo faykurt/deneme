@@ -4,6 +4,7 @@ import 'package:home_widget/home_widget.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
+import '../ai/isleyici.dart';
 import '../ortak.dart';
 import 'ana_sayfa.dart';
 import 'ayarlar.dart';
@@ -21,14 +22,34 @@ class Iskelet extends StatefulWidget {
   State<Iskelet> createState() => _IskeletState();
 }
 
-class _IskeletState extends State<Iskelet> {
+class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
   int _sekme = 0;
   final List<StreamSubscription<Object?>> _abonelikler = [];
+  Timer? _yenidenDene;
 
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) => _disGirisleriDinle());
+    WidgetsBinding.instance.addObserver(this);
+    sekmeSecici.addListener(_sekmeDegisti);
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _disGirisleriDinle();
+      AiIsleyici.instance.bekleyenleriIsle();
+    });
+    // İnternet yokken kalan notlar için aralıklarla yeniden dener.
+    _yenidenDene = Timer.periodic(const Duration(minutes: 2), (_) {
+      final ai = AiIsleyici.instance;
+      if (ai.bekleyenSayisi > 0 && (ai.sonHata?.otomatikDeneme ?? true)) ai.bekleyenleriIsle();
+    });
+  }
+
+  void _sekmeDegisti() {
+    if (mounted && _sekme != sekmeSecici.value) setState(() => _sekme = sekmeSecici.value);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState durum) {
+    if (durum == AppLifecycleState.resumed) AiIsleyici.instance.bekleyenleriIsle();
   }
 
   void _disGirisleriDinle() {
@@ -56,13 +77,16 @@ class _IskeletState extends State<Iskelet> {
       case 'sesli':
         sesliNotAc();
       case 'yazili':
-        setState(() => _sekme = 0);
+        sekmeSecici.value = 0;
         yaziliNotAc();
     }
   }
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    sekmeSecici.removeListener(_sekmeDegisti);
+    _yenidenDene?.cancel();
     for (final a in _abonelikler) {
       a.cancel();
     }
@@ -107,7 +131,7 @@ class _IskeletState extends State<Iskelet> {
     return Expanded(
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => setState(() => _sekme = i),
+        onTap: () => sekmeSecici.value = i,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
