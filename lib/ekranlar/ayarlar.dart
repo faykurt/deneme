@@ -12,7 +12,9 @@ import '../ai/ai_modeller.dart';
 import '../ai/ai_servisi.dart';
 import '../ai/isleyici.dart';
 import '../ortak.dart';
+import '../takvim/takvim_ayarlari.dart';
 import 'onay_penceresi.dart';
+import 'takvim_ayar_pencereleri.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 
@@ -158,6 +160,44 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
                   leading: const Icon(Icons.memory),
                   title: const Text('Model'),
                   subtitle: Text(aiModelBilgisi),
+                ),
+              ]);
+            },
+          ),
+          const Divider(),
+          ListenableBuilder(
+            listenable: TakvimAyarlari.instance,
+            builder: (context, _) {
+              final t = TakvimAyarlari.instance;
+              return Column(children: [
+                ListTile(
+                  leading: const Icon(Icons.calendar_month_outlined, color: Renk.turuncu),
+                  title: const Text('Kullanılan takvim'),
+                  subtitle: Text(t.takvimAdi ?? 'Henüz seçilmedi'),
+                  onTap: () async {
+                    await t.takvimiSifirla();
+                    sekmeSecici.value = 1;
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.bedtime_outlined),
+                  title: const Text('Uyku saatleri'),
+                  subtitle: Text(t.kurallar.uykuTanimli
+                      ? 'Hafta içi ${t.uykuHaftaIci}  ·  Hafta sonu ${t.uykuHaftaSonu}'
+                      : 'Henüz girilmedi'),
+                  onTap: () => uykuAyarlaDialogu(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.work_outline),
+                  title: const Text('İş bloğu kelimesi'),
+                  subtitle: Text('Takvimde başlığında "${t.isKelimesi}" geçen etkinlik iş bloğu sayılır'),
+                  onTap: () => isKelimesiDialogu(context),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.beach_access_outlined),
+                  title: const Text('İzin günleri'),
+                  subtitle: Text(t.izinGunleri.isEmpty ? 'Eklenmedi' : '${t.izinGunleri.length} gün'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const IzinGunleriEkrani())),
                 ),
               ]);
             },

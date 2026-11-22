@@ -102,6 +102,9 @@ class Not {
   int ertelemeSayisi;
   int gormezdenSayisi;
   String? takvimEtkinlikId;
+  int? takvimBaslangic;
+  int? takvimBitis;
+  bool yaptinCevap;
   String? aiJson;
   List<String> fotograflar;
   List<int> kategoriIdler;
@@ -128,6 +131,9 @@ class Not {
     this.ertelemeSayisi = 0,
     this.gormezdenSayisi = 0,
     this.takvimEtkinlikId,
+    this.takvimBaslangic,
+    this.takvimBitis,
+    this.yaptinCevap = false,
     this.aiJson,
     List<String>? fotograflar,
     List<int>? kategoriIdler,
@@ -170,6 +176,9 @@ class Not {
         'erteleme_sayisi': ertelemeSayisi,
         'gormezden_sayisi': gormezdenSayisi,
         'takvim_etkinlik_id': takvimEtkinlikId,
+        'takvim_baslangic': takvimBaslangic,
+        'takvim_bitis': takvimBitis,
+        'yaptin_cevap': yaptinCevap ? 1 : 0,
         'ai_json': aiJson,
       };
 
@@ -194,6 +203,9 @@ class Not {
         ertelemeSayisi: (m['erteleme_sayisi'] as int?) ?? 0,
         gormezdenSayisi: (m['gormezden_sayisi'] as int?) ?? 0,
         takvimEtkinlikId: m['takvim_etkinlik_id'] as String?,
+        takvimBaslangic: m['takvim_baslangic'] as int?,
+        takvimBitis: m['takvim_bitis'] as int?,
+        yaptinCevap: m['yaptin_cevap'] == 1,
         aiJson: m['ai_json'] as String?,
       );
 }

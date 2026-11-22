@@ -6,6 +6,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../ai/isleyici.dart';
 import '../ortak.dart';
+import '../takvim/takvim_deposu.dart';
 import 'ana_sayfa.dart';
 import 'ayarlar.dart';
 import 'notlar_ekrani.dart';
@@ -35,6 +36,7 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _disGirisleriDinle();
       AiIsleyici.instance.bekleyenleriIsle();
+      _takvimiYokla();
     });
     // İnternet yokken kalan notlar için aralıklarla yeniden dener.
     _yenidenDene = Timer.periodic(const Duration(minutes: 2), (_) {
@@ -43,13 +45,23 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
     });
   }
 
+  /// Takvim iznini ve takvime bağlı notları (silinen/taşınan etkinlikler) günceller.
+  Future<void> _takvimiYokla() async {
+    final t = TakvimDeposu.instance;
+    await t.baslat();
+    await t.notlariSenkronla();
+  }
+
   void _sekmeDegisti() {
     if (mounted && _sekme != sekmeSecici.value) setState(() => _sekme = sekmeSecici.value);
   }
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState durum) {
-    if (durum == AppLifecycleState.resumed) AiIsleyici.instance.bekleyenleriIsle();
+    if (durum == AppLifecycleState.resumed) {
+      AiIsleyici.instance.bekleyenleriIsle();
+      _takvimiYokla();
+    }
   }
 
   void _disGirisleriDinle() {

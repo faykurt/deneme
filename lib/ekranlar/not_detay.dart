@@ -8,9 +8,12 @@ import 'package:material_ui/material_ui.dart';
 import '../ai/ai_ayarlar.dart';
 import '../ai/ai_modeller.dart';
 import '../ortak.dart';
+import '../takvim/takvim_deposu.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'onay_penceresi.dart';
+import 'takvim_ayar_pencereleri.dart';
+import 'takvime_ekle.dart';
 import 'yazili_not.dart';
 
 /// Bir notun ayrıntısı: metni, fotoğrafları, kategorileri ve durumu düzenlenir.
@@ -231,6 +234,8 @@ class _NotDetayState extends State<NotDetay> {
                     ),
                 ],
               ),
+              const SizedBox(height: 12),
+              _takvimBolumu(n),
               const SizedBox(height: 16),
               ..._adimBolumu(n, yazi),
               Text('Fotoğraflar', style: yazi.titleSmall),
@@ -386,6 +391,40 @@ class _NotDetayState extends State<NotDetay> {
       saat?.minute ?? 0,
     ).millisecondsSinceEpoch;
     await _depo.notGuncelle(n);
+  }
+
+  Widget _takvimBolumu(Not n) {
+    if (n.takvimEtkinlikId == null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          onPressed: () => takvimeEkle(context, n),
+          icon: const Icon(Icons.event_available),
+          label: const Text('Takvime ekle'),
+        ),
+      );
+    }
+    final bas = n.takvimBaslangic == null ? null : DateTime.fromMillisecondsSinceEpoch(n.takvimBaslangic!);
+    return Material(
+      color: Renk.turuncu.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(14),
+      child: ListTile(
+        leading: const Text('📅', style: TextStyle(fontSize: 22)),
+        title: const Text('Takvimde'),
+        subtitle: Text(bas == null ? '' : zamanMetni(bas)),
+        onTap: () => bagliEtkinligiAc(n),
+        trailing: PopupMenuButton<String>(
+          onSelected: (v) {
+            if (v == 'sil') bagliEtkinligiSil(n);
+            if (v == 'kaldir') TakvimDeposu.instance.baglantiyiKaldir(n);
+          },
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'sil', child: Text('Takvimden sil')),
+            PopupMenuItem(value: 'kaldir', child: Text('Bağlantıyı kaldır (etkinlik kalsın)')),
+          ],
+        ),
+      ),
+    );
   }
 
   /// Adımlar: sıralı liste. Sıradaki (ilk yapılmamış) adım vurgulanır.

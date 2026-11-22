@@ -8,6 +8,7 @@ import '../veri/modeller.dart';
 import 'kayit_sonrasi.dart';
 import 'onay_bekleyenler.dart';
 import 'sesli_not.dart';
+import 'yaptin_mi.dart';
 import 'yazili_not.dart';
 
 class AnaSayfa extends StatefulWidget {
@@ -73,6 +74,7 @@ class _AnaSayfaState extends State<AnaSayfa> {
                 IconButton.filled(tooltip: 'Kaydet', icon: const Icon(Icons.arrow_upward), onPressed: _hizliKaydet),
               ]),
             ),
+            const YaptinMiKartlari(),
             const OnayBandi(),
             ListenableBuilder(
               listenable: Listenable.merge([AiAyarlar.instance, AiIsleyici.instance]),

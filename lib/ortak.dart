@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'ai/ai_ayarlar.dart';
+import 'takvim/takvim_deposu.dart';
+import 'takvim/takvim_modeller.dart';
 import 'veri/depo.dart';
 import 'veri/modeller.dart';
 
@@ -50,7 +52,45 @@ void mesajGoster(String metin, {String? eylem, VoidCallback? eylemFn, int saniye
 
 /// Notları silip 5 saniye "Geri al" gösterir.
 Future<void> silVeGeriAlGoster(List<String> idler) async {
+  final bagli = Depo.instance.notlar
+      .where((n) => idler.contains(n.id) && n.takvimEtkinlikId != null)
+      .toList();
+  var etkinlikleriSil = false;
+  final ctx = navigatorKey.currentContext;
+  if (bagli.isNotEmpty && ctx != null) {
+    final secim = await showDialog<String>(
+      context: ctx,
+      builder: (c) => AlertDialog(
+        title: const Text('Takvimdeki etkinlik de silinsin mi?'),
+        content: Text(bagli.length == 1
+            ? 'Bu not takvime eklenmişti.'
+            : '${bagli.length} not takvime eklenmişti.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(c), child: const Text('Vazgeç')),
+          TextButton(onPressed: () => Navigator.pop(c, 'sadece'), child: const Text('Sadece notu sil')),
+          FilledButton(onPressed: () => Navigator.pop(c, 'ikisi'), child: const Text('İkisini de sil')),
+        ],
+      ),
+    );
+    if (secim == null) return;
+    etkinlikleriSil = secim == 'ikisi';
+  }
   await Depo.instance.sil(idler);
+  if (bagli.isNotEmpty) {
+    final takvim = TakvimDeposu.instance;
+    for (final n in bagli) {
+      if (etkinlikleriSil) {
+        try {
+          final e = await takvim.getir(n.takvimEtkinlikId!);
+          if (e != null) await takvim.sil(e, Kapsam.hepsi);
+        } catch (_) {
+          // Etkinlik silinemediyse not yine silinir.
+        }
+      }
+      // Silme geri alınırsa not takvim bağlantısı olmadan geri gelir.
+      if (etkinlikleriSil) await takvim.baglantiyiKaldir(n);
+    }
+  }
   mesajGoster(idler.length == 1 ? 'Not silindi' : '${idler.length} not silindi',
       eylem: 'Geri al', eylemFn: () => Depo.instance.silmeyiGeriAl(idler), saniye: 5);
 }

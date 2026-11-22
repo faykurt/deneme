@@ -14,7 +14,7 @@ class Depo extends ChangeNotifier {
   Depo._();
   static final Depo instance = Depo._();
 
-  static const _surum = 2;
+  static const _surum = 3;
   late Database _db;
   late Directory fotografKlasoru;
   late String veritabaniYolu;
@@ -67,6 +67,9 @@ class Depo extends ChangeNotifier {
         erteleme_sayisi INTEGER NOT NULL DEFAULT 0,
         gormezden_sayisi INTEGER NOT NULL DEFAULT 0,
         takvim_etkinlik_id TEXT,
+        takvim_baslangic INTEGER,
+        takvim_bitis INTEGER,
+        yaptin_cevap INTEGER NOT NULL DEFAULT 0,
         ai_json TEXT
       )''');
     await db.execute('''
@@ -119,13 +122,18 @@ class Depo extends ChangeNotifier {
     }
   }
 
-  /// 1 → 2: yapay zeka önerisi ve adımlarda bekleme işareti eklendi.
+  /// 1 → 2: yapay zeka önerisi ve adımlarda bekleme işareti eklendi. 2 → 3: takvim bağlantısı.
   /// Eski (yapay zekadan önceki) notlar onaylı sayılır, "onay bekleyen" yığını oluşmaz.
   static Future<void> yukselt(Database db, int eski, int yeni) async {
     if (eski < 2) {
       await db.execute('ALTER TABLE notlar ADD COLUMN ai_json TEXT');
       await db.execute('ALTER TABLE adimlar ADD COLUMN bekleme INTEGER NOT NULL DEFAULT 0');
       await db.execute('UPDATE notlar SET onayli = 1');
+    }
+    if (eski < 3) {
+      await db.execute('ALTER TABLE notlar ADD COLUMN takvim_baslangic INTEGER');
+      await db.execute('ALTER TABLE notlar ADD COLUMN takvim_bitis INTEGER');
+      await db.execute('ALTER TABLE notlar ADD COLUMN yaptin_cevap INTEGER NOT NULL DEFAULT 0');
     }
   }
 
