@@ -1,6 +1,6 @@
 # Aklımda — Tasarım Kararları
 
-Durum: **Tasarım aşaması. Kod yazımına başlanmadı.** Kod yalnızca kullanıcı açıkça "yap" dediğinde yazılır.
+Durum: **Geliştirme sürüyor.** 1-4. aşamalar ve yapay zeka maliyet düzenlemesi tamam (son sürüm v0.4.14). Sıradaki: 5. aşama (öneriler). Teknik durum ve devam planı için `DEVAM.md`'ye bak. Kod yalnızca kullanıcı açıkça "yap" dediğinde (aşama başına) yazılır.
 Çalışma kuralları: (1) "yap" denmeden hiçbir şey yapılmaz, (2) tahmin yapılmaz, boşluklar sorularak doldurulur.
 
 ## 1. Amaç
@@ -143,11 +143,11 @@ Kaldırılan: "Kim önerdi?" alanı (Ö3).
 Eklenmeyecek: 2 dakika kuralı (Ö10). Kullanırken eksik hissedilirse sonra değerlendirilir.
 
 ## 13. Geliştirme aşamaları (onaylandı)
-1. **İskelet:** GitHub Actions ile APK derleme, imza, telefona kurulum, ikon.
-2. **Not alma:** yazılı, sesli, fotoğraf (kamera dahil), paylaş menüsü, widget, notlar ekranı (klasör/liste, arama, arşiv), yedek.
-3. **Yapay zeka:** kategori, başlık, süre, tarih, adımlar, birden fazla fikri ayırma, onay penceresi. Bu aşamadan önce kullanıcı Anthropic konsolunda hesap açıp kredi yükler ve API anahtarı oluşturur.
-4. **Takvim.**
-5. **Öneriler:** bildirimler, hafta sonu planı, "Şu an ne yapabilirim?".
+1. **İskelet:** GitHub Actions ile APK derleme, imza, telefona kurulum, ikon. *(tamam)*
+2. **Not alma:** yazılı, sesli, fotoğraf (kamera dahil), paylaş menüsü, widget, notlar ekranı (klasör/liste, arama, arşiv), yedek. *(tamam)*
+3. **Yapay zeka:** kategori, başlık, süre, tarih, adımlar, birden fazla fikri ayırma, onay penceresi. Bu aşamadan önce kullanıcı Anthropic konsolunda hesap açıp kredi yükler ve API anahtarı oluşturur. *(tamam)*
+4. **Takvim.** *(tamam; ay görünümü Samsung düzeninde, tam sayfa)*
+5. **Öneriler:** *(sıradaki)* bildirimler, hafta sonu planı, "Şu an ne yapabilirim?".
 6. **Görünüm:** piksel art arka plan ve son cila (sıcak renkler baştan kullanılır).
 
 Her aşama sonunda kullanıcı telefonda dener. Kullanıcı "yap" demeden bir sonraki aşamaya geçilmez.
