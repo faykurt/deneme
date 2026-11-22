@@ -17,7 +17,7 @@ concurrency:
 
 env:
   FLUTTER_VERSION: "3.50.1"
-  VERSION_PREFIX: "0.1"
+  VERSION_PREFIX: "0.2"
 
 jobs:
   build:
@@ -75,7 +75,7 @@ jobs:
         run: |
           VERSION="${VERSION_PREFIX}.${GITHUB_RUN_NUMBER}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          flutter build apk --release --build-name="$VERSION" --build-number="$GITHUB_RUN_NUMBER"
+          flutter build apk --release --build-name="$VERSION" --build-number="$GITHUB_RUN_NUMBER" --dart-define=SURUM="$VERSION"
           cp build/app/outputs/flutter-apk/app-release.apk "Aklimda-$VERSION.apk"
 
       - name: Sürümü yayınla

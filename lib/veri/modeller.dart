@@ -1,0 +1,177 @@
+/// Not durumları. Kullanıcı isterse elle değiştirir, zorunlu değildir.
+class Durum {
+  static const yapilacak = 'yapilacak';
+  static const yapiliyor = 'yapiliyor';
+  static const bekliyor = 'bekliyor';
+  static const yapildi = 'yapildi';
+
+  static const hepsi = [yapilacak, yapiliyor, bekliyor, yapildi];
+
+  static String ad(String durum) => switch (durum) {
+        yapiliyor => 'Yapılıyor',
+        bekliyor => 'Bekliyor',
+        yapildi => 'Yapıldı',
+        _ => 'Yapılacak',
+      };
+}
+
+/// Notun nereden geldiği.
+class Kaynak {
+  static const yazili = 'yazili';
+  static const sesli = 'sesli';
+  static const paylasim = 'paylasim';
+}
+
+class Kategori {
+  final int id;
+  String ad;
+  final int? ustId;
+  final int sira;
+
+  Kategori({required this.id, required this.ad, this.ustId, this.sira = 0});
+
+  factory Kategori.fromMap(Map<String, Object?> m) => Kategori(
+        id: m['id'] as int,
+        ad: m['ad'] as String,
+        ustId: m['ust_id'] as int?,
+        sira: (m['sira'] as int?) ?? 0,
+      );
+}
+
+class Not {
+  final String id;
+  String metin;
+  String? baslik;
+  final String kaynak;
+  final int olusturma;
+  int guncelleme;
+  String durum;
+  bool arsiv;
+  bool onayli;
+  bool islendi;
+  int? sureDk;
+  int? tarih;
+  bool tarihSaatli;
+  int? hatirlatma;
+  String? link;
+  String? yorum;
+  int sonDokunma;
+  int ertelemeSayisi;
+  int gormezdenSayisi;
+  String? takvimEtkinlikId;
+  List<String> fotograflar;
+  List<int> kategoriIdler;
+
+  Not({
+    required this.id,
+    required this.metin,
+    this.baslik,
+    required this.kaynak,
+    required this.olusturma,
+    required this.guncelleme,
+    this.durum = Durum.yapilacak,
+    this.arsiv = false,
+    this.onayli = false,
+    this.islendi = false,
+    this.sureDk,
+    this.tarih,
+    this.tarihSaatli = false,
+    this.hatirlatma,
+    this.link,
+    this.yorum,
+    required this.sonDokunma,
+    this.ertelemeSayisi = 0,
+    this.gormezdenSayisi = 0,
+    this.takvimEtkinlikId,
+    List<String>? fotograflar,
+    List<int>? kategoriIdler,
+  })  : fotograflar = fotograflar ?? [],
+        kategoriIdler = kategoriIdler ?? [];
+
+  /// Listede görünen başlık: yapay zeka başlığı yoksa metnin ilk satırı.
+  String get gorunenBaslik {
+    if (baslik != null && baslik!.trim().isNotEmpty) return baslik!.trim();
+    final ilk = metin.trim().split('\n').first.trim();
+    if (ilk.isNotEmpty) return ilk.length > 60 ? '${ilk.substring(0, 60)}…' : ilk;
+    if (link != null) return link!;
+    if (fotograflar.isNotEmpty) return 'Fotoğraf';
+    return 'Boş not';
+  }
+
+  Map<String, Object?> toMap() => {
+        'id': id,
+        'metin': metin,
+        'baslik': baslik,
+        'kaynak': kaynak,
+        'olusturma': olusturma,
+        'guncelleme': guncelleme,
+        'durum': durum,
+        'arsiv': arsiv ? 1 : 0,
+        'onayli': onayli ? 1 : 0,
+        'islendi': islendi ? 1 : 0,
+        'sure_dk': sureDk,
+        'tarih': tarih,
+        'tarih_saatli': tarihSaatli ? 1 : 0,
+        'hatirlatma': hatirlatma,
+        'link': link,
+        'yorum': yorum,
+        'son_dokunma': sonDokunma,
+        'erteleme_sayisi': ertelemeSayisi,
+        'gormezden_sayisi': gormezdenSayisi,
+        'takvim_etkinlik_id': takvimEtkinlikId,
+      };
+
+  factory Not.fromMap(Map<String, Object?> m) => Not(
+        id: m['id'] as String,
+        metin: (m['metin'] as String?) ?? '',
+        baslik: m['baslik'] as String?,
+        kaynak: m['kaynak'] as String,
+        olusturma: m['olusturma'] as int,
+        guncelleme: m['guncelleme'] as int,
+        durum: (m['durum'] as String?) ?? Durum.yapilacak,
+        arsiv: m['arsiv'] == 1,
+        onayli: m['onayli'] == 1,
+        islendi: m['islendi'] == 1,
+        sureDk: m['sure_dk'] as int?,
+        tarih: m['tarih'] as int?,
+        tarihSaatli: m['tarih_saatli'] == 1,
+        hatirlatma: m['hatirlatma'] as int?,
+        link: m['link'] as String?,
+        yorum: m['yorum'] as String?,
+        sonDokunma: m['son_dokunma'] as int,
+        ertelemeSayisi: (m['erteleme_sayisi'] as int?) ?? 0,
+        gormezdenSayisi: (m['gormezden_sayisi'] as int?) ?? 0,
+        takvimEtkinlikId: m['takvim_etkinlik_id'] as String?,
+      );
+}
+
+/// Kategori ağacı yardımcıları (test edilebilir, veritabanından bağımsız).
+class KategoriAgaci {
+  final List<Kategori> tum;
+  KategoriAgaci(this.tum);
+
+  List<Kategori> get anaKategoriler =>
+      tum.where((k) => k.ustId == null).toList()..sort((a, b) => a.sira.compareTo(b.sira));
+
+  List<Kategori> altlari(int id) =>
+      tum.where((k) => k.ustId == id).toList()..sort((a, b) => a.sira.compareTo(b.sira));
+
+  Kategori? bul(int id) {
+    for (final k in tum) {
+      if (k.id == id) return k;
+    }
+    return null;
+  }
+
+  /// "Hobi › Dizi" gibi tam ad.
+  String tamAd(int id) {
+    final k = bul(id);
+    if (k == null) return '';
+    if (k.ustId == null) return k.ad;
+    final ust = bul(k.ustId!);
+    return ust == null ? k.ad : '${ust.ad} › ${k.ad}';
+  }
+
+  /// Bir kategori ve (ana kategoriyse) alt kategorilerinin id'leri.
+  Set<int> kendisiVeAltlari(int id) => {id, ...altlari(id).map((k) => k.id)};
+}
