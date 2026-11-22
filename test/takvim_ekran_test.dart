@@ -69,9 +69,22 @@ void main() {
     addTearDown(t.view.reset);
   }
 
+  /// Gerçek zamanda kısa aralıklarla bekler, her aralıkta ekranı yeniler. Zincirleme veritabanı işlemleri
+  /// (yavaş makinelerde de) arada ekran yenilenerek ilerleyebilsin diye parça parça beklenir.
   Future<void> bekle(WidgetTester t, {int ms = 250}) async {
-    await t.runAsync(() => Future.delayed(Duration(milliseconds: ms)));
+    for (var i = 0; i < ms ~/ 25; i++) {
+      await t.runAsync(() => Future.delayed(const Duration(milliseconds: 25)));
+      await t.pump(const Duration(milliseconds: 25));
+    }
     await t.pumpAndSettle();
+  }
+
+  /// [kosul] gerçekleşene kadar (en fazla [saniye] sn) bekler.
+  Future<void> bekleKadar(WidgetTester t, bool Function() kosul, {int saniye = 10}) async {
+    for (var i = 0; i < saniye * 20 && !kosul(); i++) {
+      await t.runAsync(() => Future.delayed(const Duration(milliseconds: 50)));
+      await t.pump(const Duration(milliseconds: 50));
+    }
   }
 
   /// Ay görünümünde bir etkinliği açar: önce güne dokunur (pencere açılır), sonra pencerede etkinliğe dokunur.
@@ -409,6 +422,7 @@ void main() {
     expect(find.text('Salona tablo asmak'), findsOneWidget, reason: 'başlık nottan gelmeli');
     await t.tap(find.text('Kaydet'));
     await t.pumpAndSettle();
+    await bekleKadar(t, () => depo.notlar.any((n) => n.id == not.id && n.takvimEtkinlikId != null));
     await bekle(t);
     final e = sahte.ev.single;
     expect(e.baslik, '💭 Salona tablo asmak');
@@ -433,7 +447,8 @@ void main() {
     expect(find.text('Uyku saatlerin'), findsOneWidget);
     await t.tap(find.text('Kaydet'));
     await t.pumpAndSettle();
-    await bekle(t);
+    await bekleKadar(t, () => find.textContaining('için eklendi').evaluate().isNotEmpty);
+    await t.pumpAndSettle(); // bildirimin açılış animasyonu bitsin
     expect(ayar.kurallar.uykuTanimli, isTrue);
     final e = sahte.ev.single;
     expect(e.baslik, '💭 Kitap oku');
