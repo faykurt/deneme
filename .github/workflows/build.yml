@@ -1,0 +1,85 @@
+# Aklımda: her push'ta APK derler. İmza şifresi (KEYSTORE_PASSWORD) tanımlıysa
+# imzalı APK'yı GitHub Releases'a yeni bir sürüm olarak yükler.
+name: APK derle
+
+on:
+  push:
+    branches: ["claude/nice-newton-osqq0d", "main"]
+    paths-ignore: ["**.md", "Yeni Metin Belgesi.txt"]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  FLUTTER_VERSION: "3.50.1"
+  VERSION_PREFIX: "0.1"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Paketleri indir
+        run: flutter pub get
+
+      - name: Kod kontrolü
+        run: flutter analyze
+
+      - name: Testler
+        run: flutter test
+
+      - name: İmza anahtarını hazırla
+        env:
+          KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_PASSWORD" ]; then
+            openssl enc -d -aes-256-cbc -pbkdf2 -iter 200000 \
+              -in android/app/upload-keystore.p12.enc \
+              -out android/app/upload-keystore.p12 \
+              -pass env:KEYSTORE_PASSWORD
+            {
+              echo "storePassword=$KEYSTORE_PASSWORD"
+              echo "keyPassword=$KEYSTORE_PASSWORD"
+              echo "keyAlias=aklimda"
+              echo "storeFile=upload-keystore.p12"
+            } > android/key.properties
+            echo "SIGNED=true" >> "$GITHUB_ENV"
+          else
+            echo "::warning::KEYSTORE_PASSWORD tanımlı değil. APK sadece deneme amaçlı derlenecek, sürüm yayınlanmayacak."
+            echo "SIGNED=false" >> "$GITHUB_ENV"
+          fi
+
+      - name: APK derle
+        run: |
+          VERSION="${VERSION_PREFIX}.${GITHUB_RUN_NUMBER}"
+          echo "VERSION=$VERSION" >> "$GITHUB_ENV"
+          flutter build apk --release --build-name="$VERSION" --build-number="$GITHUB_RUN_NUMBER"
+          cp build/app/outputs/flutter-apk/app-release.apk "Aklimda-$VERSION.apk"
+
+      - name: Sürümü yayınla
+        if: env.SIGNED == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release create "v$VERSION" "Aklimda-$VERSION.apk" \
+            --title "Aklımda $VERSION" \
+            --notes "Telefona kurmak için aşağıdaki Aklimda-$VERSION.apk dosyasına dokun." \
+            --target "$GITHUB_SHA"
