@@ -75,7 +75,15 @@ jobs:
         run: |
           VERSION="${VERSION_PREFIX}.${GITHUB_RUN_NUMBER}"
           echo "VERSION=$VERSION" >> "$GITHUB_ENV"
-          flutter build apk --release --build-name="$VERSION" --build-number="$GITHUB_RUN_NUMBER" --dart-define=SURUM="$VERSION"
+          # İndirme sunucuları bazen geçici hata verir (429 vb.): 3 kez dene.
+          for deneme in 1 2 3; do
+            if flutter build apk --release --build-name="$VERSION" --build-number="$GITHUB_RUN_NUMBER" --dart-define=SURUM="$VERSION"; then
+              break
+            fi
+            if [ "$deneme" = "3" ]; then exit 1; fi
+            echo "::warning::Derleme $deneme. denemede başarısız oldu, 60 sn sonra yeniden denenecek."
+            sleep 60
+          done
           cp build/app/outputs/flutter-apk/app-release.apk "Aklimda-$VERSION.apk"
 
       - name: Sürümü yayınla
