@@ -59,6 +59,7 @@ class TEtkinlik {
   final TekrarTuru tekrar;
   final DateTime? tekrarBitis;
   final String? aciklama;
+  final Color? renk;
 
   const TEtkinlik({
     required this.instanceId,
@@ -73,6 +74,7 @@ class TEtkinlik {
     this.tekrar = TekrarTuru.yok,
     this.tekrarBitis,
     this.aciklama,
+    this.renk,
   });
 
   bool get uygulamaninMi => baslik.startsWith(uygulamaIsareti);

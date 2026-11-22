@@ -11,7 +11,7 @@ import 'etkinlik_duzenle.dart';
 
 enum Gorunum { ay, hafta, gun }
 
-const _gunKisa = ['Pzt', 'Sal', 'Çar', 'Per', 'Cum', 'Cmt', 'Paz'];
+const _gunKisa = ['PZT', 'SAL', 'ÇAR', 'PER', 'CUM', 'CMT', 'PZR'];
 
 DateTime haftaBasi(DateTime d) => gunBasi(d).subtract(Duration(days: d.weekday - 1));
 
@@ -125,12 +125,29 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
     if (mounted) setState(() => _sayilar = s);
   }
 
-  Future<void> _ekle() async {
+  Future<void> _ekleGune(DateTime gun) async {
     final simdi = DateTime.now();
-    final g = gunBasi(_odak) == gunBasi(simdi)
+    final g = gunBasi(gun) == gunBasi(simdi)
         ? DateTime(simdi.year, simdi.month, simdi.day, simdi.hour + 1)
-        : DateTime(_odak.year, _odak.month, _odak.day, 9);
+        : DateTime(gun.year, gun.month, gun.day, 9);
     await etkinlikDuzenleAc(baslangic: g);
+  }
+
+  Future<void> _gunPenceresi(DateTime gun) async {
+    await showDialog<void>(
+      context: context,
+      builder: (ctx) => _GunPenceresi(
+        gun: gun,
+        onEtkinlik: (e) {
+          Navigator.pop(ctx);
+          _ac(e);
+        },
+        onEkle: () {
+          Navigator.pop(ctx);
+          _ekleGune(gun);
+        },
+      ),
+    );
   }
 
   Future<void> _ac(TEtkinlik e) async {
@@ -152,7 +169,22 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
         return Scaffold(
           appBar: AppBar(
             backgroundColor: Renk.krem,
-            title: Text(hazir ? _baslikMetni : 'Takvim'),
+            title: hazir
+                ? Row(mainAxisSize: MainAxisSize.min, children: [
+                    IconButton(
+                        tooltip: 'Önceki',
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.chevron_left),
+                        onPressed: () => _git(-1)),
+                    Flexible(child: Text(_baslikMetni, overflow: TextOverflow.ellipsis)),
+                    IconButton(
+                        tooltip: 'Sonraki',
+                        visualDensity: VisualDensity.compact,
+                        icon: const Icon(Icons.chevron_right),
+                        onPressed: () => _git(1)),
+                  ])
+                : const Text('Takvim'),
+            centerTitle: true,
             actions: [
               if (hazir) ...[
                 IconButton(
@@ -176,7 +208,7 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
                     PopupMenuItem(value: Gorunum.gun, child: Text('Gün')),
                   ],
                 ),
-                IconButton(tooltip: 'Etkinlik ekle', icon: const Icon(Icons.add), onPressed: _ekle),
+                IconButton(tooltip: 'Etkinlik ekle', icon: const Icon(Icons.add), onPressed: () => _ekleGune(_odak)),
               ],
             ],
           ),
@@ -198,48 +230,33 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
           padding: const EdgeInsets.all(10),
           child: Text(_depo.hata!, style: TextStyle(color: Colors.red.shade900, fontSize: 13)),
         ),
-      _gezinti(),
       Expanded(
-        child: RefreshIndicator(
-          onRefresh: () async {
-            await _depo.yenile();
-            await _depo.notlariSenkronla();
-          },
-          child: switch (_gorunum) {
-            Gorunum.ay => _AyGorunumu(odak: _odak, onGunSec: (g) => setState(() => _odak = gunBasi(g)), onAc: _ac),
-            Gorunum.hafta => _HaftaGorunumu(odak: _odak, onAc: _ac),
-            Gorunum.gun => _GunGorunumu(gun: _odak, onAc: _ac),
-          },
-        ),
+        child: switch (_gorunum) {
+          Gorunum.ay => GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragEnd: (d) {
+                final v = d.primaryVelocity ?? 0;
+                if (v < -250) _git(1);
+                if (v > 250) _git(-1);
+              },
+              child: _AyGorunumu(odak: _odak, onGunTikla: _gunPenceresi),
+            ),
+          Gorunum.hafta => RefreshIndicator(
+              onRefresh: _yenile,
+              child: _HaftaGorunumu(odak: _odak, onAc: _ac),
+            ),
+          Gorunum.gun => RefreshIndicator(
+              onRefresh: _yenile,
+              child: _GunGorunumu(gun: _odak, onAc: _ac),
+            ),
+        },
       ),
     ]);
   }
 
-  Widget _gezinti() => Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 4),
-        child: Row(children: [
-          IconButton(icon: const Icon(Icons.chevron_left), onPressed: () => _git(-1)),
-          Expanded(
-            child: Text(
-              switch (_gorunum) {
-                Gorunum.ay => _depo.ayarlar.takvimAdi ?? '',
-                Gorunum.hafta => _haftaMetni(),
-                Gorunum.gun => _depo.ayarlar.takvimAdi ?? '',
-              },
-              textAlign: TextAlign.center,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(color: Renk.kahve.withValues(alpha: 0.7), fontSize: 13),
-            ),
-          ),
-          IconButton(icon: const Icon(Icons.chevron_right), onPressed: () => _git(1)),
-        ]),
-      );
-
-  String _haftaMetni() {
-    final b = haftaBasi(_odak);
-    final s = b.add(const Duration(days: 6));
-    final f = DateFormat('d MMM', 'tr');
-    return '${f.format(b)} – ${f.format(s)}';
+  Future<void> _yenile() async {
+    await _depo.yenile();
+    await _depo.notlariSenkronla();
   }
 
   Widget _izinKarti() {
@@ -369,100 +386,262 @@ class _EtkinlikKarti extends StatelessWidget {
   }
 }
 
+/// Ay görünümü: tüm sayfayı kaplar, her günün etkinlik başlıkları hücrede görünür.
+/// Güne dokununca o günün etkinlikleri pencerede açılır.
 class _AyGorunumu extends StatelessWidget {
   final DateTime odak;
-  final void Function(DateTime) onGunSec;
-  final void Function(TEtkinlik) onAc;
-  const _AyGorunumu({required this.odak, required this.onGunSec, required this.onAc});
+  final void Function(DateTime) onGunTikla;
+  const _AyGorunumu({required this.odak, required this.onGunTikla});
+
+  static const _baslikYuksekligi = 28.0;
+  static const _chipYuksekligi = 26.0;
+  static const _gunNoYuksekligi = 24.0;
+  static const _fazlaYazisiYuksekligi = 14.0;
 
   @override
   Widget build(BuildContext context) {
     final depo = TakvimDeposu.instance;
     final ilk = DateTime(odak.year, odak.month, 1);
     final baslangic = haftaBasi(ilk);
+    final gunSayisi = DateTime(odak.year, odak.month + 1, 0).day;
+    final haftaSayisi = ((ilk.weekday - 1 + gunSayisi) / 7).ceil();
     final bugun = gunBasi(DateTime.now());
-    final haftaSayisi = ((ilk.difference(baslangic).inDays + DateTime(odak.year, odak.month + 1, 0).day) / 7).ceil();
-    final secili = depo.gununEtkinlikleri(odak);
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120),
-      children: [
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 8),
+    return LayoutBuilder(builder: (context, c) {
+      final hucreH = (c.maxHeight - _baslikYuksekligi) / haftaSayisi;
+      return Column(children: [
+        SizedBox(
+          height: _baslikYuksekligi,
           child: Row(children: [
-            for (final g in _gunKisa)
+            for (var i = 0; i < 7; i++)
               Expanded(
                 child: Center(
-                  child: Text(g, style: TextStyle(color: Renk.kahve.withValues(alpha: 0.6), fontSize: 12)),
+                  child: Text(_gunKisa[i],
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w600,
+                        color: i >= 5 ? Colors.red.shade400 : Renk.kahve.withValues(alpha: 0.7),
+                      )),
                 ),
               ),
           ]),
         ),
         for (var h = 0; h < haftaSayisi; h++)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8),
+          SizedBox(
+            height: hucreH,
             child: Row(children: [
               for (var i = 0; i < 7; i++)
-                Expanded(child: _gunHucresi(depo, baslangic.add(Duration(days: h * 7 + i)), bugun)),
+                Expanded(child: _hucre(depo, baslangic.add(Duration(days: h * 7 + i)), bugun, hucreH)),
             ]),
           ),
-        const Divider(height: 24),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 6),
-          child: Text(
-            DateFormat('d MMMM, EEEE', 'tr').format(odak),
-            style: const TextStyle(color: Renk.kahve, fontWeight: FontWeight.w600),
-          ),
+      ]);
+    });
+  }
+
+  Widget _hucre(TakvimDeposu depo, DateTime g, DateTime bugun, double yukseklik) {
+    final buAy = g.month == odak.month;
+    final bugunMu = g == bugun;
+    final hafta = g.weekday >= 6;
+    final etkinlikler = depo.gununEtkinlikleri(g);
+    final alan = yukseklik - _gunNoYuksekligi - 2;
+    var sigan = (alan / _chipYuksekligi).floor();
+    if (sigan < 0) sigan = 0;
+    var gosterilecek = etkinlikler.length;
+    var fazla = 0;
+    if (etkinlikler.length > sigan) {
+      gosterilecek = ((alan - _fazlaYazisiYuksekligi) / _chipYuksekligi).floor().clamp(0, etkinlikler.length);
+      fazla = etkinlikler.length - gosterilecek;
+    }
+    final solukluk = buAy ? 1.0 : 0.38;
+    return InkWell(
+      onTap: () => onGunTikla(g),
+      child: Container(
+        decoration: BoxDecoration(border: Border(top: BorderSide(color: Renk.kahve.withValues(alpha: 0.12)))),
+        padding: const EdgeInsets.fromLTRB(1, 2, 1, 0),
+        child: Opacity(
+          opacity: solukluk,
+          child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            SizedBox(
+              height: _gunNoYuksekligi - 2,
+              child: Center(
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                  decoration: bugunMu
+                      ? BoxDecoration(color: Renk.turuncu, borderRadius: BorderRadius.circular(8))
+                      : null,
+                  child: Text('${g.day}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: bugunMu ? FontWeight.bold : FontWeight.w500,
+                        color: bugunMu ? Colors.white : (hafta ? Colors.red.shade400 : Renk.kahve),
+                      )),
+                ),
+              ),
+            ),
+            const SizedBox(height: 2),
+            Expanded(
+              child: ClipRect(
+                child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                  for (final e in etkinlikler.take(gosterilecek)) _chip(depo, e),
+                  if (fazla > 0)
+                    SizedBox(
+                      height: _fazlaYazisiYuksekligi,
+                      child: Center(
+                        child: Text('+$fazla',
+                            style: TextStyle(fontSize: 10, color: Renk.kahve.withValues(alpha: 0.7))),
+                      ),
+                    ),
+                ]),
+              ),
+            ),
+          ]),
         ),
-        if (secili.isEmpty)
-          Padding(
-            padding: const EdgeInsets.all(20),
-            child: Text('Bu gün için etkinlik yok.',
-                textAlign: TextAlign.center, style: TextStyle(color: Renk.kahve.withValues(alpha: 0.6))),
-          ),
-        for (final e in secili) _EtkinlikKarti(e: e, gun: odak, onAc: onAc),
-      ],
+      ),
     );
   }
 
-  Widget _gunHucresi(TakvimDeposu depo, DateTime g, DateTime bugun) {
-    final buAy = g.month == odak.month;
-    final secili = gunBasi(g) == gunBasi(odak);
-    final bugunMu = g == bugun;
-    final etkinlikler = depo.gununEtkinlikleri(g);
-    return InkWell(
-      borderRadius: BorderRadius.circular(12),
-      onTap: () => onGunSec(g),
-      child: Container(
-        height: 54,
-        margin: const EdgeInsets.all(1.5),
-        decoration: BoxDecoration(
-          color: secili ? Renk.turuncu.withValues(alpha: 0.22) : null,
-          borderRadius: BorderRadius.circular(12),
-          border: bugunMu ? Border.all(color: Renk.turuncu, width: 1.5) : null,
-        ),
-        child: Column(mainAxisAlignment: MainAxisAlignment.center, children: [
-          Text('${g.day}',
-              style: TextStyle(
-                color: buAy ? Renk.kahve : Renk.kahve.withValues(alpha: 0.35),
-                fontWeight: bugunMu || secili ? FontWeight.bold : FontWeight.normal,
-              )),
-          const SizedBox(height: 3),
-          SizedBox(
-            height: 6,
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              for (final e in etkinlikler.take(3))
-                Container(
-                  width: 5,
-                  height: 5,
-                  margin: const EdgeInsets.symmetric(horizontal: 1),
-                  decoration: BoxDecoration(
-                    color: e.uygulamaninMi ? Renk.turuncu : Renk.kahve,
-                    shape: BoxShape.circle,
+  Widget _chip(TakvimDeposu depo, TEtkinlik e) {
+    final renk = depo.renkOf(e) ?? (e.uygulamaninMi ? Renk.turuncu : Renk.kahve);
+    final metin = Text(
+      e.baslik,
+      maxLines: 2,
+      overflow: TextOverflow.clip,
+      style: TextStyle(fontSize: 9, height: 1.1, color: e.tumGun ? Colors.white : Renk.kahve),
+    );
+    return Container(
+      height: _chipYuksekligi - 2,
+      margin: const EdgeInsets.only(bottom: 2),
+      padding: const EdgeInsets.symmetric(horizontal: 2),
+      decoration: BoxDecoration(
+        color: e.tumGun ? renk.withValues(alpha: 0.85) : renk.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(3),
+        border: e.tumGun ? null : Border(left: BorderSide(color: renk, width: 2.5)),
+      ),
+      alignment: Alignment.centerLeft,
+      child: metin,
+    );
+  }
+}
+
+/// Güne dokununca açılan pencere: o günün etkinlikleri ve hızlı "ekle".
+class _GunPenceresi extends StatelessWidget {
+  final DateTime gun;
+  final void Function(TEtkinlik) onEtkinlik;
+  final VoidCallback onEkle;
+  const _GunPenceresi({required this.gun, required this.onEtkinlik, required this.onEkle});
+
+  @override
+  Widget build(BuildContext context) {
+    final depo = TakvimDeposu.instance;
+    final yazi = Theme.of(context).textTheme;
+    final ekranH = MediaQuery.of(context).size.height;
+    return Dialog(
+      backgroundColor: Renk.acikKrem,
+      insetPadding: const EdgeInsets.symmetric(horizontal: 22, vertical: 40),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+      child: ConstrainedBox(
+        constraints: BoxConstraints(maxHeight: ekranH * 0.78),
+        child: ListenableBuilder(
+          listenable: depo,
+          builder: (context, _) {
+            final liste = depo.gununEtkinlikleri(gun);
+            return Padding(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
+              child: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+                Row(children: [
+                  Container(
+                    width: 44,
+                    height: 44,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(color: Renk.turuncu, borderRadius: BorderRadius.circular(12)),
+                    child: Text('${gun.day}',
+                        style: const TextStyle(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold)),
                   ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(DateFormat('EEEE', 'tr').format(gun),
+                        style: yazi.titleLarge?.copyWith(color: Renk.kahve, fontWeight: FontWeight.w600)),
+                  ),
+                  IconButton(
+                      tooltip: 'Kapat', icon: const Icon(Icons.close), onPressed: () => Navigator.pop(context)),
+                ]),
+                const Divider(height: 24),
+                Flexible(
+                  child: liste.isEmpty
+                      ? Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 28),
+                          child: Text('Bu gün için etkinlik yok.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(color: Renk.kahve.withValues(alpha: 0.6))),
+                        )
+                      : ListView(shrinkWrap: true, children: [
+                          for (final e in liste) _satir(context, depo, e),
+                        ]),
                 ),
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(28),
+                      onTap: onEkle,
+                      child: Container(
+                        height: 48,
+                        alignment: Alignment.centerLeft,
+                        padding: const EdgeInsets.symmetric(horizontal: 18),
+                        decoration: BoxDecoration(
+                          color: Renk.kahve.withValues(alpha: 0.08),
+                          borderRadius: BorderRadius.circular(28),
+                          border: Border.all(color: Renk.kahve.withValues(alpha: 0.2)),
+                        ),
+                        child: Text('${DateFormat('d MMM', 'tr').format(gun)} için ekle',
+                            style: TextStyle(color: Renk.kahve.withValues(alpha: 0.75))),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 10),
+                  IconButton.filled(
+                    tooltip: 'Etkinlik ekle',
+                    onPressed: onEkle,
+                    icon: const Icon(Icons.add),
+                  ),
+                ]),
+              ]),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  Widget _satir(BuildContext context, TakvimDeposu depo, TEtkinlik e) {
+    final renk = depo.renkOf(e) ?? (e.uygulamaninMi ? Renk.turuncu : Renk.kahve);
+    final f = DateFormat('HH:mm');
+    final alt = e.tumGun ? 'Gün boyu' : '${f.format(e.baslangic)} - ${f.format(e.bitis)}';
+    return InkWell(
+      borderRadius: BorderRadius.circular(14),
+      onTap: () => onEtkinlik(e),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 10),
+        child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          SizedBox(
+            width: 52,
+            child: e.tumGun
+                ? const Icon(Icons.calendar_today_outlined, size: 20, color: Renk.kahve)
+                : Text(f.format(e.baslangic),
+                    style: const TextStyle(color: Renk.kahve, fontWeight: FontWeight.bold, fontSize: 16)),
+          ),
+          Container(width: 4, height: 40, decoration: BoxDecoration(color: renk, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+              Text(e.baslik,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: const TextStyle(color: Renk.kahve, fontSize: 17, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 2),
+              Text(alt, style: TextStyle(color: Renk.kahve.withValues(alpha: 0.6), fontSize: 14)),
             ]),
           ),
+          if (e.tekrarli) const Padding(padding: EdgeInsets.only(left: 6), child: Icon(Icons.repeat, size: 16, color: Renk.kahve)),
         ]),
       ),
     );

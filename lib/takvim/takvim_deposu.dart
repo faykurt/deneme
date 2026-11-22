@@ -1,3 +1,5 @@
+import 'dart:ui' show Color;
+
 import 'package:flutter/foundation.dart';
 
 import '../veri/depo.dart';
@@ -107,6 +109,15 @@ class TakvimDeposu extends ChangeNotifier {
 
   Future<void> yenile() async {
     if (_bas != null && _bit != null) await yukle(_bas!, _bit!, zorla: true);
+  }
+
+  /// Etkinliğin rengi: kendi rengi yoksa takviminin rengi.
+  Color? renkOf(TEtkinlik e) {
+    if (e.renk != null) return e.renk;
+    for (final t in takvimler) {
+      if (t.id == e.takvimId) return t.renk;
+    }
+    return null;
   }
 
   List<TEtkinlik> gununEtkinlikleri(DateTime gun) {

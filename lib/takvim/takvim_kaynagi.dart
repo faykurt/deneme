@@ -153,6 +153,7 @@ class CihazTakvimi implements TakvimKaynagi {
       tekrar: e.isRecurring && e.recurrenceRule == null ? TekrarTuru.ozel : tur,
       tekrarBitis: bitis,
       aciklama: e.description,
+      renk: e.color,
     );
   }
 

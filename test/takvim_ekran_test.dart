@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:aklimda/ekranlar/ana_sayfa.dart';
 import 'package:aklimda/ekranlar/not_detay.dart';
+import 'package:aklimda/ekranlar/notlar_ekrani.dart';
 import 'package:aklimda/ekranlar/takvim.dart';
 import 'package:aklimda/ortak.dart';
 import 'package:aklimda/takvim/takvim_ayarlari.dart';
@@ -11,6 +12,7 @@ import 'package:aklimda/veri/depo.dart';
 import 'package:aklimda/veri/modeller.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
@@ -72,6 +74,14 @@ void main() {
     await t.pumpAndSettle();
   }
 
+  /// Ay görünümünde bir etkinliği açar: önce güne dokunur (pencere açılır), sonra pencerede etkinliğe dokunur.
+  Future<void> etkinligiAc(WidgetTester t, String baslik) async {
+    await t.tap(find.text(baslik).first);
+    await t.pumpAndSettle();
+    await t.tap(find.descendant(of: find.byType(Dialog), matching: find.text(baslik)));
+    await t.pumpAndSettle();
+  }
+
   void kur({bool izin = false, bool izinVerilir = true, List<TEtkinlik>? etkinlikler, bool takvimSec = false}) {
     sahte = SahteTakvim(
       izin: izin,
@@ -126,7 +136,7 @@ void main() {
     await t.pump();
     await bekle(t);
     expect(tester(t), isNull);
-    expect(find.text('Pzt'), findsOneWidget);
+    expect(find.text('PZT'), findsOneWidget);
     expect(find.text('Bugünkü toplantı'), findsOneWidget);
     expect(ayar.takvimAdi, 'Samsung takvimim');
 
@@ -215,8 +225,7 @@ void main() {
     await ayar.takvimSec('sam', 'S');
     await t.pumpWidget(_sar(const TakvimEkrani()));
     await bekle(t);
-    await t.tap(find.text('Bugünkü toplantı'));
-    await t.pumpAndSettle();
+    await etkinligiAc(t, 'Bugünkü toplantı');
     expect(find.text('Etkinlik'), findsOneWidget);
     await t.tap(find.byIcon(Icons.delete_outline));
     await t.pumpAndSettle();
@@ -235,8 +244,7 @@ void main() {
     await ayar.takvimSec('sam', 'S');
     await t.pumpWidget(_sar(const TakvimEkrani()));
     await bekle(t);
-    await t.tap(find.text('Haftalık toplantı'));
-    await t.pumpAndSettle();
+    await etkinligiAc(t, 'Haftalık toplantı');
     await t.enterText(find.byType(TextField).first, 'Haftalık toplantı (yeni)');
     await t.tap(find.text('Kaydet'));
     await t.pumpAndSettle();
@@ -245,8 +253,7 @@ void main() {
     await t.pumpAndSettle();
     expect(sahte.gunluk, contains('guncelle:buVeSonrakiler:Haftalık toplantı (yeni)'));
 
-    await t.tap(find.text('Haftalık toplantı (yeni)'));
-    await t.pumpAndSettle();
+    await etkinligiAc(t, 'Haftalık toplantı (yeni)');
     await t.tap(find.byIcon(Icons.delete_outline));
     await t.pumpAndSettle();
     expect(find.textContaining('Hangisi silinsin'), findsOneWidget);
@@ -272,6 +279,112 @@ void main() {
     await t.tap(find.text('Tamam'));
     await t.pumpAndSettle();
     expect(find.text('Yeni etkinlik'), findsOneWidget, reason: 'ekran kapanmamalı, kullanıcı tekrar deneyebilmeli');
+  });
+
+  testWidgets('Ay görünümü tüm sayfayı kaplar ve etkinlik başlıklarını hücrede gösterir', (t) async {
+    ekranBoyu(t);
+    kur(izin: true);
+    await ayar.takvimSec('sam', 'S');
+    await t.pumpWidget(_sar(const TakvimEkrani()));
+    await bekle(t);
+    // Başlık hücrede görünür, seçmeye gerek yok
+    expect(find.text('Bugünkü toplantı'), findsOneWidget);
+    // Izgara ekranın büyük kısmını kaplamalı (alt yarı boş kalmamalı)
+    final altSatir = t.getBottomLeft(find.text('${DateTime.now().day}').last).dy;
+    expect(altSatir, greaterThan(0));
+    final ekranYuksek = t.view.physicalSize.height / t.view.devicePixelRatio;
+    final gunNo = t.getTopLeft(find.text('${gunBasi(DateTime(simdi.year, simdi.month + 1, 0)).day}').last).dy;
+    expect(gunNo, greaterThan(ekranYuksek * 0.5), reason: 'ayın son haftası ekranın alt yarısında olmalı');
+  });
+
+  testWidgets('Güne dokununca o günün pencereri açılır, "için ekle" yeni etkinlik ekranını açar', (t) async {
+    ekranBoyu(t);
+    kur(izin: true, etkinlikler: [
+      etk('t1', 'Bugünkü toplantı', bugun14, bugun14.add(const Duration(hours: 1))),
+      etk('t2', 'Tüm gün etkinlik', gunBasi(bugun14), gunBasi(bugun14).add(const Duration(days: 1)), tumGun: true),
+    ]);
+    await ayar.takvimSec('sam', 'S');
+    await t.pumpWidget(_sar(const TakvimEkrani()));
+    await bekle(t);
+    await t.tap(find.text('Bugünkü toplantı').first);
+    await t.pumpAndSettle();
+    expect(tester(t), isNull);
+    final d = find.byType(Dialog);
+    expect(find.descendant(of: d, matching: find.text('14:00 - 15:00')), findsOneWidget);
+    expect(find.descendant(of: d, matching: find.text('Gün boyu')), findsOneWidget);
+    expect(find.descendant(of: d, matching: find.text(DateFormat('EEEE', 'tr').format(bugun14))), findsOneWidget);
+    final ekleYazisi = '${DateFormat('d MMM', 'tr').format(bugun14)} için ekle';
+    expect(find.text(ekleYazisi), findsOneWidget);
+    await t.tap(find.text(ekleYazisi));
+    await t.pumpAndSettle();
+    expect(find.text('Yeni etkinlik'), findsOneWidget);
+  });
+
+  testWidgets('Boş günün penceresi "etkinlik yok" der', (t) async {
+    ekranBoyu(t);
+    kur(izin: true, etkinlikler: []);
+    await ayar.takvimSec('sam', 'S');
+    await t.pumpWidget(_sar(const TakvimEkrani()));
+    await bekle(t);
+    await t.tap(find.text('${DateTime.now().day}').first);
+    await t.pumpAndSettle();
+    expect(find.text('Bu gün için etkinlik yok.'), findsOneWidget);
+  });
+
+  testWidgets('Bir günde çok etkinlik varsa hücrede "+N" gösterilir', (t) async {
+    ekranBoyu(t);
+    kur(izin: true, etkinlikler: [
+      for (var i = 0; i < 12; i++)
+        etk('k$i', 'Etkinlik $i', bugun14.add(Duration(minutes: i * 10)), bugun14.add(Duration(minutes: i * 10 + 5))),
+    ]);
+    await ayar.takvimSec('sam', 'S');
+    await t.pumpWidget(_sar(const TakvimEkrani()));
+    await bekle(t);
+    expect(tester(t), isNull);
+    expect(find.textContaining('+'), findsWidgets);
+    // Hepsi pencerede görünür
+    await t.tap(find.text('Etkinlik 0').first);
+    await t.pumpAndSettle();
+    expect(find.descendant(of: find.byType(Dialog), matching: find.text('Etkinlik 0')), findsOneWidget);
+  });
+
+  testWidgets('Yana kaydırınca ay değişir, oklar ve "bugün" butonu da çalışır', (t) async {
+    ekranBoyu(t);
+    kur(izin: true);
+    await ayar.takvimSec('sam', 'S');
+    await t.pumpWidget(_sar(const TakvimEkrani()));
+    await bekle(t);
+    String ay(DateTime d) {
+      final y = DateFormat('LLLL y', 'tr').format(d);
+      return y[0].toUpperCase() + y.substring(1);
+    }
+
+    final buAy = DateTime(simdi.year, simdi.month, 1);
+    final gelecek = DateTime(simdi.year, simdi.month + 1, 1);
+    expect(find.text(ay(buAy)), findsOneWidget);
+    await t.fling(find.text('PZT'), const Offset(-600, 0), 1500);
+    await t.pumpAndSettle();
+    expect(find.text(ay(gelecek)), findsOneWidget);
+    await t.fling(find.text('PZT'), const Offset(600, 0), 1500);
+    await t.pumpAndSettle();
+    expect(find.text(ay(buAy)), findsOneWidget);
+    await t.tap(find.byIcon(Icons.chevron_right));
+    await t.pumpAndSettle();
+    expect(find.text(ay(gelecek)), findsOneWidget);
+    await t.tap(find.byIcon(Icons.today));
+    await bekle(t);
+    expect(find.text(ay(buAy)), findsOneWidget);
+  });
+
+  testWidgets('Notlar sekmesi varsayılan olarak notların listesiyle açılır', (t) async {
+    ekranBoyu(t);
+    await t.pumpWidget(_sar(const NotlarEkrani()));
+    await t.pump();
+    expect(find.text('Notlarda ara'), findsOneWidget, reason: 'liste görünümünde arama kutusu olur');
+    expect(find.text('Günlük işler'), findsNothing, reason: 'klasör listesi varsayılan olmamalı');
+    await t.tap(find.byIcon(Icons.folder_outlined));
+    await t.pumpAndSettle();
+    expect(find.text('Günlük işler'), findsOneWidget, reason: 'düğmeyle klasör görünümüne geçilebilir');
   });
 
   testWidgets('Notu takvime "Kendim seçeyim" ile ekle: ekran dolu gelir, kayıtla not bağlanır', (t) async {

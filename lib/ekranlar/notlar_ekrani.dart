@@ -15,7 +15,7 @@ class NotlarEkrani extends StatefulWidget {
 }
 
 class _NotlarEkraniState extends State<NotlarEkrani> {
-  bool _klasor = true;
+  bool _klasor = false; // varsayılan: tüm notların listesi
 
   @override
   Widget build(BuildContext context) {
