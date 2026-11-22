@@ -3,6 +3,9 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'ai/ai_ayarlar.dart';
+import 'ai/ai_harcama.dart';
+import 'ai/ai_servisi.dart';
+import 'ai/ai_zamanlama.dart';
 import 'takvim/takvim_ayarlari.dart';
 import 'ekranlar/iskelet.dart';
 import 'ortak.dart';
@@ -13,6 +16,9 @@ Future<void> main() async {
   await initializeDateFormatting('tr');
   await Depo.instance.ac();
   await AiAyarlar.instance.yukle();
+  await AiZamanlama.instance.yukle();
+  await AiHarcama.instance.yukle();
+  AiServisi.kullanimDinleyici = (model, girdi, cikti) => AiHarcama.instance.kaydet(model, girdi, cikti);
   await TakvimAyarlari.instance.yukle();
   runApp(const AklimdaApp());
 }

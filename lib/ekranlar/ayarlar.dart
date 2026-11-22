@@ -9,7 +9,9 @@ import 'package:share_plus/share_plus.dart';
 
 import '../ai/ai_ayarlar.dart';
 import '../ai/ai_modeller.dart';
+import '../ai/ai_harcama.dart';
 import '../ai/ai_servisi.dart';
+import '../ai/ai_zamanlama.dart';
 import '../ai/isleyici.dart';
 import '../ortak.dart';
 import '../takvim/takvim_ayarlari.dart';
@@ -83,6 +85,23 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
     await _baglantiyiDene();
   }
 
+  void _harcamaAyrinti(BuildContext context) {
+    final h = AiHarcama.instance;
+    showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Bu ayki kullanım'),
+        content: Text('Tahmini harcama: ${h.dolarMetni}\n'
+            'İstek sayısı: ${h.istek}\n'
+            'Gönderilen: ${h.girdi} token\n'
+            'Alınan: ${h.cikti} token\n\n'
+            'Bu rakam, API\'nin bildirdiği token sayıları ve güncel fiyatlarla hesaplanan bir tahmindir. '
+            'Kesin tutar için console.anthropic.com adresinde Usage sayfasına bak.'),
+        actions: [FilledButton(onPressed: () => Navigator.pop(ctx), child: const Text('Tamam'))],
+      ),
+    );
+  }
+
   Future<void> _baglantiyiDene() async {
     final anahtar = AiAyarlar.instance.anahtar;
     if (anahtar == null || _deniyor) return;
@@ -136,9 +155,11 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
       body: ListView(
         children: [
           ListenableBuilder(
-            listenable: AiAyarlar.instance,
+            listenable: Listenable.merge(
+                [AiAyarlar.instance, AiZamanlama.instance, AiHarcama.instance, AiIsleyici.instance, Depo.instance]),
             builder: (context, _) {
               final ai = AiAyarlar.instance;
+              final isleyici = AiIsleyici.instance;
               return Column(children: [
                 ListTile(
                   leading: _deniyor
@@ -157,8 +178,37 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
                     onTap: _deniyor ? null : _baglantiyiDene,
                   ),
                 ListTile(
+                  leading: const Icon(Icons.schedule),
+                  title: const Text('Yapay zeka çalışma saatleri'),
+                  subtitle: Text('${AiZamanlama.instance.ozet}. Notlar kaydedilince hemen değil, bu saatlerde işlenir '
+                      '(maliyeti düşük tutmak için).'),
+                  onTap: () => aiSaatleriDialogu(context),
+                ),
+                ListTile(
+                  leading: isleyici.mesgul
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.play_circle_outline),
+                  title: const Text('Şimdi işle'),
+                  subtitle: Text(isleyici.bekleyenSayisi == 0
+                      ? 'İşlenmeyi bekleyen not yok'
+                      : '${isleyici.bekleyenSayisi} not işlenmeyi bekliyor'),
+                  onTap: !ai.anahtarVar || isleyici.mesgul || isleyici.bekleyenSayisi == 0
+                      ? null
+                      : () async {
+                          await isleyici.bekleyenleriIsle();
+                          final h = isleyici.sonHata;
+                          mesajGoster(h == null ? 'Notlar işlendi, onay bekleyenlere düştü.' : h.mesaj);
+                        },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.savings_outlined),
+                  title: const Text('Bu ay yapay zeka harcaması'),
+                  subtitle: Text('${AiHarcama.instance.ozet}  ·  tahminidir'),
+                  onTap: () => _harcamaAyrinti(context),
+                ),
+                ListTile(
                   leading: const Icon(Icons.memory),
-                  title: const Text('Model'),
+                  title: const Text('Modeller'),
                   subtitle: Text(aiModelBilgisi),
                 ),
               ]);

@@ -86,7 +86,7 @@ class Not {
   String metin;
   String? baslik;
   final String kaynak;
-  final int olusturma;
+  int olusturma;
   int guncelleme;
   String durum;
   bool arsiv;

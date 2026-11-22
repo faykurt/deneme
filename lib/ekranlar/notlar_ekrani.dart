@@ -33,6 +33,7 @@ class _NotlarEkraniState extends State<NotlarEkrani> {
       ),
       body: Column(children: [
         const OnayBandi(),
+        const IslenecekBandi(),
         Expanded(
           child: _klasor
               ? const _KlasorGorunumu()

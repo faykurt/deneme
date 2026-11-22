@@ -7,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../ai/ai_ayarlar.dart';
 import '../ai/ai_modeller.dart';
+import '../ai/ai_zamanlama.dart';
 import '../ortak.dart';
 import '../takvim/takvim_deposu.dart';
 import '../veri/depo.dart';
@@ -157,12 +158,18 @@ class _NotDetayState extends State<NotDetay> {
                 ),
               ] else if (!n.islendi && AiAyarlar.instance.anahtarVar) ...[
                 const SizedBox(height: 6),
-                Text(
-                  '⏳ Yapay zeka sırada, bağlantı olunca düzenleyecek.',
-                  style: yazi.bodySmall?.copyWith(
-                    color: Renk.kahve.withValues(alpha: 0.7),
+                Row(children: [
+                  Expanded(
+                    child: Text(
+                      '⏳ Yapay zeka bu notu ${AiZamanlama.instance.sonrakiMetni(DateTime.now())} düzenleyecek.',
+                      style: yazi.bodySmall?.copyWith(color: Renk.kahve.withValues(alpha: 0.7)),
+                    ),
                   ),
-                ),
+                  TextButton(
+                    onPressed: () => onayPenceresiAc(n.id, canli: true),
+                    child: const Text('Şimdi analiz et'),
+                  ),
+                ]),
               ],
               const SizedBox(height: 8),
               TextField(

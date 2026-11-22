@@ -35,13 +35,13 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
     sekmeSecici.addListener(_sekmeDegisti);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _disGirisleriDinle();
-      AiIsleyici.instance.bekleyenleriIsle();
+      AiIsleyici.instance.zamanlanmisIsle();
       _takvimiYokla();
     });
     // İnternet yokken kalan notlar için aralıklarla yeniden dener.
     _yenidenDene = Timer.periodic(const Duration(minutes: 2), (_) {
       final ai = AiIsleyici.instance;
-      if (ai.bekleyenSayisi > 0 && (ai.sonHata?.otomatikDeneme ?? true)) ai.bekleyenleriIsle();
+      if (ai.bekleyenSayisi > 0 && (ai.sonHata?.otomatikDeneme ?? true)) ai.zamanlanmisIsle();
     });
   }
 
@@ -59,7 +59,7 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
   @override
   void didChangeAppLifecycleState(AppLifecycleState durum) {
     if (durum == AppLifecycleState.resumed) {
-      AiIsleyici.instance.bekleyenleriIsle();
+      AiIsleyici.instance.zamanlanmisIsle();
       _takvimiYokla();
     }
   }

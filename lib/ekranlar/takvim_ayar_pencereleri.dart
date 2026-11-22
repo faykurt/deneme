@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../ai/ai_zamanlama.dart';
 import '../ortak.dart';
 import '../takvim/takvim_ayarlari.dart';
 
@@ -161,3 +162,48 @@ bool isKategorisiMi(String anaKategoriAdi) =>
 /// "Cuma 14:00" gibi kısa zaman yazısı.
 String zamanMetni(DateTime d) => DateFormat('d MMMM, EEEE HH:mm', 'tr').format(d);
 
+
+/// Yapay zekanın çalışacağı iki saati seçtirir (ikisi aynı seçilirse günde bir kez çalışır).
+Future<void> aiSaatleriDialogu(BuildContext context) async {
+  final z = AiZamanlama.instance;
+  var birinci = z.saatler.first;
+  var ikinci = z.saatler.length > 1 ? z.saatler.last : z.saatler.first;
+  final kaydet = await showDialog<bool>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setState) {
+        Future<void> sec(bool ilk) async {
+          final dk = ilk ? birinci : ikinci;
+          final t = await showTimePicker(context: ctx, initialTime: TimeOfDay(hour: dk ~/ 60, minute: dk % 60));
+          if (t == null) return;
+          setState(() {
+            if (ilk) {
+              birinci = t.hour * 60 + t.minute;
+            } else {
+              ikinci = t.hour * 60 + t.minute;
+            }
+          });
+        }
+
+        return AlertDialog(
+          title: const Text('Yapay zeka çalışma saatleri'),
+          content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+            const Text('Yapay zeka notlarını bu saatlerde düzenler. Saat geçtikten sonra uygulamayı açınca işlenir. '
+                'Günde bir kez istersen iki saati aynı seç.'),
+            const SizedBox(height: 14),
+            Row(children: [
+              Expanded(child: OutlinedButton(onPressed: () => sec(true), child: Text('1. saat  ${AiZamanlama.saatMetni(birinci)}'))),
+              const SizedBox(width: 8),
+              Expanded(child: OutlinedButton(onPressed: () => sec(false), child: Text('2. saat  ${AiZamanlama.saatMetni(ikinci)}'))),
+            ]),
+          ]),
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('Vazgeç')),
+            FilledButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('Kaydet')),
+          ],
+        );
+      },
+    ),
+  );
+  if (kaydet == true) await z.saatleriAyarla([birinci, ikinci]);
+}

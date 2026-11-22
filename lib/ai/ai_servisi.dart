@@ -13,8 +13,19 @@ class AiServisi {
   /// Testlerde sahte sunucu vermek için.
   static http.Client Function() istemciUret = http.Client.new;
 
-  static const model = 'claude-sonnet-5-5';
-  static const efor = 'medium';
+  /// Kullanım miktarı bildirimi (model, girdi tokeni, çıktı tokeni): harcama sayacı bunu dinler.
+  static void Function(String model, int girdi, int cikti)? kullanimDinleyici;
+
+  /// Basit yazılı notlar ucuz modelle, fotoğraflı ya da uzun notlar daha güçlü modelle işlenir.
+  static const haiku = 'claude-haiku-5-5';
+  static const sonnet = 'claude-sonnet-5-5';
+  static const efor = 'low';
+  static const uzunNotSiniri = 600;
+
+  static String modelSec({
+    required bool resimVar,
+    required int metinUzunlugu,
+  }) => resimVar || metinUzunlugu > uzunNotSiniri ? sonnet : haiku;
   static const _surum = '2026-10-21';
   static final _adres = Uri.parse('https://api.anthropic.com/v1/messages');
 
@@ -36,58 +47,58 @@ Kurallar:
 Cevabı yalnızca istenen JSON şemasına uygun ver.''';
 
   static Map<String, dynamic> get _sema => {
-        'type': 'object',
-        'additionalProperties': false,
-        'required': ['fikirler'],
-        'properties': {
-          'fikirler': {
-            'type': 'array',
-            'items': {
-              'type': 'object',
-              'additionalProperties': false,
-              'required': [
-                'metin',
-                'baslik',
-                'kategori_idler',
-                'yeni_kategori_ad',
-                'yeni_kategori_ust_id',
-                'sure_dk',
-                'tarih',
-                'tarih_saatli',
-                'yapilabilir_is',
-                'adimlar',
-              ],
-              'properties': {
-                'metin': {'type': 'string'},
-                'baslik': {'type': 'string'},
-                'kategori_idler': {
-                  'type': 'array',
-                  'items': {'type': 'integer'},
-                },
-                'yeni_kategori_ad': {'type': 'string'},
-                'yeni_kategori_ust_id': {'type': 'integer'},
-                'sure_dk': {'type': 'integer'},
-                'tarih': {'type': 'string'},
-                'tarih_saatli': {'type': 'boolean'},
-                'yapilabilir_is': {'type': 'boolean'},
-                'adimlar': {
-                  'type': 'array',
-                  'items': {
-                    'type': 'object',
-                    'additionalProperties': false,
-                    'required': ['metin', 'sure_dk', 'bekleme'],
-                    'properties': {
-                      'metin': {'type': 'string'},
-                      'sure_dk': {'type': 'integer'},
-                      'bekleme': {'type': 'boolean'},
-                    },
-                  },
+    'type': 'object',
+    'additionalProperties': false,
+    'required': ['fikirler'],
+    'properties': {
+      'fikirler': {
+        'type': 'array',
+        'items': {
+          'type': 'object',
+          'additionalProperties': false,
+          'required': [
+            'metin',
+            'baslik',
+            'kategori_idler',
+            'yeni_kategori_ad',
+            'yeni_kategori_ust_id',
+            'sure_dk',
+            'tarih',
+            'tarih_saatli',
+            'yapilabilir_is',
+            'adimlar',
+          ],
+          'properties': {
+            'metin': {'type': 'string'},
+            'baslik': {'type': 'string'},
+            'kategori_idler': {
+              'type': 'array',
+              'items': {'type': 'integer'},
+            },
+            'yeni_kategori_ad': {'type': 'string'},
+            'yeni_kategori_ust_id': {'type': 'integer'},
+            'sure_dk': {'type': 'integer'},
+            'tarih': {'type': 'string'},
+            'tarih_saatli': {'type': 'boolean'},
+            'yapilabilir_is': {'type': 'boolean'},
+            'adimlar': {
+              'type': 'array',
+              'items': {
+                'type': 'object',
+                'additionalProperties': false,
+                'required': ['metin', 'sure_dk', 'bekleme'],
+                'properties': {
+                  'metin': {'type': 'string'},
+                  'sure_dk': {'type': 'integer'},
+                  'bekleme': {'type': 'boolean'},
                 },
               },
             },
           },
         },
-      };
+      },
+    },
+  };
 
   /// Bir notu (ve varsa fotoğraflarını) analiz eder.
   static Future<AiSonuc> notuIsle({
@@ -96,8 +107,13 @@ Cevabı yalnızca istenen JSON şemasına uygun ver.''';
     required KategoriAgaci agac,
     required List<String> resimlerBase64,
     DateTime? simdi,
+    String? model,
   }) async {
     simdi ??= DateTime.now();
+    model ??= modelSec(
+      resimVar: resimlerBase64.isNotEmpty,
+      metinUzunlugu: not.metin.length,
+    );
     final kategoriSatirlari = <String>[];
     for (final ana in agac.anaKategoriler) {
       kategoriSatirlari.add('${ana.id}: ${ana.ad}');
@@ -106,16 +122,20 @@ Cevabı yalnızca istenen JSON şemasına uygun ver.''';
       }
     }
     final metin = StringBuffer()
-      ..writeln('Bugün: ${DateFormat('d MMMM y, EEEE, HH:mm', 'tr').format(simdi)} (Türkiye saati)')
+      ..writeln(
+        'Bugün: ${DateFormat('d MMMM y, EEEE, HH:mm', 'tr').format(simdi)} (Türkiye saati)',
+      )
       ..writeln()
       ..writeln('Kategoriler:')
       ..writeln(kategoriSatirlari.join('\n'))
       ..writeln()
-      ..writeln('Kayıt kaynağı: ${switch (not.kaynak) {
-        Kaynak.sesli => 'sesli not (konuşma yazıya çevrildi)',
-        Kaynak.paylasim => 'başka bir uygulamadan paylaşıldı',
-        _ => 'yazılı not',
-      }}');
+      ..writeln(
+        'Kayıt kaynağı: ${switch (not.kaynak) {
+          Kaynak.sesli => 'sesli not (konuşma yazıya çevrildi)',
+          Kaynak.paylasim => 'başka bir uygulamadan paylaşıldı',
+          _ => 'yazılı not',
+        }}',
+      );
     if (not.yorum != null && not.yorum!.isNotEmpty) {
       metin.writeln('Kullanıcının yorumu: ${not.yorum}');
     }
@@ -126,7 +146,9 @@ Cevabı yalnızca istenen JSON şemasına uygun ver.''';
       ..writeln(not.metin.trim().isEmpty ? '(metin yok)' : not.metin.trim())
       ..writeln('</not>');
     if (resimlerBase64.isNotEmpty) {
-      metin.writeln('\nNota ${resimlerBase64.length} görsel eklenmiş (yukarıda).');
+      metin.writeln(
+        '\nNota ${resimlerBase64.length} görsel eklenmiş (yukarıda).',
+      );
     }
 
     final icerik = <Map<String, dynamic>>[
@@ -138,22 +160,30 @@ Cevabı yalnızca istenen JSON şemasına uygun ver.''';
       {'type': 'text', 'text': metin.toString()},
     ];
 
-    final yanit = await _istek(apiKey, {
-      'model': model,
-      'max_tokens': 8192,
-      'system': _sistem,
-      'output_config': {
-        'effort': efor,
-        'format': {'type': 'json_schema', 'schema': _sema},
+    final yanit = await _istek(
+      apiKey,
+      {
+        'model': model,
+        'max_tokens': 8192,
+        'system': _sistem,
+        'output_config': {
+          'effort': efor,
+          'format': {'type': 'json_schema', 'schema': _sema},
+        },
+        'messages': [
+          {'role': 'user', 'content': icerik},
+        ],
       },
-      'messages': [
-        {'role': 'user', 'content': icerik},
-      ],
-    });
+      // Güvenlik filtresi için yedek model özelliği Haiku'da yoktur.
+      yedekli: model != haiku,
+    );
 
     if (yanit['stop_reason'] == 'refusal') return const AiSonuc([]);
     if (yanit['stop_reason'] == 'max_tokens') {
-      throw const AiHata('Yapay zekanın cevabı yarım kaldı, biraz sonra tekrar denenecek.', AiHataTuru.gecici);
+      throw const AiHata(
+        'Yapay zekanın cevabı yarım kaldı, biraz sonra tekrar denenecek.',
+        AiHataTuru.gecici,
+      );
     }
     final metinCevap = ((yanit['content'] as List?) ?? [])
         .whereType<Map>()
@@ -165,24 +195,30 @@ Cevabı yalnızca istenen JSON şemasına uygun ver.''';
       if (sonuc == null) throw const FormatException('çözülemedi');
       return sonuc;
     } catch (_) {
-      throw const AiHata('Yapay zekanın cevabı okunamadı, biraz sonra tekrar denenecek.', AiHataTuru.gecici);
+      throw const AiHata(
+        'Yapay zekanın cevabı okunamadı, biraz sonra tekrar denenecek.',
+        AiHataTuru.gecici,
+      );
     }
   }
 
   /// Ayarlar'daki "Bağlantıyı dene" için küçük bir istek. Hata varsa AiHata fırlatır.
   static Future<void> baglantiyiDene(String apiKey) async {
     await _istek(apiKey, {
-      'model': model,
+      'model': haiku,
       'max_tokens': 256,
       'output_config': {'effort': 'low'},
       'messages': [
         {'role': 'user', 'content': 'Sadece "tamam" yaz.'},
       ],
-    });
+    }, yedekli: false);
   }
 
-  static Future<Map<String, dynamic>> _istek(String apiKey, Map<String, dynamic> govde,
-      {bool yedekli = true}) async {
+  static Future<Map<String, dynamic>> _istek(
+    String apiKey,
+    Map<String, dynamic> govde, {
+    bool yedekli = true,
+  }) async {
     final basliklar = {
       'content-type': 'application/json',
       'x-api-key': apiKey,
@@ -202,43 +238,78 @@ Cevabı yalnızca istenen JSON şemasına uygun ver.''';
         istemci.close();
       }
     } on SocketException {
-      throw const AiHata('İnternet bağlantısı yok. Bağlantı gelince notların işlenecek.', AiHataTuru.cevrimdisi);
+      throw const AiHata(
+        'İnternet bağlantısı yok. Bağlantı gelince notların işlenecek.',
+        AiHataTuru.cevrimdisi,
+      );
     } on TimeoutException {
-      throw const AiHata('Yapay zeka zamanında cevap vermedi, biraz sonra tekrar denenecek.', AiHataTuru.cevrimdisi);
+      throw const AiHata(
+        'Yapay zeka zamanında cevap vermedi, biraz sonra tekrar denenecek.',
+        AiHataTuru.cevrimdisi,
+      );
     } on http.ClientException {
-      throw const AiHata('İnternet bağlantısı yok. Bağlantı gelince notların işlenecek.', AiHataTuru.cevrimdisi);
+      throw const AiHata(
+        'İnternet bağlantısı yok. Bağlantı gelince notların işlenecek.',
+        AiHataTuru.cevrimdisi,
+      );
     }
 
     final govdeMetni = utf8.decode(r.bodyBytes, allowMalformed: true);
     if (r.statusCode == 200) {
-      return jsonDecode(govdeMetni) as Map<String, dynamic>;
+      final yanit = jsonDecode(govdeMetni) as Map<String, dynamic>;
+      final k = yanit['usage'];
+      if (k is Map) {
+        kullanimDinleyici?.call(
+          (yanit['model'] as String?) ?? (govde['model'] as String? ?? ''),
+          (k['input_tokens'] as num?)?.toInt() ?? 0,
+          (k['output_tokens'] as num?)?.toInt() ?? 0,
+        );
+      }
+      return yanit;
     }
 
     String mesaj = '';
     try {
-      mesaj = ((jsonDecode(govdeMetni) as Map)['error'] as Map?)?['message'] as String? ?? '';
+      mesaj =
+          ((jsonDecode(govdeMetni) as Map)['error'] as Map?)?['message']
+              as String? ??
+          '';
     } catch (_) {}
     final kucuk = mesaj.toLowerCase();
 
     // Yedek model özelliği bir sebeple reddedilirse onsuz bir kez daha dene.
-    if (r.statusCode == 400 && yedekli && (kucuk.contains('fallback') || kucuk.contains('beta'))) {
+    if (r.statusCode == 400 &&
+        yedekli &&
+        (kucuk.contains('fallback') || kucuk.contains('beta'))) {
       return _istek(apiKey, govde, yedekli: false);
     }
     if (r.statusCode == 401 || r.statusCode == 403) {
       throw const AiHata(
-          'Anahtar kabul edilmedi. Anahtarı doğru kopyaladığından emin ol.', AiHataTuru.anahtarGecersiz);
+        'Anahtar kabul edilmedi. Anahtarı doğru kopyaladığından emin ol.',
+        AiHataTuru.anahtarGecersiz,
+      );
     }
     if (kucuk.contains('credit') || r.statusCode == 402) {
       throw const AiHata(
-          'Hesabında kredi kalmamış görünüyor. console.anthropic.com → Billing bölümünden kredi yükleyebilirsin.',
-          AiHataTuru.kredi);
+        'Hesabında kredi kalmamış görünüyor. console.anthropic.com → Billing bölümünden kredi yükleyebilirsin.',
+        AiHataTuru.kredi,
+      );
     }
     if (r.statusCode == 429) {
-      throw const AiHata('Çok fazla istek gönderildi, biraz sonra tekrar denenecek.', AiHataTuru.gecici);
+      throw const AiHata(
+        'Çok fazla istek gönderildi, biraz sonra tekrar denenecek.',
+        AiHataTuru.gecici,
+      );
     }
     if (r.statusCode >= 500) {
-      throw const AiHata('Yapay zeka şu an yoğun, biraz sonra tekrar denenecek.', AiHataTuru.gecici);
+      throw const AiHata(
+        'Yapay zeka şu an yoğun, biraz sonra tekrar denenecek.',
+        AiHataTuru.gecici,
+      );
     }
-    throw AiHata('İstek reddedildi (${r.statusCode}): $mesaj', AiHataTuru.diger);
+    throw AiHata(
+      'İstek reddedildi (${r.statusCode}): $mesaj',
+      AiHataTuru.diger,
+    );
   }
 }

@@ -29,7 +29,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Kategoriye özel alanlar olabilir, hiçbiri zorunlu değildir. Dizi/Film: ad, tür ("kim önerdi" alanı kaldırıldı). Tarif: malzemeler, yapılış. Kitap ve Oyun için yazar/kim önerdi önemli değil, onun yerine fiyat ve satın alma araması var (3b). Tez için özel alan yok.
 - Not içindeki tarih tanınır, takvime ekleme önerisi sunulur. Saatsiz tarihlerde hatırlatma 09:00'da verilir, saatsiz notlarda "5 dk önce" gibi seçenekler gizlenir.
 - Tekrarlayan notlar olabilir, tekrar aralığını kullanıcı seçer. Tamamlanan tekrar sayılır, bir sonraki tekrar planlanır, tamamlananlar arşivde kayıt olarak kalır.
-- Onay penceresi: sesli not bitince (ya da yazılı not gönderilince) otomatik bir pencere açılır. Not kaydedilmiştir, yapay zekanın atadığı kategori, tarih, süre vb. hazır gelir. Kullanıcı onaylar, "daha sonra onaylarım" der ya da düzenler.
+- Yapay zeka notu kaydedilince hemen işlemez (maliyet için). Kaydedilince "Kaydedildi, yapay zeka 21:00'de düzenleyecek" bildirimi çıkar ve "Şimdi analiz et" ile istenirse hemen işletilir. Not, işlendikten sonra "Onay bekleyenler"e düşer. İşlenen notun onay penceresi: yapay zekanın atadığı kategori, tarih, süre vb. hazır gelir. Kullanıcı onaylar, "daha sonra onaylarım" der ya da düzenler.
 - Onay bekleyen notlar Notlar sekmesinde ayrı bir bölümde toplanır, ana sayfada "X onay bekleyen notun var" uyarısı çıkar.
 - Onaylanmamış notlar (paylaşılanlar ve "daha sonra onaylarım" denenler) yapay zekanın atadığı kategoriyle öneriye girer. Onay sadece bir düzeltme fırsatıdır. İnternet yokken kaydedilip henüz işlenmemiş notlar, işlenene kadar önerilmez.
 - İnternet yokken not ham haliyle kaydedilir, otomatik atama yapılmaz. Bağlantı gelince yapay zeka doldurur ve not onay bekleyenlere düşer.
@@ -60,7 +60,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 
 ## 6. Takvim
 - Samsung Takvim'e bağlanır (telefonun takvim deposu üzerinden), iki yönlü okuma/yazma. Varsayılan Samsung takvimidir. Kurulum sihirbazında telefondaki takvimler etkinlik sayılarıyla listelenir, okunup yazılacak takvimi kullanıcı seçer.
-- Uygulamada ay görünümü varsayılan. Gün ve hafta görünümü seçilebilir.
+- Ay görünümü varsayılan ve Samsung Takvim düzenindedir: tüm sayfayı kaplar, günlerde etkinlik başlıkları görünür. Güne dokununca o günün etkinlikleri pencerede açılır (altta "… için ekle"). Yana kaydırarak ay değişir. Gün ve hafta görünümü seçilebilir.
 - Etkinlik alanları: başlık, başlangıç ve bitiş saati, tekrar (günlük, haftalık, aylık, yıllık, hafta içi her gün, bitiş tarihi seçilebilir). Kullanıcının eklediği tüm gün etkinlik o günü tamamen dolu sayar. Resmi tatil, doğum günü gibi tüm gün etkinlikler günü dolu saymaz (o günlerde de öneri alınabilir). Ayırt etme: Android'in etkinliklerdeki Meşgul/Müsait bilgisine bakılır (tatiller genelde Müsait gelir). Uygulamada tüm gün etkinlik eklerken "Günü dolu say" anahtarı olur. Telefonda ilk sürümde doğrulanacak.
 - Uygulamadan mevcut etkinlikler düzenlenebilir ve silinebilir.
 - Uygulamanın yazdığı etkinliklerin başında küçük bir işaret (💭) olur. Takvime bağlı bir not silinirse etkinliği de silmek isteyip istemediği sorulur. Tarihi olan ama takvime eklenmemiş notlar farklı görünümle gösterilir.
@@ -87,7 +87,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 ## 8. Ekranlar
 - Alt menü: Ana sayfa, Takvim, Notlar, Ayarlar. Sesli not butonu alt menünün ortasında, her ekranda görünür.
 - Ana sayfa (sade): bugünün takvimi, 2-3 öneri, hafta sonu önerileri/planı, hızlı sesli/yazılı not alanı, "Şu an ne yapabilirim?" butonu, onay bekleyen not uyarısı.
-- Notlar: klasör görünümü (varsayılan) ve liste görünümü (arama, sıralama). Arama ikisinde de var. Arşiv, Notlar sekmesinde ayrı bir bölüm.
+- Notlar: liste görünümü (varsayılan; arama, sıralama) ve klasör görünümü. Arama ikisinde de var. Arşiv, Notlar sekmesinde ayrı bir bölüm.
 - Dil: Türkçe. Özel isimler (film, mekan, uygulama adı) çevrilmez.
 
 ## 8b. Tema ve görsel (ilk sürüm)
@@ -107,7 +107,9 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Uyku saatleri, iş bloğu kelimesi, kategori başı öneri saat aralıkları, izin günleri, günlük bildirim sınırı, API anahtarı Ayarlar'dadır.
 
 ## 9. Yapay zeka ve teknik
-- Anthropic API: model **Claude Sonnet 5.5** (`claude-sonnet-5-5`), efor **medium**. Model ve efor Ayarlar'dan değiştirilebilir (varsayılan Sonnet 5.5 / medium).
+- Anthropic API: basit (kısa, yazılı) notlar **Claude Haiku 5.5** (`claude-haiku-5-5`) ile, fotoğraflı ya da 600 karakterden uzun notlar **Claude Sonnet 5.5** (`claude-sonnet-5-5`) ile işlenir. Efor **düşük**. Model ve efor ayarı arayüzde yok (sabit).
+- İşleme saatleri: günde 13:00 ve 21:00 (Ayarlar'dan değiştirilebilir). Saat geçtikten sonra uygulama açılınca (ya da açıkken aralıklarla yoklanınca) o saate kadar kaydedilen notlar işlenir. Saatten sonra kaydedilenler bir sonraki saati bekler. "Şimdi işle" ve notta "Şimdi analiz et" ile hemen işletilebilir.
+- Harcama sayacı Ayarlar'da: bu ayki tahmini maliyet, API'nin bildirdiği token sayılarından hesaplanır.
 - Yapay zeka şunları yapar: kategori, başlık, süre tahmini, adım çıkarma, tarih tanıma, görsel okuma, günlük öneri ve hafta sonu planı, birden fazla fikri ayırma.
 - Ücretli, kullandığın kadar öde, Claude üyeliğinden ayrı. Kullanıcı bunu kabul etti.
 - API anahtarı koda/APK'ya gömülmez, Ayarlar'dan bir kere girilir, telefonda saklanır.

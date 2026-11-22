@@ -76,6 +76,7 @@ class _AnaSayfaState extends State<AnaSayfa> {
             ),
             const YaptinMiKartlari(),
             const OnayBandi(),
+            const IslenecekBandi(),
             ListenableBuilder(
               listenable: Listenable.merge([AiAyarlar.instance, AiIsleyici.instance]),
               builder: (context, _) {

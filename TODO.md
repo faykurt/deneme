@@ -19,7 +19,7 @@ Tasarımın tamamı `KARARLAR.md` dosyasında. Burası ilk sürümde olmayan, so
 - Eski notları yoklama ve "Uzun zamandır dokunulmayanlar" bölümü: ilk aylarda zaten eski not olmayacak.
 - "Yaptın mı?" sorusu: durumu kullanıcı kendisi değiştirir.
 - Paylaşırken sesli yorum: yazılı yorum var.
-- Model ve efor ayarı: Sonnet 5.5 medium sabit.
+- Model ve efor ayarı: model otomatik seçilir (Haiku/Sonnet), efor düşük, arayüzde ayar yok.
 
 ## Zaten sonraya bırakılanlar
 - Esnek plan (çakışmada başka boş saat önerme)
@@ -37,3 +37,8 @@ Tasarımın tamamı `KARARLAR.md` dosyasında. Burası ilk sürümde olmayan, so
 - Çevrimdışı Türkçe ses tanıma paketi
 - Samsung pil yönetimi (bildirimlerin zamanında gelmesi)
 - Ses tanımanın İngilizce özel isimleri bozması
+
+## İleride değerlendirilebilecek maliyet iyileştirmeleri
+- Anthropic Message Batches servisi (acil olmayan işler yarı fiyatına): işleme saatleriyle uyumlu.
+- Arka planda tam saatinde çalışma (Samsung pil yönetimi geciktirebilir).
+- Birden fazla notu tek istekte işleme (Haiku ile kazanç küçük).

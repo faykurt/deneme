@@ -10,6 +10,7 @@ import '../veri/modeller.dart';
 import 'ai_ayarlar.dart';
 import 'ai_modeller.dart';
 import 'ai_servisi.dart';
+import 'ai_zamanlama.dart';
 
 /// Fotoğrafı yapay zekaya göndermeden önce küçültür (hız ve maliyet için).
 String? _kucultBase64(String yol) {
@@ -48,12 +49,23 @@ class AiIsleyici extends ChangeNotifier {
   bool notIsleniyor(String id) => _calisan.contains(id);
   int get bekleyenSayisi => Depo.instance.notlar.where((n) => !n.islendi).length;
 
-  /// Henüz işlenmemiş tüm notları sırayla işler. İlk hatada durur.
-  Future<void> bekleyenleriIsle() async {
+  /// Son çalışma saatine kadar kaydedilmiş, işlenmemiş notları işler. Saatten sonra kaydedilenler bir
+  /// sonraki saati bekler. Uygulama açılınca ve aralıklarla çağrılır, işlenecek bir şey yoksa ağa çıkmaz.
+  Future<void> zamanlanmisIsle({DateTime? simdi}) async {
+    final s = simdi ?? DateTime.now();
+    final sinir = AiZamanlama.instance.sonSlot(s);
+    if (sinir == null) return;
+    await bekleyenleriIsle(sinir: sinir);
+  }
+
+  /// Henüz işlenmemiş notları sırayla işler ([sinir] verilirse o andan önce kaydedilenleri). İlk hatada durur.
+  Future<void> bekleyenleriIsle({DateTime? sinir}) async {
     if (_dongu || !AiAyarlar.instance.anahtarVar) return;
     _dongu = true;
     try {
-      for (final n in List.of(Depo.instance.notlar.where((n) => !n.islendi))) {
+      final liste = Depo.instance.notlar.where((n) =>
+          !n.islendi && (sinir == null || n.olusturma <= sinir.millisecondsSinceEpoch));
+      for (final n in List.of(liste)) {
         if (_calisan.contains(n.id)) continue;
         final hata = await _isle(n);
         if (hata != null) break;

@@ -3,7 +3,6 @@ import 'package:material_ui/material_ui.dart';
 
 import '../ai/ai_ayarlar.dart';
 import '../ai/ai_modeller.dart';
-import '../ai/ai_servisi.dart';
 import '../ai/isleyici.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
@@ -660,8 +659,7 @@ String _tarihYazisi(int ms, bool saatli) {
 }
 
 /// Model bilgisi (Ayarlar'da gösterilir).
-String get aiModelBilgisi =>
-    'Claude Sonnet 5.5 · efor ${AiServisi.efor == 'medium' ? 'orta' : AiServisi.efor}';
+String get aiModelBilgisi => 'Basit notlar: Claude Haiku 5.5  ·  Fotoğraflı ve uzun notlar: Claude Sonnet 5.5  ·  efor düşük';
 
 /// Anahtar yoksa kısa bir hatırlatma gösterir.
 bool get aiHazir => AiAyarlar.instance.anahtarVar;

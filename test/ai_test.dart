@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:http/testing.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
+import 'package:aklimda/ai/ai_harcama.dart';
 import 'package:aklimda/ai/ai_modeller.dart';
 import 'package:aklimda/ai/ai_servisi.dart';
 import 'package:aklimda/veri/modeller.dart';
@@ -46,8 +47,11 @@ final _agac = KategoriAgaci([
 Not _not([String metin = 'Salona tablo asacağım']) => Not(
     id: 'a', metin: metin, kaynak: Kaynak.sesli, olusturma: 0, guncelleme: 0, sonDokunma: 0);
 
-Future<AiSonuc> _isle() =>
-    AiServisi.notuIsle(apiKey: 'sk-ant-test', not: _not(), agac: _agac, resimlerBase64: const []);
+Future<AiSonuc> _isle({bool resim = false, String? metin}) => AiServisi.notuIsle(
+    apiKey: 'sk-ant-test',
+    not: _not(metin ?? 'Salona tablo asacağım'),
+    agac: _agac,
+    resimlerBase64: resim ? const ['AAAA'] : const []);
 
 void main() {
   setUpAll(() => initializeDateFormatting('tr'));
@@ -64,8 +68,10 @@ void main() {
     expect(alinan.headers['x-api-key'], 'sk-ant-test');
     expect(alinan.headers['anthropic-version'], '2026-10-21');
     final g = jsonDecode(alinan.body) as Map<String, dynamic>;
-    expect(g['model'], 'claude-sonnet-5-5');
-    expect(g['output_config']['effort'], 'medium');
+    expect(g['model'], 'claude-haiku-5-5', reason: 'kısa yazılı not ucuz modelle işlenir');
+    expect(g['output_config']['effort'], 'low');
+    expect(g.containsKey('fallbacks'), isFalse, reason: 'yedek model özelliği Haiku\'da yok');
+    expect(alinan.headers.containsKey('anthropic-beta'), isFalse);
     expect(g['output_config']['format']['type'], 'json_schema');
     expect(g.containsKey('temperature'), isFalse);
     expect(g.containsKey('thinking'), isFalse);
@@ -106,6 +112,60 @@ void main() {
     kontrol(govde['output_config']['format']['schema']);
   });
 
+  test('Fotoğraflı not güçlü modelle (Sonnet) işlenir, yedek model özelliğiyle birlikte', () async {
+    late Map<String, dynamic> govde;
+    late http.Request alinan;
+    AiServisi.istemciUret = () => MockClient((r) async {
+          alinan = r;
+          govde = jsonDecode(r.body) as Map<String, dynamic>;
+          return _yanit(_basarili([_fikir()]));
+        });
+    await _isle(resim: true);
+    expect(govde['model'], 'claude-sonnet-5-5');
+    expect(govde['output_config']['effort'], 'low');
+    expect(govde['fallbacks'], 'default');
+    expect(alinan.headers['anthropic-beta'], contains('fallback'));
+    final icerik = govde['messages'][0]['content'] as List;
+    expect(icerik.first['type'], 'image');
+    expect(icerik.first['source']['media_type'], 'image/jpeg');
+  });
+
+  test('Uzun notlar da güçlü modelle işlenir', () async {
+    late Map<String, dynamic> govde;
+    AiServisi.istemciUret = () => MockClient((r) async {
+          govde = jsonDecode(r.body) as Map<String, dynamic>;
+          return _yanit(_basarili([_fikir()]));
+        });
+    await _isle(metin: 'a' * 601);
+    expect(govde['model'], 'claude-sonnet-5-5');
+    await _isle(metin: 'a' * 600);
+    expect(govde['model'], 'claude-haiku-5-5');
+  });
+
+  test('Model seçimi: fotoğraf ya da uzun metin Sonnet, geri kalanı Haiku', () {
+    expect(AiServisi.modelSec(resimVar: false, metinUzunlugu: 50), AiServisi.haiku);
+    expect(AiServisi.modelSec(resimVar: true, metinUzunlugu: 0), AiServisi.sonnet);
+    expect(AiServisi.modelSec(resimVar: false, metinUzunlugu: 601), AiServisi.sonnet);
+  });
+
+  test('Kullanım miktarı dinleyiciye bildirilir, maliyet doğru hesaplanır', () async {
+    final kayitlar = <(String, int, int)>[];
+    AiServisi.kullanimDinleyici = (m, g, c) => kayitlar.add((m, g, c));
+    addTearDown(() => AiServisi.kullanimDinleyici = null);
+    AiServisi.istemciUret = () => MockClient((r) async => _yanit({
+          'model': 'claude-haiku-5-5',
+          'usage': {'input_tokens': 1200, 'output_tokens': 300},
+          ..._basarili([_fikir()]),
+        }));
+    await _isle();
+    expect(kayitlar, [('claude-haiku-5-5', 1200, 300)]);
+    // 1200*0.10/1M + 300*0.50/1M = 0.00012 + 0.00015
+    expect(AiHarcama.maliyet('claude-haiku-5-5', 1200, 300), closeTo(0.00027, 1e-9));
+    expect(AiHarcama.maliyet('claude-sonnet-5-5', 1000000, 1000000), closeTo(12.0, 1e-9));
+    expect(AiHarcama.maliyet('claude-haiku-5-5-20990101', 1000000, 0), closeTo(0.10, 1e-9), reason: 'tarih ekli model adı da tanınır');
+    expect(AiHarcama.maliyet('bilinmeyen-model', 1000000, 0), closeTo(2.0, 1e-9), reason: 'bilinmeyen modelde temkinli (Sonnet) fiyat');
+  });
+
   test('Yedek model özelliği reddedilirse onsuz yeniden dener', () async {
     final istekler = <http.Request>[];
     AiServisi.istemciUret = () => MockClient((r) async {
@@ -115,7 +175,7 @@ void main() {
           }
           return _yanit(_basarili([_fikir()]));
         });
-    final sonuc = await _isle();
+    final sonuc = await _isle(resim: true);
     expect(istekler, hasLength(2));
     expect(istekler[0].headers['anthropic-beta'], contains('fallback'));
     expect(istekler[1].headers.containsKey('anthropic-beta'), isFalse);

@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../ai/ai_ayarlar.dart';
+import '../ai/ai_zamanlama.dart';
 import '../ai/isleyici.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
@@ -112,6 +114,49 @@ class OnayBandi extends StatelessWidget {
                   if (sayi > 0) const Icon(Icons.chevron_right, color: Renk.kahve),
                 ]),
               ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+/// "N not 21:00'de düzenlenecek [Şimdi işle]" şeridi. İşlenecek not yoksa görünmez.
+class IslenecekBandi extends StatelessWidget {
+  const IslenecekBandi({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: Listenable.merge([Depo.instance, AiIsleyici.instance, AiAyarlar.instance, AiZamanlama.instance]),
+      builder: (context, _) {
+        final ai = AiIsleyici.instance;
+        final sayi = ai.bekleyenSayisi;
+        if (!AiAyarlar.instance.anahtarVar || sayi == 0) return const SizedBox.shrink();
+        final ne = AiZamanlama.instance.sonrakiMetni(DateTime.now());
+        return Padding(
+          padding: const EdgeInsets.fromLTRB(12, 8, 12, 0),
+          child: Material(
+            color: Renk.kahve.withValues(alpha: 0.07),
+            borderRadius: BorderRadius.circular(16),
+            child: Padding(
+              padding: const EdgeInsets.fromLTRB(14, 6, 6, 6),
+              child: Row(children: [
+                const Text('⏳', style: TextStyle(fontSize: 18)),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Text('$sayi not $ne düzenlenecek',
+                      style: const TextStyle(color: Renk.kahve, fontSize: 14)),
+                ),
+                if (ai.mesgul)
+                  const Padding(
+                    padding: EdgeInsets.all(12),
+                    child: SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)),
+                  )
+                else
+                  TextButton(onPressed: () => ai.bekleyenleriIsle(), child: const Text('Şimdi işle')),
+              ]),
             ),
           ),
         );
