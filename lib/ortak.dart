@@ -36,6 +36,9 @@ void mesajGoster(String metin, {String? eylem, VoidCallback? eylemFn, int saniye
     ..hideCurrentSnackBar()
     ..showSnackBar(SnackBar(
       content: Text(metin),
+      // Yüzen bildirim: sesli not butonunu ve alt menüyü yerinden oynatmaz.
+      behavior: SnackBarBehavior.floating,
+      margin: const EdgeInsets.fromLTRB(16, 0, 16, 12),
       duration: Duration(seconds: saniye),
       action: eylem == null ? null : SnackBarAction(label: eylem, onPressed: eylemFn ?? () {}),
     ));
@@ -46,6 +49,20 @@ Future<void> silVeGeriAlGoster(List<String> idler) async {
   await Depo.instance.sil(idler);
   mesajGoster(idler.length == 1 ? 'Not silindi' : '${idler.length} not silindi',
       eylem: 'Geri al', eylemFn: () => Depo.instance.silmeyiGeriAl(idler), saniye: 5);
+}
+
+/// Notları arşive alır (ya da arşivden çıkarır) ve 5 saniye "Geri al" gösterir.
+Future<void> arsivleVeGeriAlGoster(List<String> idler, bool arsiv) async {
+  await Depo.instance.arsivle(idler, arsiv);
+  final tek = idler.length == 1;
+  mesajGoster(
+    arsiv
+        ? (tek ? 'Arşivlendi' : '${idler.length} not arşivlendi')
+        : (tek ? 'Arşivden çıkarıldı' : '${idler.length} not arşivden çıkarıldı'),
+    eylem: 'Geri al',
+    eylemFn: () => Depo.instance.arsivle(idler, !arsiv),
+    saniye: 5,
+  );
 }
 
 /// Tek kategori seçtirir (Taşı/Kopyala için). İptal ederse null.

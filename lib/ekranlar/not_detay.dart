@@ -95,10 +95,7 @@ class _NotDetayState extends State<NotDetay> {
               IconButton(
                 tooltip: n.arsiv ? 'Arşivden çıkar' : 'Arşivle',
                 icon: Icon(n.arsiv ? Icons.unarchive_outlined : Icons.archive_outlined),
-                onPressed: () async {
-                  await _depo.arsivle([n.id], !n.arsiv);
-                  mesajGoster(n.arsiv ? 'Arşivden çıkarıldı' : 'Arşivlendi');
-                },
+                onPressed: () => arsivleVeGeriAlGoster([n.id], !n.arsiv),
               ),
               IconButton(
                 tooltip: 'Sil',

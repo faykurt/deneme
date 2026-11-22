@@ -251,8 +251,9 @@ class _NotListesiState extends State<NotListesi> {
                     tooltip: widget.arsivMi ? 'Arşivden çıkar' : 'Arşivle',
                     icon: Icon(widget.arsivMi ? Icons.unarchive_outlined : Icons.archive_outlined),
                     onPressed: () async {
-                      await Depo.instance.arsivle(_secili.toList(), !widget.arsivMi);
+                      final idler = _secili.toList();
                       setState(_secili.clear);
+                      await arsivleVeGeriAlGoster(idler, !widget.arsivMi);
                     },
                   ),
                   IconButton(
