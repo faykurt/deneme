@@ -68,7 +68,7 @@
   var started = false, submitted = false;
 
   function titles(ids) {
-    return (C.products || []).filter(function (p) { return ids.indexOf(p.id) > -1; }).map(function (p) { return p.set + " " + p.title; }).join(", ") || "Seçilmedi";
+    return (C.products || []).filter(function (p) { return ids.indexOf(p.id) > -1; }).map(function (p) { return p.title; }).join(", ") || "Seçilmedi";
   }
 
   function openLead(ids, where) {
