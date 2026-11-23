@@ -6,7 +6,7 @@ window.SITE_CONFIG = {
   // Boş bırakılırsa hiçbir şey kaydedilmez (test modu).
   endpoint: "https://script.google.com/macros/s/AKfycbzuLAAl2IJyUFAmP0rYH3q3tkEaXhxcdH8tnd4GG8eiUffaz_sktN4ZqbdQdpvl9OTzsA/exec",
 
-  // Fiyat aralıkları (£). Değiştirmek için priceText alanlarını düzenleyin.
+  // Fiyat aralıkları ($). Değiştirmek için priceText alanlarını düzenleyin.
   priceNote: "Fiyatlar tahminidir. Sipariş adetleri netleştikten sonra kesin fiyatlar tarafınıza iletilecektir.",
 
   // Talep gönderildikten sonra gösterilir. YALNIZCA gerçekten yerine getirebileceğiniz sözleri bırakın.
@@ -22,7 +22,7 @@ window.SITE_CONFIG = {
       type: "Orijinal",
       title: "Bayley-4 Orijinal Set",
       desc: "Yurt dışından temin edilir.",
-      priceText: "£1.600 – £1.800",
+      priceText: "$1.900 – $2.000",
       badge: "Orijinal",
     },
     {
@@ -31,7 +31,7 @@ window.SITE_CONFIG = {
       type: "Yerli Üretim",
       title: "Bayley-4 Uyumlu Yerli Üretim Set",
       desc: "Orijinal ürün değildir. Orijinal setin ağırlık, boyut ve renk özellikleri eşlenerek birebir ölçülerde üretilir.",
-      priceText: "£500 – £600",
+      priceText: "$600 – $700",
       badge: "Yerli Üretim",
     },
   ],
