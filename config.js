@@ -22,7 +22,7 @@ window.SITE_CONFIG = {
       type: "Orijinal",
       title: "Bayley-4 Orijinal Set",
       desc: "Yurt dışından temin edilir.",
-      priceText: "$1.900 – $2.000",
+      priceText: "$2.000",
       badge: "Orijinal",
     },
     {
@@ -31,7 +31,7 @@ window.SITE_CONFIG = {
       type: "Yerli Üretim",
       title: "Bayley-4 Uyumlu Set",
       desc: "Orijinal ürün değildir. Orijinal setin ağırlık, boyut ve renk özellikleri eşlenerek birebir ölçülerde üretilir.",
-      priceText: "$600 – $700",
+      priceText: "$650",
       badge: "Yerli Üretim",
     },
   ],
