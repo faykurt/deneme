@@ -29,7 +29,7 @@ window.SITE_CONFIG = {
       id: "b4-yerli",
       set: "Bayley-4",
       type: "Yerli Üretim",
-      title: "Bayley-4 Uyumlu Yerli Üretim Set",
+      title: "Bayley-4 Uyumlu Set",
       desc: "Orijinal ürün değildir. Orijinal setin ağırlık, boyut ve renk özellikleri eşlenerek birebir ölçülerde üretilir.",
       priceText: "$600 – $700",
       badge: "Yerli Üretim",
