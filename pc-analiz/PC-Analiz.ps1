@@ -61,7 +61,7 @@ function Spark($vals, $max, $color) {
 }
 
 function Table($rows, $cols) {
-  $rows = @($rows)
+  $rows = @($rows | Where-Object { $null -ne $_ })
   if ($rows.Count -eq 0) { return "<p class='muted'>Veri yok.</p>" }
   $h = ($cols | ForEach-Object { "<th>$(Esc $_[0])</th>" }) -join ''
   $b = foreach ($r in $rows) {
@@ -93,6 +93,18 @@ $uptimeDays = if ($bootTime) { R1 (((Get-Date) - $bootTime).TotalDays) } else { 
 
 # ---------------------------------------------------------------- canli olcum
 Write-Host "[2/7] Canli olcum basliyor ($SampleSeconds sn). Bu sirada bilgisayari normal kullan, yavas acilan uygulamayi ac." -ForegroundColor Green
+function Get-DiskRaw { Get-CimInstance Win32_PerfRawData_PerfDisk_PhysicalDisk -Filter "Name='_Total'" }
+function Get-Lat($a, $b, $rawName, $baseName) {
+  if (-not $a -or -not $b) { return $null }
+  $dr = [double]$b.$rawName - [double]$a.$rawName
+  $db = [double]$b.$baseName - [double]$a.$baseName
+  $fq = [double]$b.Frequency_PerfTime
+  if ($db -le 0 -or $fq -le 0) { return $null }
+  $ms = [math]::Round(($dr / $fq) / $db * 1000, 1)
+  if ($ms -lt 0 -or $ms -gt 10000) { return $null }
+  $ms
+}
+$raw1 = Get-DiskRaw
 $samples = New-Object System.Collections.ArrayList
 $procAcc = @{}
 $procSamples = 0
@@ -129,6 +141,9 @@ for ($i = 0; $i -lt $SampleSeconds; $i++) {
   if ($left -gt 0) { Start-Sleep -Milliseconds ([int]$left) }
 }
 $cpuNow = @(Get-CimInstance Win32_Processor)
+$raw2 = Get-DiskRaw
+$latRead  = Get-Lat $raw1 $raw2 'AvgDisksecPerRead'  'AvgDisksecPerRead_Base'
+$latWrite = Get-Lat $raw1 $raw2 'AvgDisksecPerWrite' 'AvgDisksecPerWrite_Base'
 
 $avgCpu = R1 (Avg ($samples | ForEach-Object { $_.Cpu }))
 $maxCpu = R1 (Mx  ($samples | ForEach-Object { $_.Cpu }))
@@ -161,6 +176,11 @@ $mods  = @(Get-CimInstance Win32_PhysicalMemory)
 $slots = (Get-CimInstance Win32_PhysicalMemoryArray | Measure-Object MemoryDevices -Sum).Sum
 $pf    = @(Get-CimInstance Win32_PageFileUsage)
 $pfSettings = @(Get-CimInstance Win32_PageFileSetting)
+$allProcs = @(Get-Process)
+$totalHandles = ($allProcs | Measure-Object Handles -Sum).Sum
+$procCount = $allProcs.Count
+$pfRows = @($pf | ForEach-Object { [pscustomobject]@{ Dosya = $_.Name; AyrilanMB = $_.AllocatedBaseSize; SuAnMB = $_.CurrentUsage; TepeMB = $_.PeakUsage } })
+$isVM = ([string]$cs.Model + ' ' + [string]$cs.Manufacturer) -match 'Virtual|VMware|KVM|QEMU|Xen|HVM'
 $procMem = @(Get-Process | Group-Object Name | ForEach-Object {
   [pscustomobject]@{ Name = $_.Name; Adet = $_.Count; BellekMB = MB (($_.Group | Measure-Object WorkingSet64 -Sum).Sum) }
 } | Sort-Object BellekMB -Descending | Select-Object -First 15)
@@ -244,6 +264,20 @@ $crashApps = @($appEvents | ForEach-Object {
   if ($x.Count -gt 0) { [string]$x[0].Value }
 } | Where-Object { $_ } | Group-Object | Sort-Object Count -Descending | Select-Object -First 8 | ForEach-Object { [pscustomobject]@{ Uygulama = $_.Name; Coktu = $_.Count } })
 
+$bootRows = @(Get-WinEvent -FilterHashtable @{ LogName = 'Microsoft-Windows-Diagnostics-Performance/Operational'; Id = 100 } -MaxEvents 8 | ForEach-Object {
+  $x = [xml]$_.ToXml()
+  $ms = ($x.Event.EventData.Data | Where-Object { $_.Name -eq 'BootTime' }).'#text'
+  if ($ms) { [pscustomobject]@{ Tarih = $_.TimeCreated; AcilisSn = [math]::Round([double]$ms / 1000, 0) } }
+})
+$slowStart = @(Get-WinEvent -FilterHashtable @{ LogName = 'Microsoft-Windows-Diagnostics-Performance/Operational'; Id = 101 } -MaxEvents 60 | ForEach-Object {
+  $x = [xml]$_.ToXml()
+  $nm = ($x.Event.EventData.Data | Where-Object { $_.Name -eq 'FriendlyName' }).'#text'
+  if (-not $nm) { $nm = ($x.Event.EventData.Data | Where-Object { $_.Name -eq 'Name' }).'#text' }
+  $tt = ($x.Event.EventData.Data | Where-Object { $_.Name -eq 'TotalTime' }).'#text'
+  if ($nm -and $tt) { [pscustomobject]@{ Ad = $nm; Sn = [double]$tt / 1000 } }
+} | Group-Object Ad | ForEach-Object { [pscustomobject]@{ Program = $_.Name; Kez = $_.Count; OrtYavaslatmaSn = [math]::Round(($_.Group | Measure-Object Sn -Average).Average, 1) } } | Sort-Object OrtYavaslatmaSn -Descending | Select-Object -First 10)
+$badDev = @(Get-CimInstance Win32_PnPEntity | Where-Object { $_.ConfigManagerErrorCode -gt 0 } | Select-Object Name, ConfigManagerErrorCode)
+
 # ---------------------------------------------------------------- Ag
 Write-Host '[7/7] Ag kontrolu...'
 $gw = (Get-NetIPConfiguration | Where-Object { $_.IPv4DefaultGateway } | Select-Object -First 1).IPv4DefaultGateway.NextHop
@@ -274,6 +308,23 @@ if ($procMem.Count -gt 0 -and $totalRamMB -gt 0) {
   $big = $procMem[0]
   if (($big.BellekMB / $totalRamMB) -gt 0.25) { Add-Finding 'warn' 'RAM' "Tek program RAM'in %25'inden fazlasini kullaniyor: $($big.Name)" "$($big.Adet) surec, toplam $($big.BellekMB) MB." "Bu programi yeniden baslat veya ayarlarini/eklentilerini gozden gecir." }
 }
+
+if ($null -ne $latRead -or $null -ne $latWrite) {
+  $lr = if ($null -ne $latRead) { $latRead } else { 0 }
+  $lw = if ($null -ne $latWrite) { $latWrite } else { 0 }
+  $lm = [math]::Max($lr, $lw)
+  if ($lm -gt 50) { Add-Finding 'crit' 'DISK' "Disk gecikmesi cok yuksek (okuma $latRead ms, yazma $latWrite ms)" 'Her disk isleminin beklemesi bu kadar uzunsa uygulamalar acilirken ve fare hareket ederken takilir. Saglikli SSD 1-5 ms, HDD 10-20 ms civarindadir.' 'Disk sagligi/tipi, antivirus taramasi ve disk hatalarini kontrol et.' }
+  elseif ($lm -gt 20) { Add-Finding 'warn' 'DISK' "Disk gecikmesi yuksek (okuma $latRead ms, yazma $latWrite ms)" 'SSD icin bu degerler yuksektir; HDD icin siniri zorlar.' 'Disk tipi ve arka plan disk yukunu incele.' }
+  else { Add-Finding 'ok' 'DISK' "Disk gecikmesi normal (okuma $latRead ms, yazma $latWrite ms)" '' '' }
+}
+if ($isVM) { Add-Finding 'info' 'SISTEM' 'Sanal makine gibi gorunuyor' 'Sanal makinede performans ana sunucunun (host) yukune de bagli; bu rapor sadece konugu gorur.' 'Host kaynaklarini ve VM''e ayrilan CPU/RAM miktarini kontrol et.' }
+if ($totalHandles -gt 150000) { Add-Finding 'warn' 'RAM' "Cok fazla acik tanimlayici (handle): $totalHandles" "Surec sayisi $procCount. Bir program kaynak sizdiriyor olabilir." 'Yeniden baslat; tekrar olursa surec bazinda handle sayisina bak.' }
+if ($bootRows.Count -gt 0) {
+  $lastBoot = $bootRows[0].AcilisSn
+  if ($lastBoot -gt 120) { Add-Finding 'warn' 'SISTEM' "Son acilis cok yavas ($lastBoot sn)" 'Windows acilisi 2 dakikayi gecmis. Asagidaki yavaslatan programlar tablosuna bak.' 'Gereksiz baslangic programlarini kapat; HDD ise SSD gecisi.' }
+  elseif ($lastBoot -gt 60) { Add-Finding 'info' 'SISTEM' "Acilis suresi uzun ($lastBoot sn)" '' 'Baslangic programlarini azalt.' }
+}
+if ($badDev.Count -gt 0) { $badNames = (@($badDev | ForEach-Object { $_.Name } | Select-Object -First 5)) -join ', '; Add-Finding 'warn' 'SISTEM' "$($badDev.Count) aygit surucu hatasi veriyor" $badNames 'Aygit Yoneticisi''nde sari unlemli aygitlari incele, suruculerini guncelle.' }
 
 # --- CPU
 if ($avgCpu -gt 85) { $t = if ($topCpu.Count) { $topCpu[0].Name } else { '?' }; Add-Finding 'crit' 'CPU' "Islemci surekli dolu (ort. %$avgCpu)" "Olcum boyunca ortalama %$avgCpu, tepe %$maxCpu. En cok yuk: $t." "Yuku olusturan sureci incele (asagidaki tablo); arka plan tarama/guncelleme olabilir." }
@@ -394,6 +445,7 @@ W "<div class='grid'>"
 W "<div class='card'><div class='lbl'>RAM kullanimi</div><div class='big'>%$usedPct</div>$(Bar $usedPct 80 92)<div class='muted'>$totalRamGB GB toplam</div></div>"
 W "<div class='card'><div class='lbl'>CPU ortalama</div><div class='big'>%$avgCpu</div>$(Bar $avgCpu 60 85)<div class='muted'>tepe %$maxCpu &middot; $cores cekirdek / $logical thread</div></div>"
 W "<div class='card'><div class='lbl'>Disk mesguliyeti</div><div class='big'>%$avgDisk</div>$(Bar $avgDisk 50 80)<div class='muted'>tepe %$maxDisk &middot; kuyruk $avgQueue</div></div>"
+W "<div class='card'><div class='lbl'>Disk gecikmesi</div><div class='big'>$(if($null -ne $latRead){"$latRead ms"}else{'-'})</div><div class='muted'>okuma &middot; yazma: $(if($null -ne $latWrite){"$latWrite ms"}else{'-'}) &middot; tip: $(Esc $sysMedia)</div></div>"
 if ($cVol -and $cVol.Size) { $usedC = R1 (100 - ($cVol.FreeSpace / $cVol.Size * 100)); W "<div class='card'><div class='lbl'>C: doluluk</div><div class='big'>%$usedC</div>$(Bar $usedC 85 93)<div class='muted'>$(GB $cVol.FreeSpace) GB bos / $(GB $cVol.Size) GB</div></div>" }
 W '</div>'
 
@@ -426,6 +478,8 @@ W (Table $procMem @(@('Program', { param($x) $x.Name }), @('Surec', { param($x) 
 W '<h2>Donanim</h2>'
 W "<div class='card'><b>Sistem:</b> $(Esc $cs.Manufacturer) $(Esc $cs.Model) &middot; BIOS: $(Esc $bios.SMBIOSBIOSVersion)<br><b>Isletim sistemi:</b> $(Esc $os.Caption) $(Esc $os.Version) &middot; Son acilis: $(Esc $bootTime) ($uptimeDays gun once)<br><b>Guc plani:</b> $(Esc $planName)</div>"
 W (Table $cpu @(@('Islemci', { param($x) $x.Name }), @('Cekirdek', { param($x) $x.NumberOfCores }), @('Thread', { param($x) $x.NumberOfLogicalProcessors }), @('Maks MHz', { param($x) $x.MaxClockSpeed }), @('Anlik MHz', { param($x) $x.CurrentClockSpeed })))
+W '<h2>Sayfa dosyasi</h2>'
+W (Table $pfRows @(@('Dosya', { param($x) $x.Dosya }), @('Ayrilan MB', { param($x) $x.AyrilanMB }), @('Su an MB', { param($x) $x.SuAnMB }), @('Tepe MB', { param($x) $x.TepeMB })))
 W "<h2>Bellek modulleri ($($mods.Count) / $slots yuva dolu)</h2>"
 W (Table $mods @(@('Yuva', { param($x) $x.DeviceLocator }), @('GB', { param($x) GB $x.Capacity }), @('MHz', { param($x) $x.Speed }), @('Ayarli MHz', { param($x) $x.ConfiguredClockSpeed }), @('Uretici', { param($x) $x.Manufacturer })))
 W '<h2>Fiziksel diskler</h2>'
@@ -446,6 +500,12 @@ W "<h2>Baslangic programlari ($($startup.Count))</h2>"
 W (Table $startup @(@('Ad', { param($x) $x.Name }), @('Komut', { param($x) $x.Command }), @('Konum', { param($x) $x.Location }), @('Kullanici', { param($x) $x.User })))
 W "<h2>Ucuncu parti otomatik servisler ($($svc3p.Count))</h2>"
 W (Table $svc3p @(@('Servis', { param($x) $x.Name }), @('Gorunen ad', { param($x) $x.DisplayName })))
+W '<h2>Windows acilis sureleri (son kayitlar)</h2>'
+W (Table $bootRows @(@('Tarih', { param($x) $x.Tarih }), @('Acilis (sn)', { param($x) $x.AcilisSn })))
+W '<h2>Acilisi en cok yavaslatan programlar</h2>'
+W (Table $slowStart @(@('Program', { param($x) $x.Program }), @('Kez', { param($x) $x.Kez }), @('Ort. yavaslatma (sn)', { param($x) $x.OrtYavaslatmaSn })))
+W '<h2>Surucu hatasi olan aygitlar</h2>'
+W (Table $badDev @(@('Aygit', { param($x) $x.Name }), @('Hata kodu', { param($x) $x.ConfigManagerErrorCode })))
 W '<h2>Olay gunlugu: en sik hatalar (7 gun)</h2>'
 W (Table $topEvents @(@('Kaynak', { param($x) $x.Kaynak }), @('Olay No', { param($x) $x.OlayNo }), @('Adet', { param($x) $x.Adet }), @('Ornek mesaj', { param($x) $x.Ornek })))
 W '<h2>En cok coken uygulamalar (7 gun)</h2>'
@@ -468,7 +528,7 @@ catch { $outDir = [Environment]::GetFolderPath('Desktop'); $htmlPath = Join-Path
 
 $json = [pscustomobject]@{
   Computer = $host_; Time = $stamp; Admin = $isAdmin; Diagnosis = $diag
-  Metrics = [pscustomobject]@{ AvgCpu = $avgCpu; MaxCpu = $maxCpu; AvgDisk = $avgDisk; AvgQueue = $avgQueue; RamUsedPct = $usedPct; TotalRamGB = $totalRamGB; UptimeDays = $uptimeDays }
+  Metrics = [pscustomobject]@{ DiskLatReadMs = $latRead; DiskLatWriteMs = $latWrite; Handles = $totalHandles; AvgCpu = $avgCpu; MaxCpu = $maxCpu; AvgDisk = $avgDisk; AvgQueue = $avgQueue; RamUsedPct = $usedPct; TotalRamGB = $totalRamGB; UptimeDays = $uptimeDays }
   Findings = $findings; TopCpu = $topCpu; TopDiskIO = $topIO; TopMemory = $procMem; Folders = $folders
 }
 $jsonPath = Join-Path $outDir "$base.json"
