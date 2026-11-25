@@ -5,11 +5,12 @@ import '../ai/isleyici.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
+import '../selam.dart';
 import 'kayit_sonrasi.dart';
 import 'kutuphane.dart';
 import 'oneri_kartlari.dart';
 import '../oneri/oneri_deposu.dart';
-import 'piksel_sahne.dart';
+import 'sahne_arka_plan.dart';
 import 'onay_bekleyenler.dart';
 import 'sesli_not.dart';
 import 'yaptin_mi.dart';
@@ -50,13 +51,7 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
     }
   }
 
-  String get _selam {
-    final s = DateTime.now().hour;
-    if (s >= 5 && s < 11) return 'Günaydın';
-    if (s >= 11 && s < 17) return 'İyi günler';
-    if (s >= 17 && s < 22) return 'İyi akşamlar';
-    return 'İyi geceler';
-  }
+  String get _selam => Selam.instance.simdi(DateTime.now());
 
   Future<void> _hizliKaydet() async {
     final metin = _hizliNot.text.trim();
@@ -72,7 +67,7 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
     final yazi = Theme.of(context).textTheme;
     return Scaffold(
       body: Stack(children: [
-        Positioned.fill(child: PikselSahne(bolum: SahneBolumu.simdi())),
+        Positioned.fill(child: SahneArkaPlan(isik: SahneIsigi.simdi())),
         SafeArea(
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
@@ -83,11 +78,10 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
                 color: Renk.kart.withValues(alpha: 0.9),
                 borderRadius: BorderRadius.circular(20),
               ),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(_selam, style: yazi.headlineMedium?.copyWith(color: Renk.yazi, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 2),
-                Text('Aklındakileri buraya bırak.', style: yazi.bodyLarge?.copyWith(color: Renk.yazi)),
-              ]),
+              child: Text(_selam,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: yazi.headlineSmall?.copyWith(color: Renk.yazi, fontWeight: FontWeight.bold)),
             ),
             const SizedBox(height: 20),
             Container(

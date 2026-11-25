@@ -16,20 +16,20 @@ final navigatorKey = GlobalKey<NavigatorState>();
 /// Alt menüde hangi sekmenin açık olduğu (başka ekranlardan sekme değiştirmek için).
 final ValueNotifier<int> sekmeSecici = ValueNotifier<int>(0);
 
-/// Uygulamanın renkleri: nötr gri zemin, tek yeşil vurgu. Koyu ve açık tema.
+/// Uygulamanın renkleri. Açık tema: krem ve şeftali zemin, zeytin yeşili vurgu. Koyu tema: koyu gri, açık yeşil vurgu.
 class Renk {
   /// Tema değişince [TemaAyari] günceller.
-  static bool koyu = true;
+  static bool koyu = false;
 
-  static Color get vurgu => koyu ? const Color(0xFF5CC38A) : const Color(0xFF2F8F5B);
-  static Color get vurguUstu => koyu ? const Color(0xFF0C1F15) : Colors.white;
-  static Color get zemin => koyu ? const Color(0xFF131514) : const Color(0xFFECEDEC);
-  static Color get kart => koyu ? const Color(0xFF212423) : const Color(0xFFFAFAF9);
-  static Color get yazi => koyu ? const Color(0xFFE7E9E7) : const Color(0xFF232625);
-  static Color get hata => koyu ? const Color(0xFFEF9A9A) : const Color(0xFFC62828);
+  static Color get vurgu => koyu ? const Color(0xFF5CC38A) : const Color(0xFF4F7A4C);
+  static Color get vurguUstu => koyu ? const Color(0xFF0C1F15) : const Color(0xFFFFFBF0);
+  static Color get zemin => koyu ? const Color(0xFF131514) : const Color(0xFFF2E2CF);
+  static Color get kart => koyu ? const Color(0xFF212423) : const Color(0xFFFBF4E6);
+  static Color get yazi => koyu ? const Color(0xFFE7E9E7) : const Color(0xFF2D241D);
+  static Color get hata => koyu ? const Color(0xFFEF9A9A) : const Color(0xFFB23B2B);
   /// Yarı saydam görünmesin diye karta karıştırılmış vurgu zemini.
   static Color vurguKart([double a = 0.16]) => Color.alphaBlend(vurgu.withValues(alpha: a), kart);
-  static Color get sinir => koyu ? const Color(0x33FFFFFF) : const Color(0x22000000);
+  static Color get sinir => koyu ? const Color(0x33FFFFFF) : const Color(0x2A5A4630);
 }
 
 String tarihYazisi(int ms) {

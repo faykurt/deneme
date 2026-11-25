@@ -164,7 +164,7 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
             builder: (context, _) => SwitchListTile(
               secondary: const Icon(Icons.dark_mode_outlined),
               title: const Text('Koyu tema'),
-              subtitle: Text(TemaAyari.instance.koyu ? 'Koyu gri' : 'Açık gri'),
+              subtitle: Text(TemaAyari.instance.koyu ? 'Koyu' : 'Açık (krem)'),
               value: TemaAyari.instance.koyu,
               onChanged: (v) => TemaAyari.instance.ayarla(v),
             ),

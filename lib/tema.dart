@@ -3,19 +3,19 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'ortak.dart';
 
-/// Koyu / açık gri tema seçimi. Varsayılan koyu.
+/// Açık (krem) ve koyu tema seçimi. Varsayılan açık.
 class TemaAyari extends ChangeNotifier {
   TemaAyari._();
   static final instance = TemaAyari._();
 
   static const _anahtar = 'tema_koyu';
-  bool _koyu = true;
+  bool _koyu = false;
   bool get koyu => _koyu;
 
   Future<void> yukle() async {
     try {
       final p = await SharedPreferences.getInstance();
-      _koyu = p.getBool(_anahtar) ?? true;
+      _koyu = p.getBool(_anahtar) ?? false;
     } catch (_) {}
     Renk.koyu = _koyu;
   }
@@ -58,7 +58,7 @@ class TemaAyari extends ChangeNotifier {
       surfaceContainerLow: Renk.kart,
       surfaceContainerLowest: Renk.zemin,
       secondaryContainer: Renk.vurgu.withValues(alpha: 0.22),
-      outline: k ? const Color(0xFF8A908C) : const Color(0xFF6E7471),
+      outline: k ? const Color(0xFF8A908C) : const Color(0xFF7A6A58),
       outlineVariant: Renk.sinir,
     );
     return ThemeData(
@@ -74,7 +74,7 @@ class TemaAyari extends ChangeNotifier {
       ),
       bottomSheetTheme: BottomSheetThemeData(backgroundColor: Renk.zemin),
       snackBarTheme: SnackBarThemeData(
-        backgroundColor: k ? const Color(0xFF2E3230) : const Color(0xFF2B2E2D),
+        backgroundColor: k ? const Color(0xFF2E3230) : const Color(0xFF3A2F26),
         contentTextStyle: const TextStyle(color: Color(0xFFEDEFED)),
         actionTextColor: const Color(0xFF7ED9A5),
       ),

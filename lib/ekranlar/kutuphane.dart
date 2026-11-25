@@ -4,6 +4,7 @@ import 'package:material_ui/material_ui.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import '../kategori_gorunum.dart';
+import '../ortak.dart';
 import 'not_detay.dart';
 import 'notlar_ekrani.dart';
 
@@ -33,9 +34,10 @@ class Kutuphane extends StatelessWidget {
           margin: const EdgeInsets.only(top: 14),
           padding: const EdgeInsets.fromLTRB(10, 12, 10, 10),
           decoration: BoxDecoration(
-            color: const Color(0xFF3B3129).withValues(alpha: 0.78),
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: const Color(0xFF7A6652), width: 4),
+            color: Renk.koyu ? const Color(0xFF3B3129).withValues(alpha: 0.85) : const Color(0xFFEBD6B4),
+            borderRadius: BorderRadius.circular(22),
+            border: Border.all(color: Renk.koyu ? const Color(0xFF7A6652) : const Color(0xFFD7B27E), width: 7),
+            boxShadow: const [BoxShadow(color: Color(0x33000000), blurRadius: 10, offset: Offset(0, 4))],
           ),
           child: LayoutBuilder(builder: (context, c) {
             final satirlar = _satirlaraBol(kitaplar, c.maxWidth);
@@ -97,8 +99,8 @@ class Kutuphane extends StatelessWidget {
 class _Tahta extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Column(children: [
-        Container(height: 6, color: const Color(0xFF8C7660)),
-        Container(height: 4, color: const Color(0xFF5A4838)),
+        Container(height: 6, color: Renk.koyu ? const Color(0xFF8C7660) : const Color(0xFFEDCF9C)),
+        Container(height: 4, color: Renk.koyu ? const Color(0xFF5A4838) : const Color(0xFFC99F68)),
       ]);
 }
 
@@ -130,8 +132,9 @@ class _Kitap extends StatelessWidget {
           child: Stack(children: [
             // sırt rengi şeritleri
             Positioned(left: 0, top: 0, bottom: 0, width: 4, child: ColoredBox(color: koyu.withValues(alpha: 0.5))),
-            Positioned(left: 0, right: 0, top: 6, height: 3, child: ColoredBox(color: Colors.white.withValues(alpha: 0.35))),
-            Positioned(left: 0, right: 0, bottom: 8, height: 3, child: ColoredBox(color: Colors.white.withValues(alpha: 0.35))),
+            Positioned(left: 0, right: 0, top: 0, height: 4, child: ColoredBox(color: const Color(0xFFFBF1DA).withValues(alpha: 0.9))), // sayfa kenarı
+            Positioned(left: 0, right: 0, top: 8, height: 2, child: ColoredBox(color: const Color(0xFFE8CF8A).withValues(alpha: 0.85))),
+            Positioned(left: 0, right: 0, bottom: 8, height: 2, child: ColoredBox(color: const Color(0xFFE8CF8A).withValues(alpha: 0.85))),
             Positioned(
               top: 14,
               left: 0,

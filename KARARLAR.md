@@ -90,12 +90,11 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Notlar: liste görünümü (varsayılan; arama, sıralama) ve klasör görünümü. Arama ikisinde de var. Arşiv, Notlar sekmesinde ayrı bir bölüm.
 - Dil: Türkçe. Özel isimler (film, mekan, uygulama adı) çevrilmez.
 
-## 8b. Tema ve görsel (v0.4.15'te güncellendi)
-- Nötr gri arayüz, tek yeşil vurgu (ana butonlar, seçili öğeler, mikrofon). Turuncu/krem kaldırıldı. Kartlar ve not zeminleri sade nötr gri.
-- Varsayılan tema koyu. Ayarlar'dan açık gri seçilebilir (iki seçenek, telefona uyma yok).
-- Uygulama ikonunun zemini yeşil, düşünce balonu aynı. Widget koyu gri/yeşil.
-- Ana sayfada arka planda piksel art doğa sahnesi (kodla çizilir, `lib/ekranlar/piksel_sahne.dart`); kartlar üstünde durur. Saate göre anında değişir: sabah 06-11 (güneş doğuyor), öğle 11-17, akşam 17-06 (ay, yıldız, kamp ateşi). Renkler yeşil-gri uyumuna çekildi. Diğer ekranlar sade gri.
-- Yumuşak geçiş ve ortam sesi sonraya kalır.
+## 8b. Tema ve görsel (v0.4.22'de yenilendi)
+- Yeni görünüm (kullanıcının ChatGPT referansı): krem ve şeftali zemin, zeytin yeşili vurgu ve düğmeler, krem kartlar, açık meşe raf ve 3 boyutlu kitaplar, krem alt menü (yalnızca ikon, seçili ikonun arkasında yeşil daire), ortada yeşil mikrofon. Tüm ekranlarda aynı palet. Gri tema kalktı; açık (krem) varsayılan, koyu tema Ayarlar'da kalıyor.
+- Ana sayfa arka planı gün boyu üç ton: sarı-yeşil, şeftali, mor (şimdilik kodla renk geçişi, saatler 06-16 / 16-19 / 19-06; kullanıcı saatleri ve temiz arka plan resimlerini gönderecek, sonra resimle değişecek). Koyu temada hep gece tonu. Diğer ekranlar sade zemin.
+- Karşılama: tek satır, saate göre samimi selam (sabah 05-11, öğle 11-15, akşamüstü 15-18, akşam 18-22, gece 22-05); her açılışta farklı, art arda aynısı yok; "Tam da aklımdaydın." imza selamı 4-6 açılışta bir (rastgele).
+- Fikir kutusu: tek tek Kopyala ve Hepsini kopyala (GitHub gönderimi kaldırıldı).
 
 ### Öneriler ve bildirimler (v0.4.2x)
 - Yapay zeka (Haiku) gün bölümü başında (sabah/öğle/akşam) ve uygulama açılınca öneri paketi hazırlar; paket telefonda saklanır. Ana sayfada en çok 3 öneri kartı: Yaptım (adımlı notta sıradaki adımı tamamlar, değilse "tamamen mi / bugünlük mü" sorar), Sonra hatırlat (yarına), Takvime ekle, Sil (adımlı notta sıradaki adım, geri al ile).

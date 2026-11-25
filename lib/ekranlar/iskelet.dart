@@ -117,7 +117,7 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
         tooltip: 'Sesli not',
         backgroundColor: Renk.vurgu,
         foregroundColor: Renk.vurguUstu,
-        shape: const CircleBorder(),
+        shape: CircleBorder(side: BorderSide(color: Renk.kart, width: 4)),
         child: const Icon(Icons.mic, size: 40),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
@@ -150,8 +150,14 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
             Tooltip(
                 message: ad,
                 child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
-                    child: Icon(secili ? seciliIkon : ikon, size: 28, color: secili ? Renk.vurgu : Renk.yazi))),
+                    padding: const EdgeInsets.symmetric(vertical: 6),
+                    child: Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: secili ? Renk.vurgu.withValues(alpha: 0.22) : Colors.transparent,
+                      ),
+                      child: Icon(secili ? seciliIkon : ikon, size: 26, color: secili ? Renk.vurgu : Renk.yazi)))),
           ],
         ),
       ),

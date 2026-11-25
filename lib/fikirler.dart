@@ -2,7 +2,6 @@ import 'dart:convert';
 
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class Fikir {
   final String id;
@@ -20,18 +19,14 @@ class Fikir {
       );
 }
 
-/// Uygulamayı geliştirmek için yazdığın fikirler. Telefonda saklanır; "Gönder" deyince
-/// hazır doldurulmuş bir GitHub sayfası açılır, orada bir kez "Submit" demen yeterli.
+/// Uygulamayı geliştirmek için yazdığın fikirler. Telefonda saklanır; tek tek ya da hepsi birden kopyalanır.
 class FikirDeposu extends ChangeNotifier {
   FikirDeposu._();
   static final instance = FikirDeposu._();
 
   static const _anahtar = 'fikirler';
-  static const depoAdresi = 'https://github.com/faykurt/deneme';
 
   List<Fikir> liste = [];
-
-  List<Fikir> get gonderilmeyenler => liste.where((f) => !f.gonderildi).toList();
 
   Future<void> yukle() async {
     try {
@@ -67,31 +62,10 @@ class FikirDeposu extends ChangeNotifier {
     await _kaydet();
   }
 
-  /// Verilen fikirleri tek bir GitHub "yeni konu" sayfasında açar ve gönderildi işaretler.
-  static Uri gonderAdresi(List<Fikir> fikirler) {
-    final baslik = fikirler.length == 1
-        ? 'Fikir: ${_kisalt(fikirler.first.metin)}'
-        : 'Fikirler (${fikirler.length})';
-    final govde = fikirler.length == 1
-        ? fikirler.first.metin
-        : [for (var i = 0; i < fikirler.length; i++) '${i + 1}. ${fikirler[i].metin}'].join('\n\n');
-    return Uri.parse('$depoAdresi/issues/new').replace(queryParameters: {'title': baslik, 'body': govde});
-  }
+  /// Tek fikrin kopyalanacak metni.
+  static String kopyaMetni(Fikir f) => f.metin;
 
-  static String _kisalt(String s) {
-    final ilk = s.split('\n').first.trim();
-    return ilk.length > 50 ? '${ilk.substring(0, 50)}…' : ilk;
-  }
-
-  Future<bool> gonder(List<Fikir> fikirler) async {
-    if (fikirler.isEmpty) return false;
-    final tamam = await launchUrl(gonderAdresi(fikirler), mode: LaunchMode.externalApplication);
-    if (tamam) {
-      for (final f in fikirler) {
-        f.gonderildi = true;
-      }
-      await _kaydet();
-    }
-    return tamam;
-  }
+  /// Birden çok fikir: numaralı, aralarında boş satır.
+  static String hepsiMetni(List<Fikir> l) =>
+      [for (var i = 0; i < l.length; i++) '${i + 1}. ${l[i].metin}'].join('\n\n');
 }

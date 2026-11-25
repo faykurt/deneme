@@ -12,6 +12,7 @@ import 'fikirler.dart';
 import 'ekranlar/not_detay.dart';
 import 'oneri/bildirim_servisi.dart';
 import 'oneri/oneri_deposu.dart';
+import 'selam.dart';
 import 'ortak.dart';
 import 'tema.dart';
 import 'veri/depo.dart';
@@ -29,6 +30,8 @@ Future<void> main() async {
   await TemaAyari.instance.yukle();
   await FikirDeposu.instance.yukle();
   await OneriDeposu.instance.yukle();
+  await Selam.instance.yukle();
+  await Selam.instance.acilis(DateTime.now());
   await BildirimServisi.instance.baslat();
   BildirimServisi.instance.dokunuldu = _bildirimAc;
   runApp(const AklimdaApp());
