@@ -1,0 +1,13 @@
+PC PERFORMANS ANALIZI
+
+1) Bu klasoru (3 dosya) hedef bilgisayara kopyala. Zip ise once "Tumunu ayikla" yap.
+2) Analiz-Baslat.bat dosyasina SAG TIK > "Yonetici olarak calistir".
+3) 60 saniyelik olcum sirasinda bilgisayari normal kullan, yavas acilan uygulamayi ac.
+4) Bitince ayni klasorde Performans-Raporu_*.html acilir (+ .json kopyasi).
+5) HTML raporu ve JSON dosyasini geri tasi.
+
+Ek secenek: C: diskinin klasor boyutlari icin komut satirindan
+   Analiz-Baslat.bat -DeepScan      (5-20 dk surer)
+
+Betik SALT OKUNURDUR: ayar degistirmez, dosya silmez, internete veri gondermez.
+Hata alirsan ekrandaki mesaji not al.
