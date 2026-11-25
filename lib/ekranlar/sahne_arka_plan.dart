@@ -2,47 +2,62 @@ import 'package:material_ui/material_ui.dart';
 
 import '../ortak.dart';
 
-/// Ana sayfanın arka plan ışığı: gün boyu üç ton. Saatler `SahneIsigi.simdi` içinde ayarlanır.
+/// Ana sayfanın arka plan ışığı: gün boyu beş resim. Saatler karşılama selamlarıyla aynı.
 enum SahneIsigi {
-  gun, // sarı-yeşil, aydınlık
-  aksamUstu, // şeftali
-  gece; // mor
+  sabah, // 05:00-10:59 açık adaçayı yeşili
+  ogle, // 11:00-14:59 sıcak krem
+  aksamUstu, // 15:00-17:59 pastel şeftali
+  aksam, // 18:00-21:59 yumuşak lavanta
+  gece; // 22:00-04:59 puslu mavi
 
-  /// Varsayılan saatler: gün 06-16, akşamüstü 16-19, gece 19-06.
   static SahneIsigi simdi([DateTime? an]) {
     final s = (an ?? DateTime.now()).hour;
-    if (s >= 6 && s < 16) return gun;
-    if (s >= 16 && s < 19) return aksamUstu;
+    if (s >= 5 && s < 11) return sabah;
+    if (s >= 11 && s < 15) return ogle;
+    if (s >= 15 && s < 18) return aksamUstu;
+    if (s >= 18 && s < 22) return aksam;
     return gece;
   }
+
+  String get dosya => switch (this) {
+        sabah => 'assets/sahne/sabah.jpg',
+        ogle => 'assets/sahne/ogle.jpg',
+        aksamUstu => 'assets/sahne/aksamustu.jpg',
+        aksam => 'assets/sahne/aksam.jpg',
+        gece => 'assets/sahne/gece.jpg',
+      };
+
+  /// Resim yüklenemezse kullanılacak düz ton.
+  Color get yedekRenk => switch (this) {
+        sabah => const Color(0xFFD6D7B4),
+        ogle => const Color(0xFFEBDEBD),
+        aksamUstu => const Color(0xFFEBB88B),
+        aksam => const Color(0xFFA997A0),
+        gece => const Color(0xFF566770),
+      };
 }
 
-/// Geçici arka plan: ışığa göre yumuşak renk geçişi (sonra hazır resimle değiştirilecek).
-/// Koyu temada her zaman gece tonu kullanılır.
+/// Ana sayfa arka planı: saate göre resim, değişirken yumuşak geçiş.
+/// Koyu temada her zaman gece resmi kullanılır.
 class SahneArkaPlan extends StatelessWidget {
   final SahneIsigi isik;
   const SahneArkaPlan({super.key, required this.isik});
 
-  static List<Color> renkler(SahneIsigi isik, bool koyu) {
-    if (koyu) return const [Color(0xFF1B1A24), Color(0xFF2A2735), Color(0xFF14131B)];
-    return switch (isik) {
-      SahneIsigi.gun => const [Color(0xFFF1EAC4), Color(0xFFDCE6C0), Color(0xFFB9CFA6)],
-      SahneIsigi.aksamUstu => const [Color(0xFFF7D9B8), Color(0xFFF0B995), Color(0xFFD99A7E)],
-      SahneIsigi.gece => const [Color(0xFFC9B8D8), Color(0xFF9C88B8), Color(0xFF6E5F94)],
-    };
-  }
-
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: renkler(isik, Renk.koyu),
+    final kullanilan = Renk.koyu ? SahneIsigi.gece : isik;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 600),
+      child: SizedBox.expand(
+        key: ValueKey(kullanilan),
+        child: Image.asset(
+          kullanilan.dosya,
+          fit: BoxFit.cover,
+          alignment: Alignment.centerRight,
+          gaplessPlayback: true,
+          errorBuilder: (_, _, _) => ColoredBox(color: kullanilan.yedekRenk),
         ),
       ),
-      child: const SizedBox.expand(),
     );
   }
 }

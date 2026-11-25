@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:aklimda/ekranlar/piksel_sahne.dart';
 import 'package:aklimda/ekranlar/sahne_arka_plan.dart';
 import 'package:aklimda/ortak.dart';
@@ -34,13 +36,21 @@ void main() {
     expect(TemaAyari.instance.koyu, isTrue); // kaydedilen seçim geri yüklenir
   });
 
-  test('Arka plan ışığı: gün 06-16, akşamüstü 16-19, gece 19-06', () {
+  test('Arka plan ışığı selam saatleriyle aynı: sabah 5, öğle 11, akşamüstü 15, akşam 18, gece 22', () {
     SahneIsigi i(int s) => SahneIsigi.simdi(DateTime(2026, 11, 25, s));
-    expect(i(5), SahneIsigi.gece);
-    expect(i(6), SahneIsigi.gun);
-    expect(i(15), SahneIsigi.gun);
-    expect(i(16), SahneIsigi.aksamUstu);
-    expect(i(18), SahneIsigi.aksamUstu);
-    expect(i(19), SahneIsigi.gece);
+    expect(i(4), SahneIsigi.gece);
+    expect(i(5), SahneIsigi.sabah);
+    expect(i(10), SahneIsigi.sabah);
+    expect(i(11), SahneIsigi.ogle);
+    expect(i(14), SahneIsigi.ogle);
+    expect(i(15), SahneIsigi.aksamUstu);
+    expect(i(17), SahneIsigi.aksamUstu);
+    expect(i(18), SahneIsigi.aksam);
+    expect(i(21), SahneIsigi.aksam);
+    expect(i(22), SahneIsigi.gece);
+    expect(i(23), SahneIsigi.gece);
+    for (final k in SahneIsigi.values) {
+      expect(File(k.dosya).existsSync(), isTrue, reason: '${k.dosya} bulunamadı');
+    }
   });
 }

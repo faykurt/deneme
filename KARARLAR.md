@@ -92,7 +92,7 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 
 ## 8b. Tema ve görsel (v0.4.22'de yenilendi)
 - Yeni görünüm (kullanıcının ChatGPT referansı): krem ve şeftali zemin, zeytin yeşili vurgu ve düğmeler, krem kartlar, açık meşe raf ve 3 boyutlu kitaplar, krem alt menü (yalnızca ikon, seçili ikonun arkasında yeşil daire), ortada yeşil mikrofon. Tüm ekranlarda aynı palet. Gri tema kalktı; açık (krem) varsayılan, koyu tema Ayarlar'da kalıyor.
-- Ana sayfa arka planı gün boyu üç ton: sarı-yeşil, şeftali, mor (şimdilik kodla renk geçişi, saatler 06-16 / 16-19 / 19-06; kullanıcı saatleri ve temiz arka plan resimlerini gönderecek, sonra resimle değişecek). Koyu temada hep gece tonu. Diğer ekranlar sade zemin.
+- Ana sayfa arka planı gün boyu beş resim (assets/sahne/): sabah 05-11 adaçayı yeşili, öğle 11-15 sıcak krem, akşamüstü 15-18 pastel şeftali, akşam 18-22 yumuşak lavanta, gece 22-05 puslu mavi (karşılama selamlarıyla aynı saatler). Koyu temada hep gece resmi. Diğer ekranlar sade zemin.
 - Karşılama: tek satır, saate göre samimi selam (sabah 05-11, öğle 11-15, akşamüstü 15-18, akşam 18-22, gece 22-05); her açılışta farklı, art arda aynısı yok; "Tam da aklımdaydın." imza selamı 4-6 açılışta bir (rastgele).
 - Fikir kutusu: tek tek Kopyala ve Hepsini kopyala (GitHub gönderimi kaldırıldı).
 
