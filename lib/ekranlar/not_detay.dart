@@ -9,6 +9,7 @@ import '../ai/ai_ayarlar.dart';
 import '../ai/ai_modeller.dart';
 import '../ai/ai_zamanlama.dart';
 import '../ai/isleyici.dart';
+import '../oneri/bildirim_servisi.dart';
 import '../ortak.dart';
 import '../takvim/takvim_deposu.dart';
 import '../veri/depo.dart';
@@ -245,6 +246,13 @@ class _NotDetayState extends State<NotDetay> {
                     ),
                     onPressed: () => _tarihDuzenle(n),
                   ),
+                  ActionChip(
+                    avatar: const Icon(Icons.alarm, size: 18),
+                    label: Text(n.hatirlatma == null
+                        ? 'Hatırlat'
+                        : 'Hatırlatma: ${DateFormat('d MMM, HH:mm', 'tr').format(DateTime.fromMillisecondsSinceEpoch(n.hatirlatma!))}'),
+                    onPressed: () => _hatirlatSec(n),
+                  ),
                   if (n.tarih != null)
                     ActionChip(
                       avatar: const Icon(Icons.close, size: 16),
@@ -447,6 +455,70 @@ class _NotDetayState extends State<NotDetay> {
         ),
       ),
     );
+  }
+
+  /// Hatırlatma zamanı: notun tarihine göre hazır seçenekler ya da serbest tarih/saat.
+  Future<void> _hatirlatSec(Not n) async {
+    final tarih = n.tarih == null ? null : DateTime.fromMillisecondsSinceEpoch(n.tarih!);
+    // Saati olmayan tarihlerde baz saat 09:00 sayılır.
+    final baz = tarih == null ? null : (n.tarihSaatli ? tarih : DateTime(tarih.year, tarih.month, tarih.day, 9));
+    final secenekler = <(String, DateTime)>[
+      if (baz != null) ...[
+        if (n.tarihSaatli) ('5 dakika önce', baz.subtract(const Duration(minutes: 5))),
+        if (n.tarihSaatli) ('30 dakika önce', baz.subtract(const Duration(minutes: 30))),
+        if (n.tarihSaatli) ('1 saat önce', baz.subtract(const Duration(hours: 1))),
+        ('1 gün önce', baz.subtract(const Duration(days: 1))),
+        ('1 hafta önce', baz.subtract(const Duration(days: 7))),
+        ('Aynı gün sabah 09:00', DateTime(baz.year, baz.month, baz.day, 9)),
+      ],
+    ];
+    final secim = await showDialog<Object>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Ne zaman hatırlatayım?'),
+        children: [
+          if (baz == null)
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text('Hazır seçenekler için nota önce bir tarih ekle.'),
+            ),
+          for (final s in secenekler) SimpleDialogOption(onPressed: () => Navigator.pop(ctx, s.$2), child: Text(s.$1)),
+          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'serbest'), child: const Text('Tarih ve saat seç…')),
+          if (n.hatirlatma != null)
+            SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'kaldir'), child: const Text('Hatırlatmayı kaldır')),
+        ],
+      ),
+    );
+    if (secim == null || !mounted) return;
+    DateTime? zaman;
+    if (secim is DateTime) {
+      zaman = secim;
+    } else if (secim == 'kaldir') {
+      n.hatirlatma = null;
+      await BildirimServisi.instance.hatirlatmaIptal(n.id);
+      await _depo.notGuncelle(n);
+      return;
+    } else {
+      final simdi = DateTime.now();
+      final gun = await showDatePicker(
+          context: context, initialDate: simdi, firstDate: simdi.subtract(const Duration(days: 1)), lastDate: DateTime(simdi.year + 5));
+      if (gun == null || !mounted) return;
+      final saat = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
+      if (saat == null) return;
+      zaman = DateTime(gun.year, gun.month, gun.day, saat.hour, saat.minute);
+    }
+    if (!zaman.isAfter(DateTime.now())) {
+      mesajGoster('Bu zaman geçmiş, hatırlatma kurulmadı.');
+      return;
+    }
+    n.hatirlatma = zaman.millisecondsSinceEpoch;
+    await _depo.notGuncelle(n);
+    final kuruldu = await BildirimServisi.instance.hatirlatmaKur(n);
+    if (!kuruldu) {
+      mesajGoster('Hatırlatma kaydedildi ama bildirim kurulamadı. Ayarlar > Bildirimi dene ile izni kontrol et.');
+    } else {
+      mesajGoster('Hatırlatma kuruldu: ${DateFormat('d MMMM, HH:mm', 'tr').format(zaman)}');
+    }
   }
 
   /// Adımlar: sıralı liste. Sıradaki (ilk yapılmamış) adım vurgulanır.

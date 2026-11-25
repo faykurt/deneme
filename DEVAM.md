@@ -70,3 +70,9 @@ Onaylanan tasarım `KARARLAR.md` bölüm 7'de. Özet ve teknik notlar:
 - `Depo.yeniNotAiDisi` (main'de `!AiAyarlar.otomatik`), `AiIsleyici.notuGonder`, `listeyiCoz`/`_listeyiUygula`/`metniMaddelereBol`, `SesMetni` (sesli not metin birikimi; boş nihai sonuç metni silmez).
 - Kütüphane: `lib/ekranlar/kutuphane.dart`; kategori görünümü `lib/kategori_gorunum.dart` (renkler, ikonlar, adına göre varsayılan ikon); fikir kutusu `lib/fikirler.dart` + `ekranlar/fikir_kutusu.dart` (url_launcher).
 - Test tuzağı: `takvim_ekran_test` bugünün 14:00 etkinliğini kullanır; saat 15:05'ten sonra "Yaptın mı" kartı çıkar, testler bunu hesaba katacak şekilde yazıldı (kart içindeki düğmeye bas).
+
+## Güncelleme: Öneriler ve bildirimler
+- `lib/oneri/`: `oneri_modeller.dart` (Oneri, HaftaSonuPlani, OneriPaketi, PlanliBildirim), `oneri_deposu.dart` (paket yenileme, adaylar, kart eylemleri, "şu an ne yapabilirim", bağlam metni), `bildirim_servisi.dart` (flutter_local_notifications 23, tz Europe/Istanbul, inexactAllowWhileIdle, günlük sınır).
+- `AiServisi.oneriPaketi` (Haiku, JSON şema). `lib/ekranlar/oneri_kartlari.dart` ana sayfada. Ayarlar'da öneriler bölümü; notta "Hatırlat" çipi.
+- Android: desugaring (build.gradle.kts), POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED, bildirim receiver'ları (manifest), MainActivity'de etkinlik rengi kanalı (`aklimda/etkinlik_rengi`).
+- Doğrulanmadı (telefonda denenecek): bildirimin gerçekten zamanında gelmesi (Samsung pil), etkinlik rengi yazma, sesli not ara sonuç düzeltmesi.

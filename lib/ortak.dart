@@ -5,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 
 import 'ai/ai_ayarlar.dart';
 import 'ai/isleyici.dart';
+import 'oneri/bildirim_servisi.dart';
 import 'takvim/takvim_deposu.dart';
 import 'takvim/takvim_modeller.dart';
 import 'veri/depo.dart';
@@ -84,6 +85,9 @@ Future<void> silVeGeriAlGoster(List<String> idler) async {
     if (secim == null) return;
     etkinlikleriSil = secim == 'ikisi';
   }
+  for (final id in idler) {
+    await BildirimServisi.instance.hatirlatmaIptal(id);
+  }
   await Depo.instance.sil(idler);
   if (bagli.isNotEmpty) {
     final takvim = TakvimDeposu.instance;
@@ -101,7 +105,14 @@ Future<void> silVeGeriAlGoster(List<String> idler) async {
     }
   }
   mesajGoster(idler.length == 1 ? 'Not silindi' : '${idler.length} not silindi',
-      eylem: 'Geri al', eylemFn: () => Depo.instance.silmeyiGeriAl(idler), saniye: 5);
+      eylem: 'Geri al',
+      eylemFn: () async {
+        await Depo.instance.silmeyiGeriAl(idler);
+        for (final n in Depo.instance.notlar.where((n) => idler.contains(n.id))) {
+          await BildirimServisi.instance.hatirlatmaKur(n);
+        }
+      },
+      saniye: 5);
 }
 
 /// Notları arşive alır (ya da arşivden çıkarır) ve 5 saniye "Geri al" gösterir.

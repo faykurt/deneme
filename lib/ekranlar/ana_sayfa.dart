@@ -7,6 +7,8 @@ import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'kayit_sonrasi.dart';
 import 'kutuphane.dart';
+import 'oneri_kartlari.dart';
+import '../oneri/oneri_deposu.dart';
 import 'piksel_sahne.dart';
 import 'onay_bekleyenler.dart';
 import 'sesli_not.dart';
@@ -28,6 +30,7 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
+    WidgetsBinding.instance.addPostFrameCallback((_) => OneriDeposu.instance.yenile());
   }
 
   @override
@@ -41,7 +44,10 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
   // Uygulamaya dönülünce gün bölümü (sabah/öğle/akşam) değişmiş olabilir.
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.resumed && mounted) setState(() {});
+    if (state == AppLifecycleState.resumed && mounted) {
+      setState(() {});
+      OneriDeposu.instance.yenile();
+    }
   }
 
   String get _selam {
@@ -119,6 +125,7 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
               ]),
             ),
             const Kutuphane(),
+            const OneriKartlari(),
             const YaptinMiKartlari(),
             const OnayBandi(),
             const IslenecekBandi(),
@@ -155,26 +162,6 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
                 }
                 return const SizedBox.shrink();
               },
-            ),
-            const SizedBox(height: 24),
-            Card(
-              elevation: 0,
-              color: Renk.vurguKart(0.14),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-              child: Padding(
-                padding: const EdgeInsets.all(20),
-                child: Row(children: [
-                  const Text('💡', style: TextStyle(fontSize: 32)),
-                  const SizedBox(width: 14),
-                  Expanded(
-                    child: Text(
-                      'Önerilerin ve bugünün takvimi yakında burada olacak. '
-                      'Şimdilik aklına geleni kaydetmeye başlayabilirsin.',
-                      style: yazi.bodyMedium?.copyWith(color: Renk.yazi),
-                    ),
-                  ),
-                ]),
-              ),
             ),
             const SizedBox(height: 16),
             ListenableBuilder(

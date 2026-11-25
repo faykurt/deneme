@@ -97,6 +97,14 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Ana sayfada arka planda piksel art doğa sahnesi (kodla çizilir, `lib/ekranlar/piksel_sahne.dart`); kartlar üstünde durur. Saate göre anında değişir: sabah 06-11 (güneş doğuyor), öğle 11-17, akşam 17-06 (ay, yıldız, kamp ateşi). Renkler yeşil-gri uyumuna çekildi. Diğer ekranlar sade gri.
 - Yumuşak geçiş ve ortam sesi sonraya kalır.
 
+### Öneriler ve bildirimler (v0.4.2x)
+- Yapay zeka (Haiku) gün bölümü başında (sabah/öğle/akşam) ve uygulama açılınca öneri paketi hazırlar; paket telefonda saklanır. Ana sayfada en çok 3 öneri kartı: Yaptım (adımlı notta sıradaki adımı tamamlar, değilse "tamamen mi / bugünlük mü" sorar), Sonra hatırlat (yarına), Takvime ekle, Sil (adımlı notta sıradaki adım, geri al ile).
+- Bildirimler pakettendir, günde en fazla N (Ayarlar, varsayılan 3), bildirim anında yapay zeka çağrılmaz. Dokununca not açılır. Ayarlar'da "Bildirimi dene" ve pil uyarısı vardır.
+- "Şu an ne yapabilirim?": süre seçilir (15 dk, 30 dk, 1 saat, bütün akşam), yapay zekasız yerel öneri (iş notları yalnızca iş bloğundayken).
+- Hafta sonu planı: Cuma "hafta sonu fikirleri", Cuma 22:00'den Cumartesi planı, Cumartesi 22:00'den Pazar planı; öğle ve akşam bölümleri; bildirimsiz.
+- Not tarih hatırlatması: nottaki "Hatırlat" ile hazır seçenekler (5 dk, 30 dk, 1 saat, 1 gün, 1 hafta önce, aynı gün 09:00) ya da serbest zaman; günlük sınıra dahil değil.
+- Henüz yok: kategori başına saat aralığı ayarı (zamanlama şimdilik yapay zekaya takvim, uyku ve iş bloğu bilgisiyle bırakıldı), öğrenme sinyali olarak "bildirime dokunulmadı" sayımı (şimdilik yalnızca erteleme sayısı kullanılıyor).
+
 ### Kütüphane ve liste (v0.4.17)
 - Ana sayfa: sahne arkada kalır, ortada kütüphane: her ana kategori bir kitap (renk ve ikon kategoriden; alt kategoriler üst kitabın içinde). Kitaba dokununca içindeki notlar açılır, orada "Liste ekle / Not ekle". Kategorisiz notlar rafta eğik post-it kâğıtlar (en yeni 8, "Tümü" ile hepsi). Kartlar (yaptın mı, onay bekleyen vb.) kütüphanenin altında. Alt menüde yalnızca ikon.
 - Liste: not türünün bir şekli (`tur = liste`), maddeler `adimlar` tablosunda. Maddeler tek tek eklenir, işaretlenince üstü çizilir, hepsi bitince liste kendiliğinden tamamlanmaz. Tarihten bağımsız. Oluştururken "Yapay zeka düzenlesin" sorulur (varsayılan kapalı). Sesle madde eklenince metin yapay zekayla maddelere bölünür (hemen çalışır; anahtar yoksa tek madde).

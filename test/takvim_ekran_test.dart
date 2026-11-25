@@ -539,6 +539,8 @@ void main() {
     await t.pumpWidget(_sar(const AnaSayfa()));
     await t.pump();
     expect(tester(t), isNull);
+    // Kütüphane ve öneriler yukarıda yer kaplar: kartlar görününceye kadar kaydır.
+    await t.scrollUntilVisible(find.widgetWithText(Card, 'Akşam yürüyüşü'), 300, scrollable: find.byType(Scrollable).first);
     expect(find.text('Yaptın mı?'), findsWidgets);
     expect(find.widgetWithText(Card, 'Akşam yürüyüşü'), findsOneWidget);
     // Başka testlerden kalan, saati geçmiş etkinlikler de kart çıkarabilir: bu notun kartındaki düğmeye bas.

@@ -9,6 +9,9 @@ import 'ai/ai_zamanlama.dart';
 import 'takvim/takvim_ayarlari.dart';
 import 'ekranlar/iskelet.dart';
 import 'fikirler.dart';
+import 'ekranlar/not_detay.dart';
+import 'oneri/bildirim_servisi.dart';
+import 'oneri/oneri_deposu.dart';
 import 'ortak.dart';
 import 'tema.dart';
 import 'veri/depo.dart';
@@ -25,7 +28,22 @@ Future<void> main() async {
   await TakvimAyarlari.instance.yukle();
   await TemaAyari.instance.yukle();
   await FikirDeposu.instance.yukle();
+  await OneriDeposu.instance.yukle();
+  await BildirimServisi.instance.baslat();
+  BildirimServisi.instance.dokunuldu = _bildirimAc;
   runApp(const AklimdaApp());
+  // Uygulama bir bildirime dokunularak açıldıysa ilgili notu aç.
+  WidgetsBinding.instance.addPostFrameCallback((_) async {
+    final p = await BildirimServisi.instance.acilisPayloadi();
+    if (p != null) _bildirimAc(p);
+  });
+}
+
+/// Bildirime dokunulunca ilgili notu açar.
+void _bildirimAc(String payload) {
+  if (!payload.startsWith('not:')) return;
+  final id = payload.substring(4);
+  navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => NotDetay(notId: id)));
 }
 
 class AklimdaApp extends StatelessWidget {

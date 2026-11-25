@@ -224,6 +224,18 @@ class TakvimDeposu extends ChangeNotifier {
     }
   }
 
+  /// Bir günün etkinlikleri (izin ya da takvim sorunu varsa boş liste).
+  Future<List<TEtkinlik>> gunEtkinlikleri(DateTime gun) async {
+    try {
+      final g = gunBasi(gun);
+      final liste = await kaynak.etkinlikler(g, g.add(const Duration(days: 1)), takvimIdler: _secili);
+      liste.sort((a, b) => a.baslangic.compareTo(b.baslangic));
+      return liste;
+    } catch (_) {
+      return [];
+    }
+  }
+
   /// Bir not için takvimde uygun boş zamanı bulur (hiç yoksa null).
   Future<DateTime?> bosZamanBul({
     required int sureDk,

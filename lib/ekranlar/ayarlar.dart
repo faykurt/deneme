@@ -17,6 +17,8 @@ import '../kategori_gorunum.dart';
 import '../ortak.dart';
 import '../tema.dart';
 import '../takvim/takvim_ayarlari.dart';
+import '../oneri/bildirim_servisi.dart';
+import '../oneri/oneri_deposu.dart';
 import 'fikir_kutusu.dart';
 import 'onay_penceresi.dart';
 import 'takvim_ayar_pencereleri.dart';
@@ -233,6 +235,62 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
                   leading: const Icon(Icons.memory),
                   title: const Text('Modeller'),
                   subtitle: Text(aiModelBilgisi),
+                ),
+              ]);
+            },
+          ),
+          const Divider(),
+          ListenableBuilder(
+            listenable: OneriDeposu.instance,
+            builder: (context, _) {
+              final o = OneriDeposu.instance;
+              return Column(children: [
+                SwitchListTile(
+                  secondary: const Icon(Icons.lightbulb_outline),
+                  title: const Text('Öneriler'),
+                  subtitle: const Text('Ana sayfada günün saatine ve takvimine göre ne yapabileceğini önerir.'),
+                  value: o.acik,
+                  onChanged: (v) => o.acikAyarla(v),
+                ),
+                ListTile(
+                  leading: const Icon(Icons.notifications_outlined),
+                  title: const Text('Günlük bildirim sayısı'),
+                  subtitle: Text(o.bildirimSiniri == 0 ? 'Bildirim yok' : 'Günde en fazla ${o.bildirimSiniri} öneri bildirimi'),
+                  onTap: () async {
+                    final n = await showDialog<int>(
+                      context: context,
+                      builder: (ctx) => SimpleDialog(
+                        title: const Text('Günde kaç bildirim?'),
+                        children: [
+                          for (final s in [0, 1, 2, 3])
+                            SimpleDialogOption(
+                              onPressed: () => Navigator.pop(ctx, s),
+                              child: Text(s == 0 ? 'Hiç (sadece uygulamada göster)' : '$s'),
+                            ),
+                        ],
+                      ),
+                    );
+                    if (n != null) await o.sinirAyarla(n);
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.notification_add_outlined),
+                  title: const Text('Bildirimi dene'),
+                  subtitle: const Text('Bildirimlerin geldiğini kontrol et. Gelmezse Samsung pil ayarında Aklımda\'yı "Sınırsız" yap.'),
+                  onTap: () async {
+                    final b = BildirimServisi.instance;
+                    if (!await b.izinVarMi()) await b.izinIste();
+                    final tamam = await b.denemeGoster();
+                    mesajGoster(tamam ? 'Deneme bildirimi gönderildi.' : 'Bildirim gösterilemedi. Telefon ayarlarından izin ver.');
+                  },
+                ),
+                ListTile(
+                  leading: o.yenileniyor
+                      ? const SizedBox(width: 24, height: 24, child: CircularProgressIndicator(strokeWidth: 2))
+                      : const Icon(Icons.refresh),
+                  title: const Text('Önerileri şimdi yenile'),
+                  subtitle: Text(o.sonHata?.mesaj ?? (o.paket == null ? 'Henüz öneri hazırlanmadı' : 'Son hazırlanan: ${tarihYazisi(o.paket!.olusturma)}')),
+                  onTap: o.yenileniyor || !AiAyarlar.instance.anahtarVar ? null : () => o.yenile(zorla: true),
                 ),
               ]);
             },
