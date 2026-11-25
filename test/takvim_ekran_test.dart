@@ -539,15 +539,18 @@ void main() {
     await t.pump();
     expect(tester(t), isNull);
     expect(find.text('Yaptın mı?'), findsWidgets);
-    expect(find.text('Akşam yürüyüşü'), findsOneWidget);
+    expect(find.widgetWithText(Card, 'Akşam yürüyüşü'), findsOneWidget);
     // Başka testlerden kalan, saati geçmiş etkinlikler de kart çıkarabilir: bu notun kartındaki düğmeye bas.
-    final kart = find.ancestor(of: find.text('Akşam yürüyüşü'), matching: find.byType(Card));
-    await t.tap(find.descendant(of: kart, matching: find.text('Yaptım')));
+    final kart = find.widgetWithText(Card, 'Akşam yürüyüşü');
+    final yaptim = find.descendant(of: kart, matching: find.text('Yaptım'));
+    await t.ensureVisible(yaptim); // kütüphane kartları aşağı itti
+    await t.pump();
+    await t.tap(yaptim);
     await bekle(t);
     final g = depo.notlar.firstWhere((n) => n.metin == 'Akşam yürüyüşü');
     expect(g.durum, Durum.yapildi);
     expect(g.yaptinCevap, isTrue);
-    expect(find.text('Akşam yürüyüşü'), findsNothing);
+    expect(find.widgetWithText(Card, 'Akşam yürüyüşü'), findsNothing);
   });
 }
 
