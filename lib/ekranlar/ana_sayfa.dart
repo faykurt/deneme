@@ -22,6 +22,7 @@ class AnaSayfa extends StatefulWidget {
 
 class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
   final _hizliNot = TextEditingController();
+  final _alan = FocusNode();
 
   @override
   void initState() {
@@ -33,6 +34,7 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
     _hizliNot.dispose();
+    _alan.dispose();
     super.dispose();
   }
 
@@ -93,6 +95,7 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
                 Expanded(
                   child: TextField(
                     controller: _hizliNot,
+                    focusNode: _alan,
                     textCapitalization: TextCapitalization.sentences,
                     decoration: const InputDecoration(hintText: 'Aklında ne var?', border: InputBorder.none),
                     onSubmitted: (_) => _hizliKaydet(),
@@ -102,8 +105,17 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
                     tooltip: 'Fotoğraflı not',
                     icon: const Icon(Icons.photo_camera_outlined),
                     onPressed: () => yaziliNotAc(kameraIleBasla: true)),
-                IconButton(tooltip: 'Sesli not', icon: const Icon(Icons.mic_none), onPressed: sesliNotAc),
                 IconButton.filled(tooltip: 'Kaydet', icon: const Icon(Icons.arrow_upward), onPressed: _hizliKaydet),
+              ]),
+            ),
+            Padding(
+              padding: const EdgeInsets.only(top: 8),
+              child: Row(children: [
+                _EylemDugmesi(ikon: Icons.edit_note, ad: 'Not', secili: true, onTap: () => _alan.requestFocus()),
+                const SizedBox(width: 8),
+                _EylemDugmesi(ikon: Icons.checklist, ad: 'Liste', onTap: () => yaziliNotAc(liste: true)),
+                const SizedBox(width: 8),
+                _EylemDugmesi(ikon: Icons.mic_none, ad: 'Sesli', onTap: sesliNotAc),
               ]),
             ),
             const Kutuphane(),
@@ -188,6 +200,37 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
         ),
         ),
       ]),
+    );
+  }
+}
+
+/// Hızlı not alanının altındaki küçük eylem düğmesi (Not / Liste / Sesli).
+class _EylemDugmesi extends StatelessWidget {
+  final IconData ikon;
+  final String ad;
+  final bool secili;
+  final VoidCallback onTap;
+  const _EylemDugmesi({required this.ikon, required this.ad, required this.onTap, this.secili = false});
+
+  @override
+  Widget build(BuildContext context) {
+    return Expanded(
+      child: Material(
+        color: secili ? Renk.vurgu.withValues(alpha: 0.9) : Renk.kart.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(20),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(20),
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8),
+            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+              Icon(ikon, size: 18, color: secili ? Renk.vurguUstu : Renk.yazi),
+              const SizedBox(width: 6),
+              Text(ad, style: TextStyle(fontSize: 13, color: secili ? Renk.vurguUstu : Renk.yazi)),
+            ]),
+          ),
+        ),
+      ),
     );
   }
 }

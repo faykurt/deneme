@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
+import '../kategori_gorunum.dart';
 import 'not_detay.dart';
 import 'notlar_ekrani.dart';
 
@@ -135,7 +136,7 @@ class _Kitap extends StatelessWidget {
               top: 14,
               left: 0,
               right: 0,
-              child: Icon(agac.ikonOf(kategori.id), size: 16, color: Colors.white.withValues(alpha: 0.9)),
+              child: Center(child: kategoriSimgesi(agac, kategori.id, size: 16, renk: Colors.white.withValues(alpha: 0.9))),
             ),
             Positioned(
               top: 34,

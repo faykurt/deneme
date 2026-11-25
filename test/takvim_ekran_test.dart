@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:aklimda/ekranlar/ana_sayfa.dart';
+import 'package:aklimda/ekranlar/etkinlik_duzenle.dart';
 import 'package:aklimda/ekranlar/not_detay.dart';
 import 'package:aklimda/ekranlar/notlar_ekrani.dart';
 import 'package:aklimda/ekranlar/takvim.dart';
@@ -551,6 +552,41 @@ void main() {
     expect(g.durum, Durum.yapildi);
     expect(g.yaptinCevap, isTrue);
     expect(find.widgetWithText(Card, 'Akşam yürüyüşü'), findsNothing);
+  });
+
+  testWidgets('Etkinliğe başlıkta emoji ve renk seçilir, takvime renkle yazılır', (t) async {
+    ekranBoyu(t);
+    kur(izin: true);
+    await t.pumpWidget(_sar(Scaffold(
+        body: Builder(builder: (c) => TextButton(onPressed: () => etkinlikDuzenleAc(), child: const Text('yeni'))))));
+    await t.tap(find.text('yeni'));
+    await t.pumpAndSettle();
+    await t.enterText(find.byType(TextField).first, 'Spor');
+    await t.tap(find.byIcon(Icons.sentiment_satisfied_alt_outlined));
+    await t.pumpAndSettle();
+    await t.enterText(find.descendant(of: find.byType(AlertDialog), matching: find.byType(TextField)), '🏋️');
+    await t.tap(find.text('Tamam'));
+    await t.pumpAndSettle();
+    expect(t.widget<TextField>(find.byType(TextField).first).controller!.text, startsWith('🏋️'));
+    // renk yuvarlağı
+    await t.tap(find.byType(CircleAvatar).first);
+    await t.pumpAndSettle();
+    await t.tap(find.descendant(of: find.byType(AlertDialog), matching: find.byType(CircleAvatar)).at(4));
+    await t.pumpAndSettle();
+    await t.tap(find.text('Kaydet'));
+    await bekleKadar(t, () => sahte.ev.length > 1);
+    final e = sahte.ev.last;
+    expect(e.baslik, '$uygulamaIsareti 🏋️ Spor');
+    expect(e.renk, isNotNull);
+    expect(TakvimDeposu.instance.renkOf(e), e.renk);
+    await t.pumpAndSettle();
+  });
+
+  test('emojiUygula: başlıktaki emoji değiştirilir ya da kaldırılır', () {
+    expect(emojiUygula('Spor', '🏋️'), '🏋️ Spor');
+    expect(emojiUygula('🏋️ Spor', '🎯'), '🎯 Spor');
+    expect(emojiUygula('🏋️ Spor', null), 'Spor');
+    expect(emojiUygula('Şapkacı', '🎩'), '🎩 Şapkacı');
   });
 }
 

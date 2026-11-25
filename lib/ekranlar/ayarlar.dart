@@ -329,62 +329,18 @@ class KategoriYonetimi extends StatelessWidget {
     );
   }
 
-  /// Kategorinin rengini ve ikonunu seçtiren alt pencere.
-  Future<void> _gorunumSec(BuildContext context, Kategori k) async {
+  /// Kategoriye dokununca açılan pencere: ad, renk, ikon / emoji ve sil bir arada.
+  Future<void> _duzenle(BuildContext context, Kategori k) async {
     await showModalBottomSheet<void>(
       context: context,
       showDragHandle: true,
       backgroundColor: Renk.zemin,
       isScrollControlled: true,
-      builder: (ctx) => ListenableBuilder(
-        listenable: Depo.instance,
-        builder: (ctx, _) {
-          final agac = Depo.instance.agac;
-          final guncel = agac.bul(k.id) ?? k;
-          final renk = agac.renkOf(k.id);
-          return SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text('${k.ad}: renk ve ikon', style: Theme.of(ctx).textTheme.titleMedium),
-                const SizedBox(height: 12),
-                Wrap(spacing: 10, runSpacing: 10, children: [
-                  for (final c in KategoriGorunum.renkler)
-                    InkWell(
-                      customBorder: const CircleBorder(),
-                      onTap: () => Depo.instance.kategoriGorunumu(k.id, renk: c.toARGB32()),
-                      child: CircleAvatar(
-                        radius: 18,
-                        backgroundColor: c,
-                        child: renk.toARGB32() == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
-                      ),
-                    ),
-                  if (guncel.renkDegeri != null)
-                    TextButton(
-                        onPressed: () => Depo.instance.kategoriGorunumu(k.id, renkiTemizle: true),
-                        child: const Text('Varsayılan renk')),
-                ]),
-                const SizedBox(height: 18),
-                Wrap(spacing: 10, runSpacing: 10, children: [
-                  for (final e in KategoriGorunum.ikonlar.entries)
-                    InkWell(
-                      borderRadius: BorderRadius.circular(12),
-                      onTap: () => Depo.instance.kategoriGorunumu(k.id, ikon: e.key),
-                      child: Container(
-                        width: 48,
-                        height: 48,
-                        decoration: BoxDecoration(
-                          color: guncel.ikonAnahtari == e.key ? renk.withValues(alpha: 0.3) : Renk.kart,
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: guncel.ikonAnahtari == e.key ? renk : Renk.sinir),
-                        ),
-                        child: Icon(e.value, color: Renk.yazi),
-                      ),
-                    ),
-                ]),
-              ]),
-            ),
-          );
+      builder: (ctx) => _KategoriDuzenle(
+        kategori: k,
+        sil: () async {
+          Navigator.pop(ctx);
+          await _silSor(context, k, Depo.instance.agac.altlari(k.id).isNotEmpty);
         },
       ),
     );
@@ -429,16 +385,10 @@ class KategoriYonetimi extends StatelessWidget {
             children: [
               for (final ana in agac.anaKategoriler) ...[
                 ListTile(
-                  leading: IconButton(
-                    tooltip: 'Renk ve ikon',
-                    icon: Icon(agac.ikonOf(ana.id), color: agac.renkOf(ana.id)),
-                    onPressed: () => _gorunumSec(context, ana),
-                  ),
+                  leading: _Yuvarlak(agac: agac, id: ana.id),
                   title: Text(ana.ad),
-                  onTap: () async {
-                    final ad = await _adSor(context, baslik: 'Yeniden adlandır', ilk: ana.ad);
-                    if (ad != null) await depo.kategoriAdlandir(ana.id, ad);
-                  },
+                  subtitle: const Text('Ad, renk ve ikon için dokun'),
+                  onTap: () => _duzenle(context, ana),
                   trailing: Row(mainAxisSize: MainAxisSize.min, children: [
                     IconButton(
                       tooltip: 'Alt kategori ekle',
@@ -448,36 +398,179 @@ class KategoriYonetimi extends StatelessWidget {
                         if (ad != null) await depo.kategoriEkle(ad, ustId: ana.id);
                       },
                     ),
-                    IconButton(
-                      tooltip: 'Sil',
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => _silSor(context, ana, agac.altlari(ana.id).isNotEmpty),
-                    ),
                   ]),
                 ),
                 for (final alt in agac.altlari(ana.id))
                   ListTile(
                     contentPadding: const EdgeInsets.only(left: 40, right: 16),
-                    leading: IconButton(
-                      tooltip: 'Renk ve ikon',
-                      icon: Icon(agac.ikonOf(alt.id), size: 20, color: agac.renkOf(alt.id)),
-                      onPressed: () => _gorunumSec(context, alt),
-                    ),
+                    leading: _Yuvarlak(agac: agac, id: alt.id, kucuk: true),
                     title: Text(alt.ad),
-                    onTap: () async {
-                      final ad = await _adSor(context, baslik: 'Yeniden adlandır', ilk: alt.ad);
-                      if (ad != null) await depo.kategoriAdlandir(alt.id, ad);
-                    },
-                    trailing: IconButton(
-                      tooltip: 'Sil',
-                      icon: const Icon(Icons.delete_outline),
-                      onPressed: () => _silSor(context, alt, false),
-                    ),
+                    onTap: () => _duzenle(context, alt),
                   ),
               ],
             ],
           );
         },
+      ),
+    );
+  }
+}
+
+/// Kategorinin rengiyle dolu yuvarlak içinde simgesi.
+class _Yuvarlak extends StatelessWidget {
+  final KategoriAgaci agac;
+  final int id;
+  final bool kucuk;
+  const _Yuvarlak({required this.agac, required this.id, this.kucuk = false});
+
+  @override
+  Widget build(BuildContext context) {
+    final r = kucuk ? 15.0 : 19.0;
+    return CircleAvatar(
+      radius: r,
+      backgroundColor: agac.renkOf(id),
+      child: kategoriSimgesi(agac, id, size: r, renk: Colors.white),
+    );
+  }
+}
+
+/// Kategori düzenleme penceresi.
+class _KategoriDuzenle extends StatefulWidget {
+  final Kategori kategori;
+  final VoidCallback sil;
+  const _KategoriDuzenle({required this.kategori, required this.sil});
+
+  @override
+  State<_KategoriDuzenle> createState() => _KategoriDuzenleState();
+}
+
+class _KategoriDuzenleState extends State<_KategoriDuzenle> {
+  late final _ad = TextEditingController(text: widget.kategori.ad);
+  final _emoji = TextEditingController();
+
+  @override
+  void dispose() {
+    _ad.dispose();
+    _emoji.dispose();
+    super.dispose();
+  }
+
+  Future<void> _adKaydet() async {
+    final t = _ad.text.trim();
+    if (t.isNotEmpty && t != widget.kategori.ad) await Depo.instance.kategoriAdlandir(widget.kategori.id, t);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final k = widget.kategori;
+    return Padding(
+      padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+      child: SafeArea(
+        child: ListenableBuilder(
+          listenable: Depo.instance,
+          builder: (context, _) {
+            final agac = Depo.instance.agac;
+            final guncel = agac.bul(k.id) ?? k;
+            final renk = agac.renkOf(k.id);
+            return SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Row(children: [
+                  _Yuvarlak(agac: agac, id: k.id),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: TextField(
+                      controller: _ad,
+                      textCapitalization: TextCapitalization.sentences,
+                      decoration: const InputDecoration(labelText: 'Ad'),
+                      onSubmitted: (_) => _adKaydet(),
+                      onEditingComplete: _adKaydet,
+                      onTapOutside: (_) => _adKaydet(),
+                    ),
+                  ),
+                ]),
+                const SizedBox(height: 18),
+                Text('Renk', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Wrap(spacing: 10, runSpacing: 10, children: [
+                  for (final c in KategoriGorunum.renkler)
+                    InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => Depo.instance.kategoriGorunumu(k.id, renk: c.toARGB32()),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: c,
+                        child: renk.toARGB32() == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
+                      ),
+                    ),
+                  if (guncel.renkDegeri != null)
+                    TextButton(
+                        onPressed: () => Depo.instance.kategoriGorunumu(k.id, renkiTemizle: true),
+                        child: const Text('Varsayılan renk')),
+                ]),
+                const SizedBox(height: 18),
+                Text('İkon', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Wrap(spacing: 10, runSpacing: 10, children: [
+                  for (final e in KategoriGorunum.ikonlar.entries)
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => Depo.instance.kategoriGorunumu(k.id, ikon: e.key),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: guncel.ikonAnahtari == e.key ? renk.withValues(alpha: 0.3) : Renk.kart,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: guncel.ikonAnahtari == e.key ? renk : Renk.sinir),
+                        ),
+                        child: Icon(e.value, color: Renk.yazi),
+                      ),
+                    ),
+                ]),
+                const SizedBox(height: 12),
+                Row(children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _emoji,
+                      decoration: const InputDecoration(
+                        labelText: 'Ya da emoji',
+                        hintText: 'Klavyenin emoji düğmesiyle seç',
+                      ),
+                      onChanged: (v) {
+                        final e = KategoriGorunum.ilkEmoji(v);
+                        if (e != null) Depo.instance.kategoriGorunumu(k.id, ikon: e);
+                      },
+                    ),
+                  ),
+                  if (KategoriGorunum.emojiMi(guncel.ikonAnahtari))
+                    Padding(
+                      padding: const EdgeInsets.only(left: 12),
+                      child: Text(guncel.ikonAnahtari!, style: const TextStyle(fontSize: 28)),
+                    ),
+                ]),
+                const SizedBox(height: 16),
+                Row(children: [
+                  Flexible(
+                    child: TextButton.icon(
+                      onPressed: widget.sil,
+                      icon: Icon(Icons.delete_outline, color: Renk.hata),
+                      label: Text('Kategoriyi sil', maxLines: 1, overflow: TextOverflow.ellipsis, style: TextStyle(color: Renk.hata)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  FilledButton(
+                    onPressed: () async {
+                      await _adKaydet();
+                      if (context.mounted) Navigator.pop(context);
+                    },
+                    child: const Text('Tamam'),
+                  ),
+                ]),
+              ]),
+            );
+          },
+        ),
       ),
     );
   }

@@ -79,6 +79,23 @@ class TEtkinlik {
 
   bool get uygulamaninMi => baslik.startsWith(uygulamaIsareti);
 
+  /// Aynı etkinlik, verilen (etkinliğe özel) renkle.
+  TEtkinlik renkli(Color? yeni) => TEtkinlik(
+        instanceId: instanceId,
+        eventId: eventId,
+        takvimId: takvimId,
+        baslik: baslik,
+        baslangic: baslangic,
+        bitis: bitis,
+        tumGun: tumGun,
+        meshgul: meshgul,
+        tekrarli: tekrarli,
+        tekrar: tekrar,
+        tekrarBitis: tekrarBitis,
+        aciklama: aciklama,
+        renk: yeni,
+      );
+
   /// Etkinlik verilen günün herhangi bir kısmını kapsıyor mu?
   bool gunuKapsar(DateTime gun) {
     final g = gunBasi(gun);
@@ -109,6 +126,10 @@ class TEtkinlikTaslagi {
   DateTime? tekrarBitis;
   String? aciklama;
 
+  /// Etkinliğe özel renk ve değişip değişmediği (null + değişti = rengi kaldır).
+  Color? renk;
+  bool renkDegisti;
+
   TEtkinlikTaslagi({
     this.takvimId,
     required this.baslik,
@@ -119,6 +140,8 @@ class TEtkinlikTaslagi {
     this.tekrar = TekrarTuru.yok,
     this.tekrarBitis,
     this.aciklama,
+    this.renk,
+    this.renkDegisti = false,
   });
 
   factory TEtkinlikTaslagi.dan(TEtkinlik e) => TEtkinlikTaslagi(
@@ -131,5 +154,6 @@ class TEtkinlikTaslagi {
         tekrar: e.tekrar,
         tekrarBitis: e.tekrarBitis,
         aciklama: e.aciklama,
+        renk: e.renk,
       );
 }

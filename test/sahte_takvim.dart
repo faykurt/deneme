@@ -83,6 +83,7 @@ class SahteTakvim implements TakvimKaynagi {
         tekrar: t.tekrar,
         tekrarBitis: t.tekrarBitis,
         aciklama: t.aciklama,
+        renk: t.renk,
       );
 
   @override

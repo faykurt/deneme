@@ -1,5 +1,6 @@
 import 'package:device_calendar_plus/device_calendar_plus.dart' as dc;
 
+import 'etkinlik_rengi.dart';
 import 'takvim_modeller.dart';
 
 /// Takvim erişiminin arayüzü. Gerçek telefon takvimi [CihazTakvimi]'dir, testlerde sahtesi kullanılır.
@@ -124,13 +125,16 @@ class CihazTakvimi implements TakvimKaynagi {
   Future<List<TEtkinlik>> etkinlikler(DateTime bas, DateTime bit, {List<String>? takvimIdler}) =>
       _koru(() async {
         final liste = await _p.listEvents(bas, bit, calendarIds: takvimIdler);
-        return liste.map(_cevir).toList();
+        final renkler = await EtkinlikRengi.oku(liste.map((e) => e.eventId));
+        return [for (final e in liste) _cevir(e).renkli(renkler[e.eventId])];
       });
 
   @override
   Future<TEtkinlik?> getir(String id) => _koru(() async {
         final e = await _p.getEvent(id);
-        return e == null ? null : _cevir(e);
+        if (e == null) return null;
+        final renkler = await EtkinlikRengi.oku([e.eventId]);
+        return _cevir(e).renkli(renkler[e.eventId]);
       });
 
   TEtkinlik _cevir(dc.Event e) {
@@ -153,7 +157,6 @@ class CihazTakvimi implements TakvimKaynagi {
       tekrar: e.isRecurring && e.recurrenceRule == null ? TekrarTuru.ozel : tur,
       tekrarBitis: bitis,
       aciklama: e.description,
-      renk: e.color,
     );
   }
 
@@ -163,7 +166,7 @@ class CihazTakvimi implements TakvimKaynagi {
   @override
   Future<String> ekle(TEtkinlikTaslagi t) => _koru(() async {
         final bitis = t.tumGun && !t.bitis.isAfter(t.baslangic) ? sonrakiGun(t.baslangic) : t.bitis;
-        return _p.createEvent(
+        final id = await _p.createEvent(
           calendarId: t.takvimId,
           title: t.baslik,
           startDate: t.baslangic,
@@ -173,6 +176,8 @@ class CihazTakvimi implements TakvimKaynagi {
           availability: _musaitlik(t.meshgul),
           recurrenceRule: TekrarDonusumu.kur(t.tekrar, t.tekrarBitis),
         );
+        if (t.renk != null) await EtkinlikRengi.ayarla(id, t.renk);
+        return id;
       });
 
   @override
@@ -195,6 +200,7 @@ class CihazTakvimi implements TakvimKaynagi {
             description: aciklama,
             availability: _musaitlik(yeni.meshgul),
           );
+          if (yeni.renkDegisti) await EtkinlikRengi.ayarla(eski.eventId, yeni.renk);
           return;
         }
         await _p.updateRecurring(
@@ -214,6 +220,7 @@ class CihazTakvimi implements TakvimKaynagi {
                   : dc.Patch<dc.RecurrenceRule>.set(TekrarDonusumu.kur(yeni.tekrar, yeni.tekrarBitis)!))
               : null,
         );
+        if (yeni.renkDegisti) await EtkinlikRengi.ayarla(eski.eventId, yeni.renk);
       });
 
   @override

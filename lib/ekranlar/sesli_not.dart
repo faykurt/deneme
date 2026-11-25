@@ -5,44 +5,112 @@ import 'package:speech_to_text/speech_recognition_error.dart';
 import 'package:speech_to_text/speech_recognition_result.dart';
 import 'package:speech_to_text/speech_to_text.dart';
 
+import '../ai/ai_ayarlar.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'kayit_sonrasi.dart';
+import 'onay_penceresi.dart';
 
 /// Sesli not ekranını açar; not kaydedilirse "Kaydedildi" mesajı gösterir.
 Future<void> sesliNotAc() async {
   final nav = navigatorKey.currentState;
   if (nav == null) return;
   final not = await nav.push<Not>(MaterialPageRoute(builder: (_) => const SesliNotEkrani()));
-  if (not != null) await kayitSonrasi(not, kayitMesaji: 'Sesli not kaydedildi');
+  if (not != null) await sesliSonrasi(not);
 }
 
-/// Sesli notun metin birikimi. Tanıma servisi durup yeniden başlasa bile eski konuşma kaybolmaz.
+/// Sesli not kaydedilince çıkan özet penceresi: yapay zeka bu notu düzenlesin mi?
+/// Genel anahtar kapalıysa anahtar kapalı gelir, istersen bu not için açabilirsin.
+Future<void> sesliSonrasi(Not not) async {
+  final ctx = navigatorKey.currentContext;
+  if (ctx == null || !AiAyarlar.instance.anahtarVar) {
+    await kayitSonrasi(not, kayitMesaji: 'Sesli not kaydedildi');
+    return;
+  }
+  final genelAcik = AiAyarlar.instance.otomatik;
+  var acik = genelAcik;
+  final tamam = await showDialog<bool>(
+    context: ctx,
+    builder: (c) => StatefulBuilder(
+      builder: (c, setS) => AlertDialog(
+        title: const Text('Sesli not kaydedildi'),
+        content: Column(mainAxisSize: MainAxisSize.min, crossAxisAlignment: CrossAxisAlignment.start, children: [
+          Container(
+            width: double.infinity,
+            constraints: const BoxConstraints(maxHeight: 160),
+            padding: const EdgeInsets.all(12),
+            decoration: BoxDecoration(color: Renk.zemin, borderRadius: BorderRadius.circular(12)),
+            child: SingleChildScrollView(child: Text(not.metin)),
+          ),
+          const SizedBox(height: 8),
+          SwitchListTile(
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Yapay zeka düzenlesin'),
+            subtitle: Text(genelAcik
+                ? 'Çalışma saatinde kategori, başlık ve tarih önerir.'
+                : 'Ayarlardaki genel anahtar kapalı. Açarsan bu not hemen düzenlenir.'),
+            value: acik,
+            onChanged: (v) => setS(() => acik = v),
+          ),
+        ]),
+        actions: [FilledButton(onPressed: () => Navigator.pop(c, true), child: const Text('Tamam'))],
+      ),
+    ),
+  );
+  final secim = tamam == true ? acik : genelAcik;
+  not.aiDisi = !secim;
+  await Depo.instance.notGuncelle(not, dokunma: false);
+  if (secim && !genelAcik) {
+    await onayPenceresiAc(not.id, canli: true, gonder: true);
+  } else {
+    await kayitSonrasi(not, kayitMesaji: 'Sesli not kaydedildi');
+  }
+}
+
+/// Sesli notun metin birikimi. Tanıma servisi duraklamada cümleyi "ara sonuç" olarak kapatıp yenisine
+/// sıfırdan başlar; bu sınıf eski cümleleri atmaz, hepsini biriktirir.
 class SesMetni {
   String kesinlesen = '';
   String parca = '';
 
   String get tum => [kesinlesen, parca].where((s) => s.trim().isNotEmpty).join(' ').trim();
 
-  /// Tanıma servisinden bir sonuç geldi. Nihai sonuç boş gelirse (sessizlikte olur) bekleyen parça silinmez.
-  void sonuc(String kelimeler, {required bool nihai}) {
-    if (!nihai) {
-      // Yeni oturumun ilk (boş) kısmı, eski parçayı ezmesin.
-      if (kelimeler.trim().isNotEmpty) parca = kelimeler;
+  void _ekle(String metin) {
+    final t = metin.trim();
+    if (t.isEmpty) return;
+    // Durma anında zaten eklenmiş aynı metin ikinci kez eklenmesin.
+    if (kesinlesen.endsWith(t)) return;
+    kesinlesen = '$kesinlesen $t'.trim();
+  }
+
+  /// Yeni gelen kısmi yazı, bekleyen parçanın devamı mı? (Servis bazen duraklamadan sonra
+  /// işaret vermeden yeni cümleye sıfırdan başlar.)
+  static bool devamMi(String eski, String yeni) {
+    String ilk(String s) => s.trim().toLowerCase().split(RegExp(r'\s+')).first;
+    final a = ilk(eski), b = ilk(yeni);
+    final n = a.length < b.length ? a.length : b.length;
+    if (n == 0) return true;
+    final k = n < 3 ? n : 3;
+    return a.substring(0, k) == b.substring(0, k);
+  }
+
+  /// [nihai]: oturum bitti. [ara]: servis bu cümleyi kapattı, sonrası yeni cümle.
+  void sonuc(String kelimeler, {required bool nihai, bool ara = false}) {
+    if (nihai || ara) {
+      // Boş gelirse (sessizlikte olur) bekleyen parça silinmez.
+      _ekle(kelimeler.trim().isNotEmpty ? kelimeler : parca);
+      parca = '';
       return;
     }
-    final metin = kelimeler.trim().isNotEmpty ? kelimeler : parca;
-    // Durma anında zaten eklenmiş aynı metin ikinci kez eklenmesin.
-    if (metin.trim().isNotEmpty && !kesinlesen.endsWith(metin.trim())) {
-      kesinlesen = '$kesinlesen $metin'.trim();
-    }
-    parca = '';
+    if (kelimeler.trim().isEmpty) return; // yeni oturumun boş kısmı eski parçayı ezmez
+    if (parca.trim().isNotEmpty && !devamMi(parca, kelimeler)) _ekle(parca);
+    parca = kelimeler;
   }
 
   /// Tanıma durdu: bekleyen parçayı kalıcı yap.
   void durdu() {
-    if (parca.trim().isNotEmpty) kesinlesen = '$kesinlesen $parca'.trim();
+    _ekle(parca);
     parca = '';
   }
 }
@@ -112,7 +180,8 @@ class _SesliNotEkraniState extends State<SesliNotEkrani> {
   }
 
   void _sonuc(SpeechRecognitionResult r) {
-    setState(() => _metin.sonuc(r.recognizedWords, nihai: r.finalResult));
+    setState(() => _metin.sonuc(r.recognizedWords,
+        nihai: r.finalResult, ara: r.resultTypeValue == ResultType.intermediate));
   }
 
   void _durum(String durum) {

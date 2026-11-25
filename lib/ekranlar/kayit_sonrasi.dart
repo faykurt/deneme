@@ -10,8 +10,8 @@ import 'onay_penceresi.dart';
 /// Yazılı ya da sesli bir not kaydedilince çağrılır. Yapay zeka notu hemen işlemez (maliyet için),
 /// bir sonraki çalışma saatinde düzenler. İstenirse "Şimdi analiz et" ile hemen işletilebilir.
 Future<void> kayitSonrasi(Not not, {String kayitMesaji = 'Not kaydedildi'}) async {
-  if (AiAyarlar.instance.anahtarVar && !AiAyarlar.instance.otomatik) {
-    mesajGoster('$kayitMesaji. Yapay zeka kapalı, not olduğu gibi kaldı.',
+  if (AiAyarlar.instance.anahtarVar && (!AiAyarlar.instance.otomatik || not.aiDisi)) {
+    mesajGoster('$kayitMesaji. Yapay zeka düzenlemeyecek, not olduğu gibi kaldı.',
         eylem: 'Yapay zekaya gönder', eylemFn: () => onayPenceresiAc(not.id, canli: true, gonder: true), saniye: 5);
     return;
   }

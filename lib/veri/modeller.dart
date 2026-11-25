@@ -274,10 +274,19 @@ class KategoriAgaci {
     return KategoriGorunum.varsayilanRenk(k.id);
   }
 
+  /// Kategori için emoji seçilmişse (kendisinin ya da üst kategorisinin) o emoji.
+  String? emojiOf(int id) {
+    final k = bul(id);
+    if (k == null) return null;
+    final a = k.ikonAnahtari ?? (k.ustId == null ? null : bul(k.ustId!)?.ikonAnahtari);
+    return KategoriGorunum.emojiMi(a) ? a : null;
+  }
+
   IconData ikonOf(int id) {
     final k = bul(id);
     if (k == null) return Icons.folder_outlined;
-    final a = k.ikonAnahtari ??
+    final own = KategoriGorunum.emojiMi(k.ikonAnahtari) ? null : k.ikonAnahtari;
+    final a = own ??
         KategoriGorunum.varsayilanIkon(k.ad) ??
         (k.ustId == null ? null : (bul(k.ustId!)?.ikonAnahtari ?? KategoriGorunum.varsayilanIkon(bul(k.ustId!)!.ad)));
     return KategoriGorunum.ikon(a);

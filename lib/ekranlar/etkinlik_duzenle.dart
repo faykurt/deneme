@@ -1,6 +1,7 @@
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../kategori_gorunum.dart';
 import '../ortak.dart';
 import '../takvim/takvim_deposu.dart';
 import '../takvim/takvim_kaynagi.dart';
@@ -30,6 +31,22 @@ Future<EtkinlikSonucu?> etkinlikDuzenleAc({
   ));
 }
 
+/// Başlığın başındaki emojiyi (varsa) kaldırıp yerine [emoji] koyar. [emoji] null ise sadece kaldırır.
+String emojiUygula(String baslik, String? emoji) {
+  var t = baslik.trimLeft();
+  final g = t.characters;
+  // Türkçe harfler ve noktalama 0x2190'ın altında; ondan sonrası oklar, semboller ve emojilerdir.
+  if (g.isNotEmpty && g.first.runes.first >= 0x2190) t = g.skip(1).toString().trimLeft();
+  return emoji == null ? t : '$emoji $t'.trimRight();
+}
+
+/// Etkinlik rengi seçeneği (Samsung Takvim'dekine benzer bir palet).
+const etkinlikRenkleri = <Color>[
+  Color(0xFFE57373), Color(0xFFF06292), Color(0xFFBA68C8), Color(0xFF7986CB),
+  Color(0xFF64B5F6), Color(0xFF4DD0E1), Color(0xFF4DB6AC), Color(0xFF81C784),
+  Color(0xFFDCE775), Color(0xFFFFD54F), Color(0xFFFFB74D), Color(0xFFA1887F),
+];
+
 String _isaretiSil(String b) => b.startsWith(uygulamaIsareti) ? b.substring(uygulamaIsareti.length).trimLeft() : b;
 
 class EtkinlikDuzenle extends StatefulWidget {
@@ -56,6 +73,8 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
   DateTime? _tekrarBitis;
   late final bool _uygulamaninMi;
   bool _kaydediliyor = false;
+  Color? _renk;
+  bool _renkDegisti = false;
 
   bool get _yeni => widget.mevcut == null;
 
@@ -70,6 +89,7 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
     _meshgul = e?.meshgul ?? true;
     _tekrar = e?.tekrar ?? TekrarTuru.yok;
     _tekrarBitis = e?.tekrarBitis;
+    _renk = e?.renk;
     if (e != null) {
       _bas = e.baslangic;
       _bit = e.tumGun ? _sonGun(e) : e.bitis;
@@ -148,6 +168,64 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
     );
   }
 
+  Future<void> _emojiSec() async {
+    final c = TextEditingController();
+    final sonuc = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Emoji seç'),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          decoration: const InputDecoration(hintText: 'Klavyenin emoji düğmesine bas'),
+          onSubmitted: (v) => Navigator.pop(ctx, v),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, ''), child: const Text('Emojiyi kaldır')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Vazgeç')),
+          FilledButton(onPressed: () => Navigator.pop(ctx, c.text), child: const Text('Tamam')),
+        ],
+      ),
+    );
+    if (sonuc == null || !mounted) return;
+    final e = KategoriGorunum.ilkEmoji(sonuc);
+    setState(() {
+      _baslik.text = emojiUygula(_baslik.text, e);
+      _baslik.selection = TextSelection.collapsed(offset: _baslik.text.length);
+    });
+  }
+
+  Future<void> _renkSec() async {
+    // Seçim null: varsayılan (takvimin rengi). Vazgeçmek için pencereyi kapat.
+    final secim = await showDialog<Object>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Etkinlik rengi'),
+        content: Wrap(spacing: 12, runSpacing: 12, children: [
+          for (final c in etkinlikRenkleri)
+            InkWell(
+              customBorder: const CircleBorder(),
+              onTap: () => Navigator.pop(ctx, c),
+              child: CircleAvatar(
+                radius: 20,
+                backgroundColor: c,
+                child: _renk?.toARGB32() == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
+              ),
+            ),
+        ]),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, 'varsayilan'), child: const Text('Varsayılan')),
+          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('Vazgeç')),
+        ],
+      ),
+    );
+    if (secim == null || !mounted) return;
+    setState(() {
+      _renk = secim is Color ? secim : null;
+      _renkDegisti = true;
+    });
+  }
+
   TEtkinlikTaslagi _taslak() {
     var baslik = _baslik.text.trim();
     if (_uygulamaninMi) baslik = '$uygulamaIsareti $baslik';
@@ -162,6 +240,8 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
       tekrar: _tekrar,
       tekrarBitis: _tekrar == TekrarTuru.yok ? null : _tekrarBitis,
       aciklama: _aciklama.text.trim().isEmpty ? null : _aciklama.text.trim(),
+      renk: _renk,
+      renkDegisti: _renkDegisti,
     );
   }
 
@@ -287,18 +367,38 @@ class _EtkinlikDuzenleState extends State<EtkinlikDuzenle> {
       body: ListView(
         padding: const EdgeInsets.fromLTRB(16, 8, 16, 40),
         children: [
-          TextField(
-            controller: _baslik,
-            autofocus: _yeni && _baslik.text.isEmpty,
-            textCapitalization: TextCapitalization.sentences,
-            decoration: InputDecoration(
-              labelText: 'Başlık',
-              prefixText: _uygulamaninMi ? '$uygulamaIsareti ' : null,
-              filled: true,
-              fillColor: Renk.kart,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+          Row(children: [
+            Expanded(
+              child: TextField(
+                controller: _baslik,
+                autofocus: _yeni && _baslik.text.isEmpty,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  labelText: 'Başlık',
+                  prefixText: _uygulamaninMi ? '$uygulamaIsareti ' : null,
+                  filled: true,
+                  fillColor: Renk.kart,
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+              ),
             ),
-          ),
+            IconButton(
+              tooltip: 'Emoji ekle',
+              icon: const Icon(Icons.sentiment_satisfied_alt_outlined),
+              onPressed: _emojiSec,
+            ),
+            InkWell(
+              customBorder: const CircleBorder(),
+              onTap: _renkSec,
+              child: Padding(
+                padding: const EdgeInsets.all(6),
+                child: CircleAvatar(
+                  radius: 13,
+                  backgroundColor: _renk ?? (widget.mevcut == null ? Renk.vurgu : (_depo.renkOf(widget.mevcut!) ?? Renk.vurgu)),
+                ),
+              ),
+            ),
+          ]),
           const SizedBox(height: 8),
           SwitchListTile(
             contentPadding: EdgeInsets.zero,

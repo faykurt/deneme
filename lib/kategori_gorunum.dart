@@ -1,5 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
+import 'veri/modeller.dart';
+
 /// Kategorilerin varsayılan renkleri ve seçilebilir ikonları.
 class KategoriGorunum {
   static const renkler = <Color>[
@@ -67,4 +69,21 @@ class KategoriGorunum {
   }
 
   static IconData ikon(String? anahtar) => ikonlar[anahtar] ?? Icons.folder_outlined;
+
+  /// İkon anahtarı hazır ikonlardan biri değilse kullanıcının seçtiği emojidir.
+  static bool emojiMi(String? anahtar) => anahtar != null && anahtar.isNotEmpty && !ikonlar.containsKey(anahtar);
+
+  /// Klavyeden gelen metnin ilk emojisini (ya da ilk karakterini) döner; boşsa null.
+  static String? ilkEmoji(String metin) {
+    final t = metin.trim();
+    if (t.isEmpty) return null;
+    return t.characters.first;
+  }
+}
+
+/// Kategorinin simgesi: emoji seçildiyse emoji, yoksa ikon.
+Widget kategoriSimgesi(KategoriAgaci agac, int id, {double size = 20, Color? renk}) {
+  final e = agac.emojiOf(id);
+  if (e != null) return Text(e, style: TextStyle(fontSize: size * 0.9, height: 1.1));
+  return Icon(agac.ikonOf(id), size: size, color: renk);
 }

@@ -7,6 +7,9 @@ import 'package:aklimda/ai/isleyici.dart';
 import 'package:aklimda/kategori_gorunum.dart';
 import 'package:aklimda/ekranlar/onay_bekleyenler.dart';
 import 'package:aklimda/ekranlar/yazili_not.dart';
+import 'package:aklimda/ekranlar/ana_sayfa.dart';
+import 'package:aklimda/ekranlar/ayarlar.dart';
+import 'package:aklimda/ekranlar/sesli_not.dart';
 import 'package:aklimda/ekranlar/kutuphane.dart';
 import 'package:aklimda/ortak.dart';
 import 'package:aklimda/veri/depo.dart';
@@ -211,5 +214,63 @@ void main() {
     expect(find.text('Hafta sonu market'), findsOneWidget); // kategorisiz: post-it
     expect(find.bySemanticsLabel(RegExp('^Hobi, ')), findsOneWidget); // kitap
     await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  Future<void> bekleDb(WidgetTester t, bool Function() kosul) async {
+    for (var i = 0; i < 100 && !kosul(); i++) {
+      await t.runAsync(() => Future.delayed(const Duration(milliseconds: 30)));
+      await t.pump(const Duration(milliseconds: 30));
+    }
+  }
+
+  testWidgets('Sesli not kaydedilince yapay zeka penceresi çıkar; kapatılırsa not dışarıda kalır', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2200);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    final n = (await tester.runAsync(() => depo.notEkle(metin: 'yarın market listesi hazırla', kaynak: Kaynak.sesli)))!;
+    await tester.pumpWidget(MaterialApp(
+        navigatorKey: navigatorKey,
+        home: Scaffold(body: Builder(builder: (c) => TextButton(onPressed: () => sesliSonrasi(n), child: const Text('ac'))))));
+    await tester.tap(find.text('ac'));
+    await tester.pumpAndSettle();
+    expect(find.text('Sesli not kaydedildi'), findsOneWidget);
+    expect(find.text('yarın market listesi hazırla'), findsOneWidget);
+    expect(tester.widget<Switch>(find.byType(Switch)).value, isTrue); // genel anahtar açık
+    await tester.tap(find.byType(Switch));
+    await tester.pump();
+    await tester.tap(find.text('Tamam'));
+    await bekleDb(tester, () => depo.notlar.firstWhere((x) => x.id == n.id).aiDisi);
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+    expect(depo.notlar.firstWhere((x) => x.id == n.id).aiDisi, isTrue);
+  });
+
+  testWidgets('Ana sayfada alanın altında Not, Liste, Sesli düğmeleri var; Liste liste penceresini açar', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(navigatorKey: navigatorKey, home: const AnaSayfa()));
+    await tester.pump();
+    expect(find.text('Not'), findsOneWidget);
+    expect(find.text('Sesli'), findsOneWidget);
+    await tester.tap(find.text('Liste'));
+    await tester.pumpAndSettle();
+    expect(find.text('Liste adı (ör. Market)'), findsOneWidget);
+    await tester.pumpAndSettle(const Duration(seconds: 6));
+  });
+
+  testWidgets('Kategoriye dokununca düzenleme penceresi açılır, emoji ikon olur', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(navigatorKey: navigatorKey, home: const KategoriYonetimi()));
+    await tester.pump();
+    final ev = depo.agac.anaKategoriler.firstWhere((k) => k.ad == 'Ev');
+    await tester.tap(find.text('Ev').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Kategoriyi sil'), findsOneWidget);
+    await tester.enterText(find.widgetWithText(TextField, 'Ya da emoji'), '🏠');
+    await bekleDb(tester, () => depo.agac.emojiOf(ev.id) != null);
+    expect(depo.agac.emojiOf(ev.id), '🏠');
+    await tester.pumpAndSettle();
   });
 }

@@ -27,4 +27,33 @@ void main() {
     m.sonuc('', nihai: false);
     expect(m.tum, 'eski konuşma');
   });
+
+  test('Servis duraklamada cümleyi ara sonuç diye kapatırsa eski cümle kaybolmaz', () {
+    final m = SesMetni();
+    m.sonuc('merhaba', nihai: false);
+    m.sonuc('merhaba nasılsın', nihai: false);
+    m.sonuc('merhaba nasılsın', nihai: false, ara: true); // duraklama
+    m.sonuc('bugün hava', nihai: false);
+    m.sonuc('bugün hava çok güzel', nihai: false);
+    m.sonuc('', nihai: true);
+    expect(m.tum, 'merhaba nasılsın bugün hava çok güzel');
+  });
+
+  test('İşaret gelmese bile devamı olmayan yeni cümle eskisini ezmez', () {
+    final m = SesMetni();
+    m.sonuc('merhaba nasılsın', nihai: false);
+    m.sonuc('bugün hava', nihai: false); // sıfırdan başlayan yeni cümle
+    m.sonuc('bugün hava güzel', nihai: false);
+    m.durdu();
+    expect(m.tum, 'merhaba nasılsın bugün hava güzel');
+  });
+
+  test('Aynı cümlenin uzayan kısmi yazısı eklenmez, yalnızca güncellenir', () {
+    final m = SesMetni();
+    m.sonuc('market', nihai: false);
+    m.sonuc('market alışverişi', nihai: false);
+    m.sonuc('market alışverişi yap', nihai: false);
+    expect(m.tum, 'market alışverişi yap');
+    expect(m.kesinlesen, '');
+  });
 }

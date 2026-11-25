@@ -1,8 +1,9 @@
 import 'dart:ui' show Color;
-import 'package:flutter/widgets.dart' show IconData;
+import 'package:flutter/widgets.dart' show Widget;
 
 import 'package:flutter/foundation.dart';
 
+import '../kategori_gorunum.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'bos_zaman.dart';
@@ -124,17 +125,20 @@ class TakvimDeposu extends ChangeNotifier {
     return null;
   }
 
+  /// Etkinlik özel renge ya da kategoriye sahipse vurgulu (renkli) gösterilir.
+  bool renkli(TEtkinlik e) => e.renk != null || kategoriOf(e) != null;
+
   /// Kategorisi olan etkinliğin ikonu.
-  IconData? ikonOf(TEtkinlik e) {
+  Widget? simgeOf(TEtkinlik e, {double size = 20, Color? renk}) {
     final k = kategoriOf(e);
-    return k == null ? null : Depo.instance.agac.ikonOf(k);
+    return k == null ? null : kategoriSimgesi(Depo.instance.agac, k, size: size, renk: renk);
   }
 
-  /// Etkinliğin rengi: kategorisi varsa kategorinin rengi, yoksa kendi rengi, o da yoksa takviminin rengi.
+  /// Etkinliğin rengi: etkinliğe özel renk, yoksa kategorisinin rengi, o da yoksa takviminin rengi.
   Color? renkOf(TEtkinlik e) {
+    if (e.renk != null) return e.renk; // etkinliğe özel renk (Samsung Takvim'deki yuvarlak)
     final k = kategoriOf(e);
     if (k != null) return Depo.instance.agac.renkOf(k);
-    if (e.renk != null) return e.renk;
     for (final t in takvimler) {
       if (t.id == e.takvimId) return t.renk;
     }
