@@ -13,9 +13,11 @@ import '../ai/ai_harcama.dart';
 import '../ai/ai_servisi.dart';
 import '../ai/ai_zamanlama.dart';
 import '../ai/isleyici.dart';
+import '../kategori_gorunum.dart';
 import '../ortak.dart';
 import '../tema.dart';
 import '../takvim/takvim_ayarlari.dart';
+import 'fikir_kutusu.dart';
 import 'onay_penceresi.dart';
 import 'takvim_ayar_pencereleri.dart';
 import '../veri/depo.dart';
@@ -183,6 +185,15 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
                       : 'Henüz eklenmedi. Notların kendiliğinden düzenlenmesi için gerekli.'),
                   onTap: _deniyor ? null : _anahtarDialogu,
                 ),
+                SwitchListTile(
+                  secondary: const Icon(Icons.auto_fix_high_outlined),
+                  title: const Text('Notları yapay zeka düzenlesin'),
+                  subtitle: Text(ai.otomatik
+                      ? 'Açık: yeni notlar çalışma saatlerinde kendiliğinden işlenir.'
+                      : 'Kapalı: notlar olduğu gibi kalır, istediğin notu kartından yapay zekaya gönderirsin.'),
+                  value: ai.otomatik,
+                  onChanged: (v) => ai.otomatikAyarla(v),
+                ),
                 if (ai.anahtarVar)
                   ListTile(
                     leading: const Icon(Icons.network_check),
@@ -266,6 +277,12 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
           ),
           const Divider(),
           ListTile(
+            leading: const Icon(Icons.tips_and_updates_outlined),
+            title: const Text('Fikir kutusu'),
+            subtitle: const Text('Uygulama için aklına gelenleri yaz, bana gönder'),
+            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const FikirKutusuEkrani())),
+          ),
+          ListTile(
             leading: const Icon(Icons.folder_outlined),
             title: const Text('Kategorileri düzenle'),
             subtitle: const Text('Ekle, yeniden adlandır, sil'),
@@ -312,6 +329,67 @@ class KategoriYonetimi extends StatelessWidget {
     );
   }
 
+  /// Kategorinin rengini ve ikonunu seçtiren alt pencere.
+  Future<void> _gorunumSec(BuildContext context, Kategori k) async {
+    await showModalBottomSheet<void>(
+      context: context,
+      showDragHandle: true,
+      backgroundColor: Renk.zemin,
+      isScrollControlled: true,
+      builder: (ctx) => ListenableBuilder(
+        listenable: Depo.instance,
+        builder: (ctx, _) {
+          final agac = Depo.instance.agac;
+          final guncel = agac.bul(k.id) ?? k;
+          final renk = agac.renkOf(k.id);
+          return SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.fromLTRB(20, 0, 20, 20),
+              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                Text('${k.ad}: renk ve ikon', style: Theme.of(ctx).textTheme.titleMedium),
+                const SizedBox(height: 12),
+                Wrap(spacing: 10, runSpacing: 10, children: [
+                  for (final c in KategoriGorunum.renkler)
+                    InkWell(
+                      customBorder: const CircleBorder(),
+                      onTap: () => Depo.instance.kategoriGorunumu(k.id, renk: c.toARGB32()),
+                      child: CircleAvatar(
+                        radius: 18,
+                        backgroundColor: c,
+                        child: renk.toARGB32() == c.toARGB32() ? const Icon(Icons.check, color: Colors.white) : null,
+                      ),
+                    ),
+                  if (guncel.renkDegeri != null)
+                    TextButton(
+                        onPressed: () => Depo.instance.kategoriGorunumu(k.id, renkiTemizle: true),
+                        child: const Text('Varsayılan renk')),
+                ]),
+                const SizedBox(height: 18),
+                Wrap(spacing: 10, runSpacing: 10, children: [
+                  for (final e in KategoriGorunum.ikonlar.entries)
+                    InkWell(
+                      borderRadius: BorderRadius.circular(12),
+                      onTap: () => Depo.instance.kategoriGorunumu(k.id, ikon: e.key),
+                      child: Container(
+                        width: 48,
+                        height: 48,
+                        decoration: BoxDecoration(
+                          color: guncel.ikonAnahtari == e.key ? renk.withValues(alpha: 0.3) : Renk.kart,
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: guncel.ikonAnahtari == e.key ? renk : Renk.sinir),
+                        ),
+                        child: Icon(e.value, color: Renk.yazi),
+                      ),
+                    ),
+                ]),
+              ]),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
   Future<void> _silSor(BuildContext context, Kategori k, bool altlariVar) async {
     final evet = await showDialog<bool>(
       context: context,
@@ -351,7 +429,11 @@ class KategoriYonetimi extends StatelessWidget {
             children: [
               for (final ana in agac.anaKategoriler) ...[
                 ListTile(
-                  leading: Icon(Icons.folder_outlined, color: Renk.vurgu),
+                  leading: IconButton(
+                    tooltip: 'Renk ve ikon',
+                    icon: Icon(agac.ikonOf(ana.id), color: agac.renkOf(ana.id)),
+                    onPressed: () => _gorunumSec(context, ana),
+                  ),
                   title: Text(ana.ad),
                   onTap: () async {
                     final ad = await _adSor(context, baslik: 'Yeniden adlandır', ilk: ana.ad);
@@ -375,7 +457,12 @@ class KategoriYonetimi extends StatelessWidget {
                 ),
                 for (final alt in agac.altlari(ana.id))
                   ListTile(
-                    contentPadding: const EdgeInsets.only(left: 56, right: 16),
+                    contentPadding: const EdgeInsets.only(left: 40, right: 16),
+                    leading: IconButton(
+                      tooltip: 'Renk ve ikon',
+                      icon: Icon(agac.ikonOf(alt.id), size: 20, color: agac.renkOf(alt.id)),
+                      onPressed: () => _gorunumSec(context, alt),
+                    ),
                     title: Text(alt.ad),
                     onTap: () async {
                       final ad = await _adSor(context, baslik: 'Yeniden adlandır', ilk: alt.ad);

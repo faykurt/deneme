@@ -540,7 +540,9 @@ void main() {
     expect(tester(t), isNull);
     expect(find.text('Yaptın mı?'), findsWidgets);
     expect(find.text('Akşam yürüyüşü'), findsOneWidget);
-    await t.tap(find.text('Yaptım').first);
+    // Başka testlerden kalan, saati geçmiş etkinlikler de kart çıkarabilir: bu notun kartındaki düğmeye bas.
+    final kart = find.ancestor(of: find.text('Akşam yürüyüşü'), matching: find.byType(Card));
+    await t.tap(find.descendant(of: kart, matching: find.text('Yaptım')));
     await bekle(t);
     final g = depo.notlar.firstWhere((n) => n.metin == 'Akşam yürüyüşü');
     expect(g.durum, Durum.yapildi);

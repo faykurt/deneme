@@ -10,7 +10,7 @@ import '../veri/modeller.dart';
 
 /// Yapay zekanın hazırladığı önerileri gösteren pencere.
 /// [canli] true ise (not az önce kaydedildi) önce yapay zekanın bitirmesini bekler.
-Future<void> onayPenceresiAc(String notId, {bool canli = false}) async {
+Future<void> onayPenceresiAc(String notId, {bool canli = false, bool gonder = false}) async {
   final ctx = navigatorKey.currentContext;
   if (ctx == null) return;
   await showModalBottomSheet<void>(
@@ -21,14 +21,17 @@ Future<void> onayPenceresiAc(String notId, {bool canli = false}) async {
     constraints: BoxConstraints(
       maxHeight: MediaQuery.of(ctx).size.height * 0.92,
     ),
-    builder: (_) => OnayPenceresi(notId: notId, canli: canli),
+    builder: (_) => OnayPenceresi(notId: notId, canli: canli, gonder: gonder),
   );
 }
 
 class OnayPenceresi extends StatefulWidget {
   final String notId;
   final bool canli;
-  const OnayPenceresi({super.key, required this.notId, required this.canli});
+
+  /// true ise not yapay zeka dışıydı, açılırken yapay zekaya gönderilir.
+  final bool gonder;
+  const OnayPenceresi({super.key, required this.notId, required this.canli, this.gonder = false});
 
   @override
   State<OnayPenceresi> createState() => _OnayPenceresiState();
@@ -61,8 +64,8 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
     super.initState();
     final n = _not;
     if (n == null) return;
-    if (!n.islendi && widget.canli) {
-      _isleyici.hemenIsle(n).then((hata) {
+    if (!n.islendi && (widget.canli || widget.gonder)) {
+      (widget.gonder ? _isleyici.notuGonder(n) : _isleyici.hemenIsle(n)).then((hata) {
         if (!mounted) return;
         setState(() => _hata = hata);
         _alanlariDoldur();
@@ -553,9 +556,14 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
     final aksiyonlar = coklu
         ? null
         : Padding(
-            padding: const EdgeInsets.fromLTRB(20, 4, 20, 16),
+            padding: const EdgeInsets.fromLTRB(12, 4, 20, 16),
             child: Row(
               children: [
+                IconButton(
+                  tooltip: 'Notu sil',
+                  icon: const Icon(Icons.delete_outline),
+                  onPressed: _sil,
+                ),
                 Flexible(
                   child: TextButton(
                     onPressed: () => _kaydet(onayla: false),
@@ -599,6 +607,12 @@ class _OnayPenceresiState extends State<OnayPenceresi> {
         ],
       ),
     );
+  }
+
+  Future<void> _sil() async {
+    final id = widget.notId;
+    Navigator.pop(context);
+    await silVeGeriAlGoster([id]);
   }
 
   Future<void> _adimDuzenle(int? i) async {

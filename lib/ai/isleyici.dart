@@ -47,14 +47,14 @@ class AiIsleyici extends ChangeNotifier {
     notifyListeners();
   }
   bool notIsleniyor(String id) => _calisan.contains(id);
-  int get bekleyenSayisi => Depo.instance.notlar.where((n) => !n.islendi).length;
+  int get bekleyenSayisi => Depo.instance.notlar.where((n) => !n.islendi && !n.aiDisi).length;
 
   /// Son çalışma saatine kadar kaydedilmiş, işlenmemiş notları işler. Saatten sonra kaydedilenler bir
   /// sonraki saati bekler. Uygulama açılınca ve aralıklarla çağrılır, işlenecek bir şey yoksa ağa çıkmaz.
   Future<void> zamanlanmisIsle({DateTime? simdi}) async {
     final s = simdi ?? DateTime.now();
     final sinir = AiZamanlama.instance.sonSlot(s);
-    if (sinir == null) return;
+    if (sinir == null || !AiAyarlar.instance.otomatik) return;
     await bekleyenleriIsle(sinir: sinir);
   }
 
@@ -64,7 +64,7 @@ class AiIsleyici extends ChangeNotifier {
     _dongu = true;
     try {
       final liste = Depo.instance.notlar.where((n) =>
-          !n.islendi && (sinir == null || n.olusturma <= sinir.millisecondsSinceEpoch));
+          !n.islendi && !n.aiDisi && (sinir == null || n.olusturma <= sinir.millisecondsSinceEpoch));
       for (final n in List.of(liste)) {
         if (_calisan.contains(n.id)) continue;
         final hata = await _isle(n);
@@ -74,6 +74,13 @@ class AiIsleyici extends ChangeNotifier {
       _dongu = false;
       notifyListeners();
     }
+  }
+
+  /// Yapay zeka dışı bırakılmış notu yapay zekaya gönderir (kart üzerindeki küçük bağlantı).
+  Future<AiHata?> notuGonder(Not not) async {
+    not.aiDisi = false;
+    await Depo.instance.notGuncelle(not, dokunma: false);
+    return hemenIsle(not);
   }
 
   /// Tek bir notu hemen işler (not kaydedilince açılan onay penceresi için). Hata varsa döner.

@@ -1,3 +1,7 @@
+import 'package:material_ui/material_ui.dart';
+
+import '../kategori_gorunum.dart';
+
 /// Not durumları. Kullanıcı isterse elle değiştirir, zorunlu değildir.
 class Durum {
   static const yapilacak = 'yapilacak';
@@ -15,6 +19,12 @@ class Durum {
       };
 }
 
+/// Not türü: düz not ya da yapılacaklar listesi (maddeler [Adim] olarak saklanır).
+class NotTuru {
+  static const not = 'not';
+  static const liste = 'liste';
+}
+
 /// Notun nereden geldiği.
 class Kaynak {
   static const yazili = 'yazili';
@@ -28,13 +38,19 @@ class Kategori {
   final int? ustId;
   final int sira;
 
-  Kategori({required this.id, required this.ad, this.ustId, this.sira = 0});
+  /// Kullanıcının seçtiği renk (ARGB) ve ikon anahtarı. Boşsa varsayılan kullanılır.
+  int? renkDegeri;
+  String? ikonAnahtari;
+
+  Kategori({required this.id, required this.ad, this.ustId, this.sira = 0, this.renkDegeri, this.ikonAnahtari});
 
   factory Kategori.fromMap(Map<String, Object?> m) => Kategori(
         id: m['id'] as int,
         ad: m['ad'] as String,
         ustId: m['ust_id'] as int?,
         sira: (m['sira'] as int?) ?? 0,
+        renkDegeri: m['renk'] as int?,
+        ikonAnahtari: m['ikon'] as String?,
       );
 }
 
@@ -106,6 +122,9 @@ class Not {
   int? takvimBitis;
   bool yaptinCevap;
   String? aiJson;
+  /// true ise yapay zeka bu notu kendiliğinden işlemez (kullanıcı "yapay zekaya gönder" derse işlenir).
+  bool aiDisi;
+  String tur;
   List<String> fotograflar;
   List<int> kategoriIdler;
   List<Adim> adimlar;
@@ -135,6 +154,8 @@ class Not {
     this.takvimBitis,
     this.yaptinCevap = false,
     this.aiJson,
+    this.aiDisi = false,
+    this.tur = NotTuru.not,
     List<String>? fotograflar,
     List<int>? kategoriIdler,
     List<Adim>? adimlar,
@@ -144,6 +165,8 @@ class Not {
 
   /// Yapay zeka işledi ama kullanıcı henüz onaylamadı.
   bool get onayBekliyor => islendi && !onayli;
+
+  bool get liste => tur == NotTuru.liste;
 
   /// Listede görünen başlık: yapay zeka başlığı yoksa metnin ilk satırı.
   String get gorunenBaslik {
@@ -180,6 +203,8 @@ class Not {
         'takvim_bitis': takvimBitis,
         'yaptin_cevap': yaptinCevap ? 1 : 0,
         'ai_json': aiJson,
+        'ai_disi': aiDisi ? 1 : 0,
+        'tur': tur,
       };
 
   factory Not.fromMap(Map<String, Object?> m) => Not(
@@ -207,6 +232,8 @@ class Not {
         takvimBitis: m['takvim_bitis'] as int?,
         yaptinCevap: m['yaptin_cevap'] == 1,
         aiJson: m['ai_json'] as String?,
+        aiDisi: m['ai_disi'] == 1,
+        tur: (m['tur'] as String?) ?? NotTuru.not,
       );
 }
 
@@ -235,6 +262,23 @@ class KategoriAgaci {
     if (k.ustId == null) return k.ad;
     final ust = bul(k.ustId!);
     return ust == null ? k.ad : '${ust.ad} › ${k.ad}';
+  }
+
+  /// Kategorinin rengi: kendi seçimi, yoksa üst kategorisinin, yoksa sıradaki varsayılan.
+  Color renkOf(int id) {
+    final k = bul(id);
+    if (k == null) return KategoriGorunum.varsayilanRenk(0);
+    if (k.renkDegeri != null) return Color(k.renkDegeri!);
+    final ust = k.ustId == null ? null : bul(k.ustId!);
+    if (ust != null) return renkOf(ust.id);
+    return KategoriGorunum.varsayilanRenk(k.id);
+  }
+
+  IconData ikonOf(int id) {
+    final k = bul(id);
+    if (k == null) return Icons.folder_outlined;
+    final a = k.ikonAnahtari ?? (k.ustId == null ? null : bul(k.ustId!)?.ikonAnahtari);
+    return KategoriGorunum.ikon(a);
   }
 
   /// Bir kategori ve (ana kategoriyse) alt kategorilerinin id'leri.

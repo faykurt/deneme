@@ -357,7 +357,9 @@ class _EtkinlikKarti extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final renk = e.uygulamaninMi ? Renk.vurgu : Renk.yazi;
+    final depo = TakvimDeposu.instance;
+    final renk = depo.kategoriOf(e) != null ? depo.renkOf(e)! : (e.uygulamaninMi ? Renk.vurgu : Renk.yazi);
+    final ikon = depo.ikonOf(e);
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
       elevation: 0,
@@ -377,6 +379,7 @@ class _EtkinlikKarti extends StatelessWidget {
                 Text(etkinlikSaati(e, gun: gun), style: TextStyle(color: Renk.yazi.withValues(alpha: 0.7), fontSize: 12)),
               ]),
             ),
+            if (ikon != null) Padding(padding: const EdgeInsets.only(right: 6), child: Icon(ikon, size: 20, color: renk)),
             if (e.tekrarli) Icon(Icons.repeat, size: 16, color: Renk.yazi),
             if (!e.meshgul) Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.event_available, size: 16, color: Renk.yazi)),
           ]),
@@ -501,18 +504,25 @@ class _AyGorunumu extends StatelessWidget {
 
   Widget _chip(TakvimDeposu depo, TEtkinlik e) {
     final renk = depo.renkOf(e) ?? (e.uygulamaninMi ? Renk.vurgu : Renk.yazi);
-    final metin = Text(
-      e.baslik,
-      maxLines: 2,
-      overflow: TextOverflow.clip,
-      style: TextStyle(fontSize: 9, height: 1.1, color: e.tumGun ? Colors.white : Renk.yazi),
-    );
+    final ikon = depo.ikonOf(e);
+    final kategorili = depo.kategoriOf(e) != null;
+    final metin = Row(children: [
+      if (ikon != null) Padding(padding: const EdgeInsets.only(right: 1), child: Icon(ikon, size: 9, color: e.tumGun ? Colors.white : renk)),
+      Expanded(
+        child: Text(
+          e.baslik,
+          maxLines: 2,
+          overflow: TextOverflow.clip,
+          style: TextStyle(fontSize: 9, height: 1.1, color: e.tumGun ? Colors.white : Renk.yazi),
+        ),
+      ),
+    ]);
     return Container(
       height: _chipYuksekligi - 2,
       margin: const EdgeInsets.only(bottom: 2),
       padding: const EdgeInsets.symmetric(horizontal: 2),
       decoration: BoxDecoration(
-        color: e.tumGun ? renk.withValues(alpha: 0.85) : renk.withValues(alpha: 0.10),
+        color: e.tumGun ? renk.withValues(alpha: 0.85) : renk.withValues(alpha: kategorili ? 0.30 : 0.10),
         borderRadius: BorderRadius.circular(3),
         border: e.tumGun ? null : Border(left: BorderSide(color: renk, width: 2.5)),
       ),
@@ -616,11 +626,15 @@ class _GunPenceresi extends StatelessWidget {
     final renk = depo.renkOf(e) ?? (e.uygulamaninMi ? Renk.vurgu : Renk.yazi);
     final f = DateFormat('HH:mm');
     final alt = e.tumGun ? 'Gün boyu' : '${f.format(e.baslangic)} - ${f.format(e.bitis)}';
+    final ikon = depo.ikonOf(e);
     return InkWell(
       borderRadius: BorderRadius.circular(14),
       onTap: () => onEtkinlik(e),
-      child: Padding(
+      child: Container(
         padding: const EdgeInsets.symmetric(vertical: 10),
+        decoration: depo.kategoriOf(e) == null
+            ? null
+            : BoxDecoration(color: renk.withValues(alpha: 0.14), borderRadius: BorderRadius.circular(12)),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           SizedBox(
             width: 52,
@@ -641,6 +655,7 @@ class _GunPenceresi extends StatelessWidget {
               Text(alt, style: TextStyle(color: Renk.yazi.withValues(alpha: 0.6), fontSize: 14)),
             ]),
           ),
+          if (ikon != null) Padding(padding: const EdgeInsets.only(left: 6), child: Icon(ikon, size: 22, color: renk)),
           if (e.tekrarli) Padding(padding: EdgeInsets.only(left: 6), child: Icon(Icons.repeat, size: 16, color: Renk.yazi)),
         ]),
       ),
@@ -748,14 +763,22 @@ class _GunGorunumu extends StatelessWidget {
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                       decoration: BoxDecoration(
-                        color: (y.e.uygulamaninMi ? Renk.vurgu : Renk.yazi).withValues(alpha: 0.2),
+                        color: _haftaRengi(depo, y.e).withValues(alpha: depo.kategoriOf(y.e) != null ? 0.32 : 0.2),
                         borderRadius: BorderRadius.circular(8),
-                        border: Border(left: BorderSide(color: y.e.uygulamaninMi ? Renk.vurgu : Renk.yazi, width: 3)),
+                        border: Border(left: BorderSide(color: _haftaRengi(depo, y.e), width: 3)),
                       ),
-                      child: Text('${y.e.baslik}\n${etkinlikSaati(y.e, gun: gun)}',
-                          maxLines: 3,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(fontSize: 11, color: Renk.yazi)),
+                      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
+                        if (depo.ikonOf(y.e) != null)
+                          Padding(
+                              padding: const EdgeInsets.only(right: 3, top: 1),
+                              child: Icon(depo.ikonOf(y.e), size: 12, color: _haftaRengi(depo, y.e))),
+                        Expanded(
+                          child: Text('${y.e.baslik}\n${etkinlikSaati(y.e, gun: gun)}',
+                              maxLines: 3,
+                              overflow: TextOverflow.ellipsis,
+                              style: TextStyle(fontSize: 11, color: Renk.yazi)),
+                        ),
+                      ]),
                     ),
                   ),
                 ),
@@ -765,6 +788,9 @@ class _GunGorunumu extends StatelessWidget {
       ],
     );
   }
+
+  Color _haftaRengi(TakvimDeposu depo, TEtkinlik e) =>
+      depo.kategoriOf(e) != null ? depo.renkOf(e)! : (e.uygulamaninMi ? Renk.vurgu : Renk.yazi);
 
   /// Çakışan etkinlikleri yan yana sütunlara dağıtır.
   List<_Yerlesim> _yerlestir(List<TEtkinlik> liste, DateTime g0, DateTime g1) {

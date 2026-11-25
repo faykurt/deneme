@@ -63,7 +63,7 @@ class OnayBekleyenlerEkrani extends StatelessWidget {
                           'Onaylamasan da notlar çalışmaya devam eder.',
                           style: TextStyle(color: Renk.yazi.withValues(alpha: 0.7), fontSize: 13)),
                     ),
-                    for (final n in liste) NotKarti(not: n, onTap: () => onayPenceresiAc(n.id)),
+                    for (final n in liste) NotKarti(not: n, onTap: () => onayPenceresiAc(n.id), silFn: () => silVeGeriAlGoster([n.id])),
                   ],
                 ),
         );

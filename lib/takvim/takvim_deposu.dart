@@ -1,4 +1,5 @@
 import 'dart:ui' show Color;
+import 'package:flutter/widgets.dart' show IconData;
 
 import 'package:flutter/foundation.dart';
 
@@ -111,8 +112,28 @@ class TakvimDeposu extends ChangeNotifier {
     if (_bas != null && _bit != null) await yukle(_bas!, _bit!, zorla: true);
   }
 
-  /// Etkinliğin rengi: kendi rengi yoksa takviminin rengi.
+  /// Etkinliğe bağlı notun (ilk) kategorisi; bağlı not ya da kategori yoksa null.
+  int? kategoriOf(TEtkinlik e) {
+    for (final n in Depo.instance.notlar) {
+      if (n.takvimEtkinlikId != null &&
+          (n.takvimEtkinlikId == e.eventId || n.takvimEtkinlikId == e.instanceId) &&
+          n.kategoriIdler.isNotEmpty) {
+        return n.kategoriIdler.first;
+      }
+    }
+    return null;
+  }
+
+  /// Kategorisi olan etkinliğin ikonu.
+  IconData? ikonOf(TEtkinlik e) {
+    final k = kategoriOf(e);
+    return k == null ? null : Depo.instance.agac.ikonOf(k);
+  }
+
+  /// Etkinliğin rengi: kategorisi varsa kategorinin rengi, yoksa kendi rengi, o da yoksa takviminin rengi.
   Color? renkOf(TEtkinlik e) {
+    final k = kategoriOf(e);
+    if (k != null) return Depo.instance.agac.renkOf(k);
     if (e.renk != null) return e.renk;
     for (final t in takvimler) {
       if (t.id == e.takvimId) return t.renk;

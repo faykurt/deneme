@@ -14,7 +14,10 @@ class Depo extends ChangeNotifier {
   Depo._();
   static final Depo instance = Depo._();
 
-  static const _surum = 3;
+  static const _surum = 4;
+
+  /// Yeni notun yapay zeka dışı başlayıp başlamayacağı (Ayarlar'daki otomatik anahtarı).
+  static bool Function() yeniNotAiDisi = () => false;
   late Database _db;
   late Directory fotografKlasoru;
   late String veritabaniYolu;
@@ -70,14 +73,18 @@ class Depo extends ChangeNotifier {
         takvim_baslangic INTEGER,
         takvim_bitis INTEGER,
         yaptin_cevap INTEGER NOT NULL DEFAULT 0,
-        ai_json TEXT
+        ai_json TEXT,
+        ai_disi INTEGER NOT NULL DEFAULT 0,
+        tur TEXT NOT NULL DEFAULT 'not'
       )''');
     await db.execute('''
       CREATE TABLE kategoriler (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         ad TEXT NOT NULL,
         ust_id INTEGER REFERENCES kategoriler(id) ON DELETE CASCADE,
-        sira INTEGER NOT NULL DEFAULT 0
+        sira INTEGER NOT NULL DEFAULT 0,
+        renk INTEGER,
+        ikon TEXT
       )''');
     await db.execute('''
       CREATE TABLE not_kategori (
@@ -123,6 +130,7 @@ class Depo extends ChangeNotifier {
   }
 
   /// 1 → 2: yapay zeka önerisi ve adımlarda bekleme işareti eklendi. 2 → 3: takvim bağlantısı.
+  /// 3 → 4: yapay zeka dışı bırakma, liste türü, kategori rengi ve ikonu.
   /// Eski (yapay zekadan önceki) notlar onaylı sayılır, "onay bekleyen" yığını oluşmaz.
   static Future<void> yukselt(Database db, int eski, int yeni) async {
     if (eski < 2) {
@@ -134,6 +142,12 @@ class Depo extends ChangeNotifier {
       await db.execute('ALTER TABLE notlar ADD COLUMN takvim_baslangic INTEGER');
       await db.execute('ALTER TABLE notlar ADD COLUMN takvim_bitis INTEGER');
       await db.execute('ALTER TABLE notlar ADD COLUMN yaptin_cevap INTEGER NOT NULL DEFAULT 0');
+    }
+    if (eski < 4) {
+      await db.execute('ALTER TABLE notlar ADD COLUMN ai_disi INTEGER NOT NULL DEFAULT 0');
+      await db.execute("ALTER TABLE notlar ADD COLUMN tur TEXT NOT NULL DEFAULT 'not'");
+      await db.execute('ALTER TABLE kategoriler ADD COLUMN renk INTEGER');
+      await db.execute('ALTER TABLE kategoriler ADD COLUMN ikon TEXT');
     }
   }
 
@@ -175,6 +189,8 @@ class Depo extends ChangeNotifier {
     String? link,
     List<String> fotografYollari = const [],
     List<int> kategoriIdler = const [],
+    String tur = NotTuru.not,
+    bool aiDisi = false,
   }) async {
     final simdi = _simdi;
     final not = Not(
@@ -185,6 +201,8 @@ class Depo extends ChangeNotifier {
       olusturma: simdi,
       guncelleme: simdi,
       sonDokunma: simdi,
+      tur: tur,
+      aiDisi: aiDisi || yeniNotAiDisi(),
     );
     await _db.insert('notlar', not.toMap());
     for (final yol in fotografYollari) {
@@ -332,6 +350,18 @@ class Depo extends ChangeNotifier {
     for (final id in notIdler) {
       await _db.update('notlar', {'onayli': 1, 'guncelleme': _simdi}, where: 'id = ?', whereArgs: [id]);
     }
+    await yenile();
+  }
+
+  Future<void> kategoriGorunumu(int id, {int? renk, String? ikon, bool renkiTemizle = false}) async {
+    await _db.update(
+        'kategoriler',
+        {
+          if (renk != null || renkiTemizle) 'renk': renkiTemizle ? null : renk,
+          'ikon': ?ikon,
+        },
+        where: 'id = ?',
+        whereArgs: [id]);
     await yenile();
   }
 

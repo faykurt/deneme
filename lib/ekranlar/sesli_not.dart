@@ -18,6 +18,35 @@ Future<void> sesliNotAc() async {
   if (not != null) await kayitSonrasi(not, kayitMesaji: 'Sesli not kaydedildi');
 }
 
+/// Sesli notun metin birikimi. Tanıma servisi durup yeniden başlasa bile eski konuşma kaybolmaz.
+class SesMetni {
+  String kesinlesen = '';
+  String parca = '';
+
+  String get tum => [kesinlesen, parca].where((s) => s.trim().isNotEmpty).join(' ').trim();
+
+  /// Tanıma servisinden bir sonuç geldi. Nihai sonuç boş gelirse (sessizlikte olur) bekleyen parça silinmez.
+  void sonuc(String kelimeler, {required bool nihai}) {
+    if (!nihai) {
+      // Yeni oturumun ilk (boş) kısmı, eski parçayı ezmesin.
+      if (kelimeler.trim().isNotEmpty) parca = kelimeler;
+      return;
+    }
+    final metin = kelimeler.trim().isNotEmpty ? kelimeler : parca;
+    // Durma anında zaten eklenmiş aynı metin ikinci kez eklenmesin.
+    if (metin.trim().isNotEmpty && !kesinlesen.endsWith(metin.trim())) {
+      kesinlesen = '$kesinlesen $metin'.trim();
+    }
+    parca = '';
+  }
+
+  /// Tanıma durdu: bekleyen parçayı kalıcı yap.
+  void durdu() {
+    if (parca.trim().isNotEmpty) kesinlesen = '$kesinlesen $parca'.trim();
+    parca = '';
+  }
+}
+
 class SesliNotEkrani extends StatefulWidget {
   const SesliNotEkrani({super.key});
 
@@ -27,15 +56,16 @@ class SesliNotEkrani extends StatefulWidget {
 
 class _SesliNotEkraniState extends State<SesliNotEkrani> {
   final _ses = SpeechToText();
-  String _kesinlesen = '';
-  String _parca = '';
+  final _metin = SesMetni();
   bool _bitti = false;
   bool _dinliyor = false;
   String? _hata;
   String? _dil;
   Timer? _yenidenBaslat;
 
-  String get _tumMetin => [_kesinlesen, _parca].where((s) => s.trim().isNotEmpty).join(' ').trim();
+  String get _tumMetin => _metin.tum;
+  String get _kesinlesen => _metin.kesinlesen;
+  String get _parca => _metin.parca;
 
   @override
   void initState() {
@@ -73,24 +103,12 @@ class _SesliNotEkraniState extends State<SesliNotEkrani> {
   }
 
   void _sonuc(SpeechRecognitionResult r) {
-    setState(() {
-      if (r.finalResult) {
-        if (r.recognizedWords.trim().isNotEmpty) {
-          _kesinlesen = '$_kesinlesen ${r.recognizedWords}'.trim();
-        }
-        _parca = '';
-      } else {
-        _parca = r.recognizedWords;
-      }
-    });
+    setState(() => _metin.sonuc(r.recognizedWords, nihai: r.finalResult));
   }
 
   void _durum(String durum) {
     if (durum == SpeechToText.doneStatus || durum == SpeechToText.notListeningStatus) {
-      if (_parca.trim().isNotEmpty) {
-        _kesinlesen = '$_kesinlesen $_parca'.trim();
-        _parca = '';
-      }
+      _metin.durdu();
       if (mounted) setState(() => _dinliyor = false);
       // Sen "Bitir"e basana kadar dinlemeye devam et.
       if (!_bitti && _hata == null) {

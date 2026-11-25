@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 /// API anahtarı telefonda şifreli olarak saklanır. Kodun ya da depoya hiçbir yerinde yer almaz.
 class AiAyarlar extends ChangeNotifier {
@@ -9,6 +10,20 @@ class AiAyarlar extends ChangeNotifier {
   static const _anahtarAdi = 'anthropic_api_anahtari';
   final _depo = const FlutterSecureStorage();
   String? _anahtar;
+
+  static const _otomatikAdi = 'ai_otomatik';
+
+  /// false ise yeni notlar yapay zekaya kendiliğinden gönderilmez, istenirse tek tek gönderilir.
+  bool otomatik = true;
+
+  Future<void> otomatikAyarla(bool v) async {
+    otomatik = v;
+    notifyListeners();
+    try {
+      final p = await SharedPreferences.getInstance();
+      await p.setBool(_otomatikAdi, v);
+    } catch (_) {}
+  }
 
   bool get anahtarVar => _anahtar != null && _anahtar!.isNotEmpty;
   String? get anahtar => _anahtar;
@@ -26,6 +41,10 @@ class AiAyarlar extends ChangeNotifier {
     } catch (_) {
       _anahtar = null;
     }
+    try {
+      final p = await SharedPreferences.getInstance();
+      otomatik = p.getBool(_otomatikAdi) ?? true;
+    } catch (_) {}
     notifyListeners();
   }
 

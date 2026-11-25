@@ -8,6 +8,7 @@ import 'ai/ai_servisi.dart';
 import 'ai/ai_zamanlama.dart';
 import 'takvim/takvim_ayarlari.dart';
 import 'ekranlar/iskelet.dart';
+import 'fikirler.dart';
 import 'ortak.dart';
 import 'tema.dart';
 import 'veri/depo.dart';
@@ -20,8 +21,10 @@ Future<void> main() async {
   await AiZamanlama.instance.yukle();
   await AiHarcama.instance.yukle();
   AiServisi.kullanimDinleyici = (model, girdi, cikti) => AiHarcama.instance.kaydet(model, girdi, cikti);
+  Depo.yeniNotAiDisi = () => !AiAyarlar.instance.otomatik;
   await TakvimAyarlari.instance.yukle();
   await TemaAyari.instance.yukle();
+  await FikirDeposu.instance.yukle();
   runApp(const AklimdaApp());
 }
 

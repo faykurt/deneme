@@ -204,6 +204,18 @@ class _NotDetayState extends State<NotDetay> {
                   },
                 ),
               ],
+              if (!n.islendi && AiAyarlar.instance.anahtarVar)
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Yapay zeka düzenlesin'),
+                  subtitle: Text(n.aiDisi ? 'Kapalı, not olduğu gibi kalır.' : 'Çalışma saatinde işlenir.'),
+                  value: !n.aiDisi,
+                  onChanged: (v) {
+                    n.aiDisi = !v;
+                    _depo.notGuncelle(n, dokunma: false);
+                  },
+                ),
               const SizedBox(height: 12),
               Wrap(
                 spacing: 8,

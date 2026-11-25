@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 
 import 'ai/ai_ayarlar.dart';
+import 'ai/isleyici.dart';
 import 'takvim/takvim_deposu.dart';
 import 'takvim/takvim_modeller.dart';
 import 'veri/depo.dart';
@@ -162,11 +163,15 @@ class NotKarti extends StatelessWidget {
   final VoidCallback onTap;
   final VoidCallback? onLongPress;
 
+  /// Verilirse kartın köşesinde küçük bir çöp kutusu çıkar.
+  final VoidCallback? silFn;
+
   const NotKarti({
     super.key,
     required this.not,
     required this.onTap,
     this.onLongPress,
+    this.silFn,
     this.secili = false,
   });
 
@@ -232,14 +237,24 @@ class NotKarti extends StatelessWidget {
                         Text(tarihYazisi(not.olusturma),
                             style: yazi.labelSmall?.copyWith(color: Renk.yazi.withValues(alpha: 0.6))),
                         if (not.durum != Durum.yapilacak) _Etiket(Durum.ad(not.durum)),
-                        if (!not.islendi && AiAyarlar.instance.anahtarVar) const _Etiket('⏳ işlenecek'),
+                        if (!not.islendi && !not.aiDisi && AiAyarlar.instance.anahtarVar) const _Etiket('⏳ işlenecek'),
                         if (not.onayBekliyor) const _Etiket('onay bekliyor'),
                         for (final k in not.kategoriIdler) _Etiket(agac.tamAd(k)),
                       ],
                     ),
+                    if (not.aiDisi && !not.islendi && AiAyarlar.instance.anahtarVar) _AiGonderBaglantisi(not: not),
                   ],
                 ),
               ),
+              if (silFn != null)
+                InkWell(
+                  onTap: silFn,
+                  borderRadius: BorderRadius.circular(20),
+                  child: Padding(
+                    padding: const EdgeInsets.all(6),
+                    child: Icon(Icons.delete_outline, size: 20, color: Renk.yazi.withValues(alpha: 0.6)),
+                  ),
+                ),
               if (not.fotograflar.isNotEmpty) ...[
                 const SizedBox(width: 8),
                 ClipRRect(
@@ -269,5 +284,24 @@ class _Etiket extends StatelessWidget {
           borderRadius: BorderRadius.circular(10),
         ),
         child: Text(yazi, style: TextStyle(fontSize: 11, color: Renk.yazi)),
+      );
+}
+
+/// Yapay zeka dışı bırakılmış notta, göze batmayan küçük "Yapay zekaya gönder" bağlantısı.
+class _AiGonderBaglantisi extends StatelessWidget {
+  final Not not;
+  const _AiGonderBaglantisi({required this.not});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.only(top: 4),
+        child: InkWell(
+          onTap: () async {
+            final hata = await AiIsleyici.instance.notuGonder(not);
+            mesajGoster(hata == null ? 'Yapay zeka düzenledi, onay bekleyenlere düştü.' : hata.mesaj);
+          },
+          child: Text('Yapay zekaya gönder',
+              style: TextStyle(fontSize: 11, color: Renk.yazi.withValues(alpha: 0.5), decoration: TextDecoration.underline)),
+        ),
       );
 }
