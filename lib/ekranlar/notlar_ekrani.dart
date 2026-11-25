@@ -5,6 +5,7 @@ import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'not_detay.dart';
 import 'onay_bekleyenler.dart';
+import 'yazili_not.dart';
 
 /// Notlar sekmesi: klasör görünümü (varsayılan) ve liste görünümü.
 class NotlarEkrani extends StatefulWidget {
@@ -77,7 +78,7 @@ class _KlasorGorunumu extends StatelessWidget {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => _ListeSayfasi(
+                  builder: (_) => ListeSayfasi(
                     baslik: 'Kategorisiz',
                     kaynak: () => Depo.instance.aktifNotlar.where((n) => n.kategoriIdler.isEmpty).toList(),
                   ),
@@ -92,7 +93,7 @@ class _KlasorGorunumu extends StatelessWidget {
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (_) => _ListeSayfasi(
+                  builder: (_) => ListeSayfasi(
                     baslik: 'Arşiv',
                     arsivMi: true,
                     kaynak: () => Depo.instance.arsivNotlari,
@@ -107,7 +108,7 @@ class _KlasorGorunumu extends StatelessWidget {
   }
 
   void _klasorAc(BuildContext context, Kategori k) {
-    Navigator.push(context, MaterialPageRoute(builder: (_) => _KlasorSayfasi(kategori: k)));
+    Navigator.push(context, MaterialPageRoute(builder: (_) => KategoriSayfasi(kategori: k)));
   }
 }
 
@@ -128,15 +129,24 @@ class _KlasorSatiri extends StatelessWidget {
 }
 
 /// Bir kategorinin içi: alt klasörler ve doğrudan bu kategorideki notlar.
-class _KlasorSayfasi extends StatelessWidget {
+class KategoriSayfasi extends StatelessWidget {
   final Kategori kategori;
-  const _KlasorSayfasi({required this.kategori});
+  const KategoriSayfasi({super.key, required this.kategori});
 
   @override
   Widget build(BuildContext context) {
     final depo = Depo.instance;
     return Scaffold(
-      appBar: AppBar(backgroundColor: Renk.zemin, title: Text(depo.agac.tamAd(kategori.id))),
+      appBar: AppBar(backgroundColor: Renk.zemin, title: Text(depo.agac.tamAd(kategori.id)), actions: [
+        IconButton(
+            tooltip: 'Liste ekle',
+            icon: const Icon(Icons.checklist),
+            onPressed: () => yaziliNotAc(liste: true, kategoriId: kategori.id)),
+        IconButton(
+            tooltip: 'Not ekle',
+            icon: const Icon(Icons.note_add_outlined),
+            onPressed: () => yaziliNotAc(kategoriId: kategori.id)),
+      ]),
       body: ListenableBuilder(
         listenable: depo,
         builder: (context, _) {
@@ -150,7 +160,7 @@ class _KlasorSayfasi extends StatelessWidget {
                   ad: alt.ad,
                   sayi: depo.aktifNotlar.where((n) => n.kategoriIdler.contains(alt.id)).length,
                   onTap: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => _KlasorSayfasi(kategori: alt))),
+                      context, MaterialPageRoute(builder: (_) => KategoriSayfasi(kategori: alt))),
                 ),
               if (altlar.isNotEmpty) const Divider(indent: 16, endIndent: 16),
             ],
@@ -161,11 +171,11 @@ class _KlasorSayfasi extends StatelessWidget {
   }
 }
 
-class _ListeSayfasi extends StatelessWidget {
+class ListeSayfasi extends StatelessWidget {
   final String baslik;
   final List<Not> Function() kaynak;
   final bool arsivMi;
-  const _ListeSayfasi({required this.baslik, required this.kaynak, this.arsivMi = false});
+  const ListeSayfasi({super.key, required this.baslik, required this.kaynak, this.arsivMi = false});
 
   @override
   Widget build(BuildContext context) => Scaffold(

@@ -47,8 +47,17 @@ class SesMetni {
   }
 }
 
+/// Konuşmayı not olarak kaydetmeden sadece yazıya çevirip döner (liste maddeleri için).
+Future<String?> sesliMetinAl() async {
+  final nav = navigatorKey.currentState;
+  if (nav == null) return null;
+  return nav.push<String>(MaterialPageRoute(builder: (_) => const SesliNotEkrani(sadeceMetin: true)));
+}
+
 class SesliNotEkrani extends StatefulWidget {
-  const SesliNotEkrani({super.key});
+  /// true ise "Bitir"e basınca not kaydedilmez, yazıya çevrilen metin geri döner.
+  final bool sadeceMetin;
+  const SesliNotEkrani({super.key, this.sadeceMetin = false});
 
   @override
   State<SesliNotEkrani> createState() => _SesliNotEkraniState();
@@ -145,6 +154,10 @@ class _SesliNotEkraniState extends State<SesliNotEkrani> {
       mesajGoster('Bir şey duyamadım, not kaydedilmedi.');
       return;
     }
+    if (widget.sadeceMetin) {
+      Navigator.pop(context, metin);
+      return;
+    }
     final not = await Depo.instance.notEkle(metin: metin, kaynak: Kaynak.sesli);
     if (mounted) Navigator.pop(context, not);
   }
@@ -171,7 +184,7 @@ class _SesliNotEkraniState extends State<SesliNotEkrani> {
       appBar: AppBar(
         backgroundColor: Renk.zemin,
         leading: IconButton(icon: const Icon(Icons.close), onPressed: _iptal, tooltip: 'İptal'),
-        title: const Text('Sesli not'),
+        title: Text(widget.sadeceMetin ? 'Sesle madde ekle' : 'Sesli not'),
       ),
       body: SafeArea(
         child: Padding(

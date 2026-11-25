@@ -64,3 +64,9 @@ Onaylanan tasarım `KARARLAR.md` bölüm 7'de. Özet ve teknik notlar:
 - `Renk` (lib/ortak.dart) artık sabit değil, tema duyarlı getter'lar: `vurgu`, `vurguUstu`, `zemin`, `kart`, `yazi`, `hata`, `sinir`, `vurguKart()`. Eski adlar (turuncu/krem/kahve/acikKrem) kalktı. `const` ile kullanılamaz.
 - `lib/tema.dart`: `TemaAyari` (koyu varsayılan, shared_preferences `tema_koyu`); değişince tüm element ağacı `markNeedsBuild` ile yenilenir.
 - `lib/ekranlar/piksel_sahne.dart`: `SahneBolumu` + `PikselSahne` (CustomPainter, 36 sütunluk ızgara).
+
+## Güncelleme: v0.4.16-17
+- DB sürümü 4: `notlar.ai_disi`, `notlar.tur` (not|liste), `kategoriler.renk/ikon`. Liste maddeleri `adimlar` tablosu.
+- `Depo.yeniNotAiDisi` (main'de `!AiAyarlar.otomatik`), `AiIsleyici.notuGonder`, `listeyiCoz`/`_listeyiUygula`/`metniMaddelereBol`, `SesMetni` (sesli not metin birikimi; boş nihai sonuç metni silmez).
+- Kütüphane: `lib/ekranlar/kutuphane.dart`; kategori görünümü `lib/kategori_gorunum.dart` (renkler, ikonlar, adına göre varsayılan ikon); fikir kutusu `lib/fikirler.dart` + `ekranlar/fikir_kutusu.dart` (url_launcher).
+- Test tuzağı: `takvim_ekran_test` bugünün 14:00 etkinliğini kullanır; saat 15:05'ten sonra "Yaptın mı" kartı çıkar, testler bunu hesaba katacak şekilde yazıldı (kart içindeki düğmeye bas).

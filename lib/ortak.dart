@@ -202,7 +202,11 @@ class NotKarti extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
-                      if (not.kaynak == Kaynak.sesli)
+                      if (not.liste)
+                        Padding(
+                            padding: EdgeInsets.only(right: 4),
+                            child: Icon(Icons.checklist, size: 18, color: Renk.vurgu)),
+                      if (not.kaynak == Kaynak.sesli && !not.liste)
                         Padding(
                             padding: EdgeInsets.only(right: 4),
                             child: Icon(Icons.mic, size: 16, color: Renk.vurgu)),
@@ -236,6 +240,8 @@ class NotKarti extends StatelessWidget {
                       children: [
                         Text(tarihYazisi(not.olusturma),
                             style: yazi.labelSmall?.copyWith(color: Renk.yazi.withValues(alpha: 0.6))),
+                        if (not.liste && not.adimlar.isNotEmpty)
+                          _Etiket('${not.adimlar.where((a) => a.yapildi).length}/${not.adimlar.length} madde'),
                         if (not.durum != Durum.yapilacak) _Etiket(Durum.ad(not.durum)),
                         if (!not.islendi && !not.aiDisi && AiAyarlar.instance.anahtarVar) const _Etiket('⏳ işlenecek'),
                         if (not.onayBekliyor) const _Etiket('onay bekliyor'),

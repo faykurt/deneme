@@ -277,7 +277,9 @@ class KategoriAgaci {
   IconData ikonOf(int id) {
     final k = bul(id);
     if (k == null) return Icons.folder_outlined;
-    final a = k.ikonAnahtari ?? (k.ustId == null ? null : bul(k.ustId!)?.ikonAnahtari);
+    final a = k.ikonAnahtari ??
+        KategoriGorunum.varsayilanIkon(k.ad) ??
+        (k.ustId == null ? null : (bul(k.ustId!)?.ikonAnahtari ?? KategoriGorunum.varsayilanIkon(bul(k.ustId!)!.ad)));
     return KategoriGorunum.ikon(a);
   }
 

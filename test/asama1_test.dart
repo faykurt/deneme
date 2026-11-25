@@ -6,6 +6,8 @@ import 'package:aklimda/ai/ai_servisi.dart';
 import 'package:aklimda/ai/isleyici.dart';
 import 'package:aklimda/kategori_gorunum.dart';
 import 'package:aklimda/ekranlar/onay_bekleyenler.dart';
+import 'package:aklimda/ekranlar/yazili_not.dart';
+import 'package:aklimda/ekranlar/kutuphane.dart';
 import 'package:aklimda/ortak.dart';
 import 'package:aklimda/veri/depo.dart';
 import 'package:aklimda/veri/modeller.dart';
@@ -133,5 +135,81 @@ void main() {
     expect(depo.agac.ikonOf(dizi.id), KategoriGorunum.ikonlar['film']);
     await depo.kategoriGorunumu(hobi.id, renkiTemizle: true);
     expect(depo.agac.renkOf(hobi.id), KategoriGorunum.varsayilanRenk(hobi.id));
+  });
+
+  http.Response listeYaniti(String baslik, List<String> maddeler) => http.Response.bytes(
+      utf8.encode(jsonEncode({
+        'stop_reason': 'end_turn',
+        'content': [
+          {'type': 'text', 'text': jsonEncode({'baslik': baslik, 'kategori_idler': <int>[], 'maddeler': maddeler})},
+        ],
+      })),
+      200,
+      headers: {'content-type': 'application/json'});
+
+  test('Liste: yapay zeka metni maddelere böler, işaretli maddeler işaretli kalır, liste onay beklemez', () async {
+    final n = await depo.notEkle(metin: 'market', kaynak: Kaynak.yazili, tur: NotTuru.liste, aiDisi: true);
+    await depo.adimlariKaydet(n.id, [
+      Adim(notId: n.id, sira: 0, metin: 'süt ekmek yumurta', durum: Durum.yapilacak),
+      Adim(notId: n.id, sira: 1, metin: 'Peynir', durum: Durum.yapildi),
+    ]);
+    AiServisi.istemciUret = () => MockClient((r) async => listeYaniti('Market listesi', ['Süt', 'Ekmek', 'Yumurta', 'peynir']));
+    final hata = await AiIsleyici.instance.notuGonder(depo.notlar.firstWhere((x) => x.id == n.id));
+    expect(hata, isNull);
+    final g = depo.notlar.firstWhere((x) => x.id == n.id);
+    expect(g.metin, 'Market listesi');
+    expect(g.adimlar.map((a) => a.metin), ['Süt', 'Ekmek', 'Yumurta', 'peynir']);
+    expect(g.adimlar.where((a) => a.yapildi).map((a) => a.metin), ['peynir']);
+    expect(g.onayBekliyor, isFalse);
+    expect(g.liste, isTrue);
+  });
+
+  test('Sesle liste: konuşma maddelere bölünür; anahtar ya da bağlantı yoksa tek madde olur', () async {
+    AiServisi.istemciUret = () => MockClient((r) async => listeYaniti('', ['Süt', 'Ekmek']));
+    expect(await AiIsleyici.instance.metniMaddelereBol('süt ekmek'), ['Süt', 'Ekmek']);
+    AiServisi.istemciUret = () => MockClient((r) async => http.Response('hata', 500));
+    expect(await AiIsleyici.instance.metniMaddelereBol('süt ekmek'), ['süt ekmek']);
+    await AiAyarlar.instance.sil();
+    expect(await AiIsleyici.instance.metniMaddelereBol('süt ekmek'), ['süt ekmek']);
+    await AiAyarlar.instance.kaydet('sk-ant-deneme');
+  });
+
+  testWidgets('Liste kipinde maddeler tek tek eklenir, yapay zeka kapalı kaydedilir; kütüphanede kitap ve kâğıt görünür', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2200);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    await tester.pumpWidget(MaterialApp(
+        navigatorKey: navigatorKey,
+        home: Scaffold(body: Builder(builder: (c) => TextButton(onPressed: () => yaziliNotAc(liste: true), child: const Text('ac'))))));
+    await tester.tap(find.text('ac'));
+    await tester.pumpAndSettle();
+    expect(find.text('Liste adı (ör. Market)'), findsOneWidget);
+    final alanlar = find.byType(TextField);
+    await tester.enterText(alanlar.first, 'Hafta sonu market');
+    await tester.enterText(alanlar.last, 'Süt');
+    await tester.testTextInput.receiveAction(TextInputAction.done);
+    await tester.pump();
+    await tester.enterText(find.byType(TextField).last, 'Ekmek');
+    await tester.tap(find.byTooltip('Maddeyi ekle'));
+    await tester.pump();
+    expect(find.text('Süt'), findsOneWidget);
+    expect(find.text('Ekmek'), findsOneWidget);
+    await tester.tap(find.text('Kaydet'));
+    for (var i = 0; i < 40; i++) {
+      await tester.runAsync(() => Future.delayed(const Duration(milliseconds: 50)));
+      await tester.pump(const Duration(milliseconds: 50));
+      if (depo.notlar.any((n) => n.metin == 'Hafta sonu market')) break;
+    }
+    await tester.pumpAndSettle();
+    final n = depo.notlar.firstWhere((n) => n.metin == 'Hafta sonu market');
+    expect(n.liste, isTrue);
+    expect(n.aiDisi, isTrue); // başta yapay zeka açılmadı
+    expect(n.adimlar.map((a) => a.metin), ['Süt', 'Ekmek']);
+
+    await tester.pumpWidget(MaterialApp(home: Scaffold(body: SingleChildScrollView(child: const Kutuphane()))));
+    await tester.pump();
+    expect(find.text('Hafta sonu market'), findsOneWidget); // kategorisiz: post-it
+    expect(find.bySemanticsLabel(RegExp('^Hobi, ')), findsOneWidget); // kitap
+    await tester.pumpAndSettle(const Duration(seconds: 6));
   });
 }

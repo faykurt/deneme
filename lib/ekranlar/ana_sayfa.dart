@@ -6,6 +6,7 @@ import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'kayit_sonrasi.dart';
+import 'kutuphane.dart';
 import 'piksel_sahne.dart';
 import 'onay_bekleyenler.dart';
 import 'sesli_not.dart';
@@ -105,6 +106,7 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
                 IconButton.filled(tooltip: 'Kaydet', icon: const Icon(Icons.arrow_upward), onPressed: _hizliKaydet),
               ]),
             ),
+            const Kutuphane(),
             const YaptinMiKartlari(),
             const OnayBandi(),
             const IslenecekBandi(),

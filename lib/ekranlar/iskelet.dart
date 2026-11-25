@@ -147,13 +147,11 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(secili ? seciliIkon : ikon, color: secili ? Renk.vurgu : Renk.yazi),
-            Text(ad,
-                style: TextStyle(
-                  fontSize: 11,
-                  color: secili ? Renk.vurgu : Renk.yazi,
-                  fontWeight: secili ? FontWeight.w600 : FontWeight.normal,
-                )),
+            Tooltip(
+                message: ad,
+                child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    child: Icon(secili ? seciliIkon : ikon, size: 28, color: secili ? Renk.vurgu : Renk.yazi))),
           ],
         ),
       ),

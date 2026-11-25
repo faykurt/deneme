@@ -97,6 +97,14 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Ana sayfada arka planda piksel art doğa sahnesi (kodla çizilir, `lib/ekranlar/piksel_sahne.dart`); kartlar üstünde durur. Saate göre anında değişir: sabah 06-11 (güneş doğuyor), öğle 11-17, akşam 17-06 (ay, yıldız, kamp ateşi). Renkler yeşil-gri uyumuna çekildi. Diğer ekranlar sade gri.
 - Yumuşak geçiş ve ortam sesi sonraya kalır.
 
+### Kütüphane ve liste (v0.4.17)
+- Ana sayfa: sahne arkada kalır, ortada kütüphane: her ana kategori bir kitap (renk ve ikon kategoriden; alt kategoriler üst kitabın içinde). Kitaba dokununca içindeki notlar açılır, orada "Liste ekle / Not ekle". Kategorisiz notlar rafta eğik post-it kâğıtlar (en yeni 8, "Tümü" ile hepsi). Kartlar (yaptın mı, onay bekleyen vb.) kütüphanenin altında. Alt menüde yalnızca ikon.
+- Liste: not türünün bir şekli (`tur = liste`), maddeler `adimlar` tablosunda. Maddeler tek tek eklenir, işaretlenince üstü çizilir, hepsi bitince liste kendiliğinden tamamlanmaz. Tarihten bağımsız. Oluştururken "Yapay zeka düzenlesin" sorulur (varsayılan kapalı). Sesle madde eklenince metin yapay zekayla maddelere bölünür (hemen çalışır; anahtar yoksa tek madde).
+- Yapay zeka: Ayarlar'da genel anahtar; kapalıyken yeni notlar `ai_disi` olur, kartta küçük "Yapay zekaya gönder" bağlantısı vardır. Not detayında da açılıp kapatılabilir.
+- Takvim: kategorisi olan etkinlik kategori rengini (arka plan gibi) ve ikonunu gösterir. Kategori rengi/ikonu Ayarlar > Kategorileri düzenle'den seçilir.
+- Fikir kutusu (Ayarlar): fikirler telefonda tutulur, "Gönder" hazır doldurulmuş GitHub "yeni konu" sayfasını açar (faykurt/deneme issues). Claude oradan okur.
+- Sonra: hatırlatma bildirimleri ve sesli komutla kategori/hatırlatma (5. aşama ile).
+
 ## 8c. Ayarlar ve ilk kurulum
 - İlk açılışta kısa bir kurulum sihirbazı: API anahtarı, takvim seçimi, uyku saatleri, iş bloğu kelimesi, kategoriler, izinler.
 - Ev ve iş yeri konumu girişi (konum tetikleme) ilk sürümde yok.

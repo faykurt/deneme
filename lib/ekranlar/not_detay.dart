@@ -8,12 +8,14 @@ import 'package:material_ui/material_ui.dart';
 import '../ai/ai_ayarlar.dart';
 import '../ai/ai_modeller.dart';
 import '../ai/ai_zamanlama.dart';
+import '../ai/isleyici.dart';
 import '../ortak.dart';
 import '../takvim/takvim_deposu.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'onay_penceresi.dart';
 import 'takvim_ayar_pencereleri.dart';
+import 'sesli_not.dart';
 import 'takvime_ekle.dart';
 import 'yazili_not.dart';
 
@@ -67,6 +69,7 @@ class _NotDetayState extends State<NotDetay> {
     _yaziyiKaydet();
     _metin.dispose();
     _yorum.dispose();
+    _yeniMadde.dispose();
     super.dispose();
   }
 
@@ -448,6 +451,7 @@ class _NotDetayState extends State<NotDetay> {
 
   /// Adımlar: sıralı liste. Sıradaki (ilk yapılmamış) adım vurgulanır.
   List<Widget> _adimBolumu(Not n, TextTheme yazi) {
+    if (n.liste) return _listeBolumu(n, yazi);
     final siradaki = n.adimlar.indexWhere((a) => !a.yapildi);
     final oneri = AiSonuc.coz(n.aiJson);
     final oneriVar =
@@ -481,6 +485,80 @@ class _NotDetayState extends State<NotDetay> {
       ),
       const SizedBox(height: 8),
     ];
+  }
+
+  /// Liste notu: işaretlenebilir maddeler, tek tek ekleme. Hepsi bitince liste kendiliğinden tamamlanmaz.
+  List<Widget> _listeBolumu(Not n, TextTheme yazi) {
+    final bitti = n.adimlar.where((a) => a.yapildi).length;
+    return [
+      Row(children: [
+        Text('Liste${n.adimlar.isEmpty ? '' : '  ($bitti/${n.adimlar.length})'}', style: yazi.titleSmall),
+        const Spacer(),
+        if (AiAyarlar.instance.anahtarVar && n.adimlar.isNotEmpty)
+          TextButton(
+            onPressed: () async {
+              final hata = await AiIsleyici.instance.notuGonder(n);
+              mesajGoster(hata == null ? 'Yapay zeka listeyi düzenledi.' : hata.mesaj);
+            },
+            child: Text('Yapay zekaya gönder',
+                style: TextStyle(fontSize: 12, color: Renk.yazi.withValues(alpha: 0.6))),
+          ),
+      ]),
+      for (final a in n.adimlar)
+        ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.only(left: 0, right: 0),
+          leading: Checkbox(value: a.yapildi, onChanged: (v) => _depo.adimDurumu(a.id!, v == true ? Durum.yapildi : Durum.yapilacak)),
+          title: Text(a.metin,
+              style: TextStyle(
+                decoration: a.yapildi ? TextDecoration.lineThrough : null,
+                color: a.yapildi ? Renk.yazi.withValues(alpha: 0.5) : Renk.yazi,
+              )),
+          onTap: () => _adimDuzenle(n, a),
+          trailing: IconButton(
+            tooltip: 'Maddeyi sil',
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: () => _depo.adimlariKaydet(n.id, n.adimlar.where((x) => x.id != a.id).toList()),
+          ),
+        ),
+      Row(children: [
+        Expanded(
+          child: TextField(
+            controller: _yeniMadde,
+            textCapitalization: TextCapitalization.sentences,
+            onSubmitted: (_) => _maddeEkle(n),
+            decoration: const InputDecoration(hintText: 'Madde ekle', isDense: true),
+          ),
+        ),
+        IconButton(
+            tooltip: 'Sesle ekle (yapay zeka maddelere böler)',
+            icon: const Icon(Icons.mic_none),
+            onPressed: () => _sesleMaddeEkle(n)),
+        IconButton(tooltip: 'Ekle', icon: const Icon(Icons.add_circle_outline), onPressed: () => _maddeEkle(n)),
+      ]),
+      const SizedBox(height: 8),
+    ];
+  }
+
+  final _yeniMadde = TextEditingController();
+
+  Future<void> _maddeEkle(Not n) async {
+    final t = _yeniMadde.text.trim();
+    if (t.isEmpty) return;
+    _yeniMadde.clear();
+    await _depo.adimlariKaydet(n.id, [...n.adimlar, Adim(notId: n.id, sira: 0, metin: t)]);
+  }
+
+  Future<void> _sesleMaddeEkle(Not n) async {
+    final metin = await sesliMetinAl();
+    if (metin == null || metin.trim().isEmpty || !mounted) return;
+    final liste = await AiIsleyici.instance.metniMaddelereBol(metin);
+    final guncel = _not;
+    if (guncel == null) return;
+    await _depo.adimlariKaydet(guncel.id, [
+      ...guncel.adimlar,
+      for (final m in liste) Adim(notId: guncel.id, sira: 0, metin: m),
+    ]);
   }
 
   Widget _adimSatiri(Not n, Adim a, bool siradaki) {
@@ -530,7 +608,7 @@ class _NotDetayState extends State<NotDetay> {
   Future<void> _adimIsaretle(Not n, Adim a, bool yapildi) async {
     await _depo.adimDurumu(a.id!, yapildi ? Durum.yapildi : Durum.yapilacak);
     final guncel = _not;
-    if (!mounted || guncel == null || !yapildi) return;
+    if (!mounted || guncel == null || !yapildi || guncel.liste) return;
     if (guncel.adimlar.isNotEmpty &&
         guncel.adimlar.every((x) => x.yapildi) &&
         !guncel.arsiv) {

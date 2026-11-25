@@ -95,6 +95,11 @@ class AiIsleyici extends ChangeNotifier {
         throw const AiHata('Yapay zeka için henüz anahtar eklenmedi.', AiHataTuru.anahtarYok);
       }
       final depo = Depo.instance;
+      if (not.liste) {
+        await _listeyiUygula(not, anahtar);
+        sonHata = null;
+        return null;
+      }
       if (not.metin.trim().isEmpty && not.fotograflar.isEmpty) {
         not.islendi = true;
         await depo.notGuncelle(not, dokunma: false);
@@ -123,6 +128,65 @@ class AiIsleyici extends ChangeNotifier {
     } finally {
       _calisan.remove(not.id);
       notifyListeners();
+    }
+  }
+
+  /// Listeyi (başlık + mevcut maddeler) yapay zekaya verir; maddeleri böler, ad ve kategori önerir.
+  /// İşaretli maddeler işaretli kalır. Liste onay beklemez.
+  Future<void> _listeyiUygula(Not not, String anahtar) async {
+    final depo = Depo.instance;
+    final parcalar = [
+      if (not.metin.trim().isNotEmpty) not.metin.trim(),
+      ...not.adimlar.map((a) => a.metin),
+    ];
+    if (parcalar.isEmpty) {
+      not.islendi = true;
+      not.onayli = true;
+      await depo.notGuncelle(not, dokunma: false);
+      return;
+    }
+    final sonuc = await AiServisi.listeyiCoz(apiKey: anahtar, metin: parcalar.join('\n'), agac: depo.agac);
+    final i = depo.notlar.indexWhere((n) => n.id == not.id);
+    if (i < 0) return;
+    final guncel = depo.notlar[i];
+    final yapilanlar = guncel.adimlar.where((a) => a.yapildi).map((a) => a.metin.toLowerCase()).toSet();
+    if (sonuc.maddeler.isNotEmpty) {
+      await depo.adimlariKaydet(
+        guncel.id,
+        [
+          for (final m in sonuc.maddeler)
+            Adim(
+                notId: guncel.id,
+                sira: 0,
+                metin: m,
+                durum: yapilanlar.contains(m.toLowerCase()) ? Durum.yapildi : Durum.yapilacak),
+        ],
+      );
+    }
+    if (sonuc.baslik.isNotEmpty) guncel.metin = sonuc.baslik;
+    guncel.islendi = true;
+    guncel.onayli = true;
+    await depo.notGuncelle(guncel, dokunma: false);
+    if (guncel.kategoriIdler.isEmpty) {
+      final gecerli = sonuc.kategoriIdler.where((id) => depo.agac.bul(id) != null).toSet();
+      if (gecerli.isNotEmpty) await depo.kategorileriAyarla(guncel.id, gecerli);
+    }
+  }
+
+  /// Konuşulan ya da yazılan bir metni liste maddelerine böler (liste ekranındaki mikrofon için).
+  /// Anahtar yoksa ya da bir sorun olursa metin tek madde olarak döner.
+  Future<List<String>> metniMaddelereBol(String metin) async {
+    final t = metin.trim();
+    if (t.isEmpty) return [];
+    final anahtar = AiAyarlar.instance.anahtar;
+    if (anahtar == null || anahtar.isEmpty) return [t];
+    try {
+      final s = await AiServisi.listeyiCoz(apiKey: anahtar, metin: t, agac: Depo.instance.agac);
+      return s.maddeler.isEmpty ? [t] : s.maddeler;
+    } on AiHata catch (e) {
+      sonHata = e;
+      notifyListeners();
+      return [t];
     }
   }
 

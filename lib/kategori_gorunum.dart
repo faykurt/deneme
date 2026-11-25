@@ -37,5 +37,34 @@ class KategoriGorunum {
     'klasor': Icons.folder_outlined,
   };
 
+  /// Adına bakarak uygun varsayılan ikon anahtarı; bulunamazsa null.
+  static String? varsayilanIkon(String ad) {
+    final a = ad.toLowerCase().replaceAll('İ', 'i');
+    const eslesme = <String, List<String>>{
+      'is': ['iş', 'is ', 'çalış', 'toplantı'],
+      'okul': ['tez', 'okul', 'ders', 'sınav', 'eğitim'],
+      'ev': ['ev', 'dekor', 'ev işi'],
+      'hobi': ['hobi', 'sanat', 'müzik'],
+      'yemek': ['yemek', 'tarif', 'mutfak'],
+      'proje': ['proje', 'fikir'],
+      'gunluk': ['günlük', 'yapılacak', 'liste'],
+      'film': ['film', 'dizi', 'sinema'],
+      'kitap': ['kitap', 'okuma'],
+      'oyun': ['oyun'],
+      'alisveris': ['alışveriş', 'market', 'satın'],
+      'saglik': ['sağlık', 'doktor', 'ilaç'],
+      'spor': ['spor', 'egzersiz', 'koşu'],
+      'seyahat': ['seyahat', 'gezi', 'tatil'],
+      'para': ['para', 'finans', 'fatura', 'bütçe'],
+      'aile': ['aile', 'arkadaş', 'dost'],
+    };
+    for (final e in eslesme.entries) {
+      for (final k in e.value) {
+        if (a == k.trim() || (k.length > 3 && a.contains(k))) return e.key;
+      }
+    }
+    return null;
+  }
+
   static IconData ikon(String? anahtar) => ikonlar[anahtar] ?? Icons.folder_outlined;
 }
