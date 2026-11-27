@@ -107,7 +107,26 @@
     if (!headRow.querySelector('th.baktim-note-th')) {
       const nth = document.createElement('th');
       nth.className = 'baktim-note-th';
-      nth.textContent = 'Not';
+      nth.appendChild(document.createTextNode('Not '));
+      const clr = document.createElement('a');
+      clr.textContent = 'Clear all';
+      clr.href = '#';
+      clr.title = 'Tüm notları sil';
+      clr.style.cssText = 'font-size:11px;font-weight:normal;margin-left:6px;';
+      clr.onclick = (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const n = Object.keys(getNotes()).length;
+        if (!n) return;
+        if (confirm('Kayıtlı ' + n + ' notun HEPSİ silinecek. Emin misiniz?')) {
+          setNotes({});
+          document.querySelectorAll('tr[data-issuekey]').forEach((tr) => {
+            const td = tr.querySelector('td.baktim-note-td');
+            if (td) renderNote(td, tr.getAttribute('data-issuekey'), false);
+          });
+        }
+      };
+      nth.appendChild(clr);
       headRow.prepend(nth);
     }
     const th = headRow.querySelector('th:not(.baktim-note-th)');
