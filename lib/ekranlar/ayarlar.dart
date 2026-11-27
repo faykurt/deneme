@@ -15,11 +15,13 @@ import '../ai/ai_zamanlama.dart';
 import '../ai/isleyici.dart';
 import '../kategori_gorunum.dart';
 import '../ortak.dart';
+import '../ses.dart';
 import '../tema.dart';
 import '../takvim/takvim_ayarlari.dart';
 import '../oneri/bildirim_servisi.dart';
 import '../oneri/oneri_deposu.dart';
 import 'fikir_kutusu.dart';
+import 'yazili_not.dart' show fotografSec;
 import 'onay_penceresi.dart';
 import 'takvim_ayar_pencereleri.dart';
 import '../veri/depo.dart';
@@ -159,6 +161,19 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
       appBar: AppBar(backgroundColor: Renk.zemin, title: const Text('Ayarlar')),
       body: ListView(
         children: [
+          ListenableBuilder(
+            listenable: Ses.instance,
+            builder: (context, _) => SwitchListTile(
+              secondary: const Icon(Icons.volume_up_outlined),
+              title: const Text('Ses efektleri'),
+              subtitle: const Text('Düğmelerde yumuşak tık, kitaplarda sayfa hışırtısı.'),
+              value: Ses.instance.acik,
+              onChanged: (v) {
+                Ses.instance.acikAyarla(v);
+                if (v) Ses.instance.tik();
+              },
+            ),
+          ),
           ListenableBuilder(
             listenable: TemaAyari.instance,
             builder: (context, _) => SwitchListTile(
@@ -545,6 +560,33 @@ class _KategoriDuzenleState extends State<_KategoriDuzenle> {
                       onEditingComplete: _adKaydet,
                       onTapOutside: (_) => _adKaydet(),
                     ),
+                  ),
+                ]),
+                const SizedBox(height: 18),
+                Text('Kitap kapağı', style: Theme.of(context).textTheme.titleSmall),
+                const SizedBox(height: 8),
+                Row(children: [
+                  if (guncel.kapakResmi != null && File(guncel.kapakResmi!).existsSync())
+                    Padding(
+                      padding: const EdgeInsets.only(right: 12),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.file(File(guncel.kapakResmi!), width: 52, height: 64, fit: BoxFit.cover, cacheWidth: 200),
+                      ),
+                    ),
+                  Expanded(
+                    child: Wrap(spacing: 8, children: [
+                      OutlinedButton.icon(
+                        onPressed: () async {
+                          final yollar = await fotografSec(kamera: false);
+                          if (yollar.isNotEmpty) await Depo.instance.kategoriKapakResmi(k.id, yollar.first);
+                        },
+                        icon: const Icon(Icons.image_outlined),
+                        label: Text(guncel.kapakResmi == null ? 'Kapağa resim koy' : 'Resmi değiştir'),
+                      ),
+                      if (guncel.kapakResmi != null)
+                        TextButton(onPressed: () => Depo.instance.kategoriKapakResmi(k.id, null), child: const Text('Kaldır')),
+                    ]),
                   ),
                 ]),
                 const SizedBox(height: 18),

@@ -110,6 +110,13 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Haftalık: üstte hafta şeridi (günler ve renkli noktalar), altında seçili günün akışı. Aylık: Samsung Takvim ızgarası korundu.
 - Sonraki: ana sayfada kişiselleştirilebilir kitaplar (ön kapaklı, yana kaydırmalı raflar), mum/bitki hareketi, UI sesleri, kitap açılma animasyonu; yazı tipleri ve palet mood board'a göre.
 
+### Kütüphane yenilendi (v0.4.25)
+- Ana sayfada yana kaydırmalı iki katlı ahşap raf (ChatGPT'den gelen parçalarla: raf, 6 kitap kapağı, mum, alev, saksı, yaprak, asma; kupa ve kedi dosyaları hazır, henüz kullanılmıyor). Kitaplar önden bakışlı kapaklar: kategori rengine en yakın kapak, ortada resim / emoji / ikon, altta ad, köşede not sayısı. Sütun sütun ilerler (üst, alt raf), sağa kaydırılır.
+- Kapak kişiselleştirme: Kategorileri düzenle > kategori > "Kitap kapağı" ile kendi resmini koyabilirsin; yoksa emoji, o da yoksa ikon.
+- Mum alevi titrer ve ışığı nabız gibi atar, saksı bitkisi ve asma hafifçe sallanır (tek 7 saniyelik denetleyici, azaltılmış hareket ayarına uyar).
+- Kitaba dokununca: kitap öne gelir (Hero), arka plan kararır ve bulanır, kapak sırttan açılır, içinde o kategorinin notları (kâğıt sayfa). Kapatınca kapak kapanır.
+- Sesler: düğmelerde yumuşak tık, kitaplarda sayfa hışırtısı (kodla üretildi, assets/ses). Ayarlar'da "Ses efektleri" anahtarı. Ortam sesi yok.
+
 ### Kütüphane ve liste (v0.4.17)
 - Ana sayfa: sahne arkada kalır, ortada kütüphane: her ana kategori bir kitap (renk ve ikon kategoriden; alt kategoriler üst kitabın içinde). Kitaba dokununca içindeki notlar açılır, orada "Liste ekle / Not ekle". Kategorisiz notlar rafta eğik post-it kâğıtlar (en yeni 8, "Tümü" ile hepsi). Kartlar (yaptın mı, onay bekleyen vb.) kütüphanenin altında. Alt menüde yalnızca ikon.
 - Liste: not türünün bir şekli (`tur = liste`), maddeler `adimlar` tablosunda. Maddeler tek tek eklenir, işaretlenince üstü çizilir, hepsi bitince liste kendiliğinden tamamlanmaz. Tarihten bağımsız. Oluştururken "Yapay zeka düzenlesin" sorulur (varsayılan kapalı). Sesle madde eklenince metin yapay zekayla maddelere bölünür (hemen çalışır; anahtar yoksa tek madde).

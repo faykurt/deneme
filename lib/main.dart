@@ -13,6 +13,7 @@ import 'ekranlar/not_detay.dart';
 import 'oneri/bildirim_servisi.dart';
 import 'oneri/oneri_deposu.dart';
 import 'selam.dart';
+import 'ses.dart';
 import 'ortak.dart';
 import 'tema.dart';
 import 'veri/depo.dart';
@@ -31,6 +32,7 @@ Future<void> main() async {
   await FikirDeposu.instance.yukle();
   await OneriDeposu.instance.yukle();
   await Selam.instance.yukle();
+  await Ses.instance.yukle();
   await Selam.instance.acilis(DateTime.now());
   await BildirimServisi.instance.baslat();
   BildirimServisi.instance.dokunuldu = _bildirimAc;

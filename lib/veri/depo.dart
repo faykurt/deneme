@@ -14,7 +14,7 @@ class Depo extends ChangeNotifier {
   Depo._();
   static final Depo instance = Depo._();
 
-  static const _surum = 4;
+  static const _surum = 5;
 
   /// Yeni notun yapay zeka dışı başlayıp başlamayacağı (Ayarlar'daki otomatik anahtarı).
   static bool Function() yeniNotAiDisi = () => false;
@@ -84,7 +84,8 @@ class Depo extends ChangeNotifier {
         ust_id INTEGER REFERENCES kategoriler(id) ON DELETE CASCADE,
         sira INTEGER NOT NULL DEFAULT 0,
         renk INTEGER,
-        ikon TEXT
+        ikon TEXT,
+        kapak_resim TEXT
       )''');
     await db.execute('''
       CREATE TABLE not_kategori (
@@ -148,6 +149,9 @@ class Depo extends ChangeNotifier {
       await db.execute("ALTER TABLE notlar ADD COLUMN tur TEXT NOT NULL DEFAULT 'not'");
       await db.execute('ALTER TABLE kategoriler ADD COLUMN renk INTEGER');
       await db.execute('ALTER TABLE kategoriler ADD COLUMN ikon TEXT');
+    }
+    if (eski < 5) {
+      await db.execute('ALTER TABLE kategoriler ADD COLUMN kapak_resim TEXT');
     }
   }
 
@@ -362,6 +366,23 @@ class Depo extends ChangeNotifier {
         },
         where: 'id = ?',
         whereArgs: [id]);
+    await yenile();
+  }
+
+  /// Kitabın kapağına resim koyar (dosya uygulama klasörüne kopyalanır) ya da kaldırır ([kaynakYol] null).
+  Future<void> kategoriKapakResmi(int id, String? kaynakYol) async {
+    final eski = kategoriler.where((k) => k.id == id).firstOrNull?.kapakResmi;
+    String? yeni;
+    if (kaynakYol != null) {
+      final uzanti = p.extension(kaynakYol).isEmpty ? '.jpg' : p.extension(kaynakYol);
+      yeni = p.join(fotografKlasoru.path, 'kapak_${const Uuid().v4()}$uzanti');
+      await File(kaynakYol).copy(yeni);
+    }
+    await _db.update('kategoriler', {'kapak_resim': yeni}, where: 'id = ?', whereArgs: [id]);
+    if (eski != null) {
+      final f = File(eski);
+      if (await f.exists()) await f.delete();
+    }
     await yenile();
   }
 

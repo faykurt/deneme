@@ -42,7 +42,10 @@ class Kategori {
   int? renkDegeri;
   String? ikonAnahtari;
 
-  Kategori({required this.id, required this.ad, this.ustId, this.sira = 0, this.renkDegeri, this.ikonAnahtari});
+  /// Kitabın kapağına konan kullanıcı resmi (dosya yolu). Varsa ikon ve emojiden önce gelir.
+  String? kapakResmi;
+
+  Kategori({required this.id, required this.ad, this.ustId, this.sira = 0, this.renkDegeri, this.ikonAnahtari, this.kapakResmi});
 
   factory Kategori.fromMap(Map<String, Object?> m) => Kategori(
         id: m['id'] as int,
@@ -51,6 +54,7 @@ class Kategori {
         sira: (m['sira'] as int?) ?? 0,
         renkDegeri: m['renk'] as int?,
         ikonAnahtari: m['ikon'] as String?,
+        kapakResmi: m['kapak_resim'] as String?,
       );
 }
 

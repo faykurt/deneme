@@ -6,6 +6,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 
 import '../ai/isleyici.dart';
 import '../ortak.dart';
+import '../ses.dart';
 import '../takvim/takvim_deposu.dart';
 import 'ana_sayfa.dart';
 import 'ayarlar.dart';
@@ -113,7 +114,10 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
         children: const [AnaSayfa(), TakvimEkrani(), NotlarEkrani(), AyarlarEkrani()],
       ),
       floatingActionButton: FloatingActionButton.large(
-        onPressed: sesliNotAc,
+        onPressed: () {
+          Ses.instance.tik();
+          sesliNotAc();
+        },
         tooltip: 'Sesli not',
         backgroundColor: Renk.vurgu,
         foregroundColor: Renk.vurguUstu,
@@ -143,7 +147,10 @@ class _IskeletState extends State<Iskelet> with WidgetsBindingObserver {
     return Expanded(
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => sekmeSecici.value = i,
+        onTap: () {
+          Ses.instance.tik();
+          sekmeSecici.value = i;
+        },
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

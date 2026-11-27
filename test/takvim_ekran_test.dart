@@ -5,6 +5,7 @@ import 'package:aklimda/ekranlar/etkinlik_duzenle.dart';
 import 'package:aklimda/ekranlar/not_detay.dart';
 import 'package:aklimda/ekranlar/notlar_ekrani.dart';
 import 'package:aklimda/ekranlar/takvim.dart';
+import 'package:aklimda/ekranlar/kutuphane.dart';
 import 'package:aklimda/ortak.dart';
 import 'package:aklimda/takvim/takvim_ayarlari.dart';
 import 'package:aklimda/takvim/takvim_deposu.dart';
@@ -47,6 +48,7 @@ void main() {
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
+    Kutuphane.animasyon = false;
     await initializeDateFormatting('tr');
     gecici = await Directory.systemTemp.createTemp('aklimda_takvim_ekran');
     PathProviderPlatform.instance = _SahtePathProvider(gecici.path);

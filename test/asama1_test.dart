@@ -10,7 +10,7 @@ import 'package:aklimda/ekranlar/yazili_not.dart';
 import 'package:aklimda/ekranlar/ana_sayfa.dart';
 import 'package:aklimda/ekranlar/ayarlar.dart';
 import 'package:aklimda/ekranlar/sesli_not.dart';
-import 'package:aklimda/ekranlar/kutuphane.dart';
+import 'package:aklimda/ekranlar/kutuphane.dart' show Kutuphane, kapakIndeksi;
 import 'package:aklimda/ortak.dart';
 import 'package:aklimda/veri/depo.dart';
 import 'package:aklimda/veri/modeller.dart';
@@ -66,6 +66,7 @@ void main() {
 
   setUpAll(() async {
     TestWidgetsFlutterBinding.ensureInitialized();
+    Kutuphane.animasyon = false;
     await initializeDateFormatting('tr');
     gecici = await Directory.systemTemp.createTemp('aklimda_asama1');
     PathProviderPlatform.instance = _SahtePathProvider(gecici.path);
@@ -272,5 +273,34 @@ void main() {
     await bekleDb(tester, () => depo.agac.emojiOf(ev.id) != null);
     expect(depo.agac.emojiOf(ev.id), '🏠');
     await tester.pumpAndSettle();
+  });
+
+  test('Kapak seçimi: kategori rengine en yakın kitap kapağı', () {
+    expect(kapakIndeksi(const Color(0xFFC0714F)), 0); // kiremit
+    expect(kapakIndeksi(const Color(0xFF7A9E5C)), 1); // yeşil
+    expect(kapakIndeksi(const Color(0xFF9B6FB5)), 2); // mor
+    expect(kapakIndeksi(const Color(0xFF4FA3A0)), 3); // turkuaz
+    expect(kapakIndeksi(const Color(0xFF5B8DB8)), 4); // mavi
+    expect(kapakIndeksi(const Color(0xFFC9A23E)), 5); // hardal
+  });
+
+  testWidgets('Kitaba dokununca kitap açılır, içinde notlar ve kapat düğmesi görünür; kapatınca raf döner', (tester) async {
+    tester.view.physicalSize = const Size(1080, 2400);
+    tester.view.devicePixelRatio = 2.75;
+    addTearDown(tester.view.reset);
+    final hobi = depo.agac.anaKategoriler.firstWhere((k) => k.ad == 'Hobi');
+    await tester.runAsync(() => depo.notEkle(metin: 'Dizi listesi yap', kaynak: Kaynak.yazili, kategoriIdler: [hobi.id]));
+    await tester.pumpWidget(MaterialApp(
+        navigatorKey: navigatorKey,
+        home: const Scaffold(body: SingleChildScrollView(child: Kutuphane()))));
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel(RegExp('^Hobi, ')).first);
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    expect(find.byTooltip('Kitabı kapat'), findsOneWidget);
+    expect(find.text('Dizi listesi yap'), findsWidgets);
+    await tester.tap(find.byTooltip('Kitabı kapat'));
+    await tester.pumpAndSettle(const Duration(milliseconds: 100));
+    expect(find.byTooltip('Kitabı kapat'), findsNothing);
+    expect(find.bySemanticsLabel(RegExp('^Hobi, ')), findsWidgets);
   });
 }

@@ -6,6 +6,7 @@ import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import '../selam.dart';
+import '../ses.dart';
 import 'kayit_sonrasi.dart';
 import 'kutuphane.dart';
 import 'oneri_kartlari.dart';
@@ -105,7 +106,13 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
                     tooltip: 'Fotoğraflı not',
                     icon: const Icon(Icons.photo_camera_outlined),
                     onPressed: () => yaziliNotAc(kameraIleBasla: true)),
-                IconButton.filled(tooltip: 'Kaydet', icon: const Icon(Icons.arrow_upward), onPressed: _hizliKaydet),
+                IconButton.filled(
+                    tooltip: 'Kaydet',
+                    icon: const Icon(Icons.arrow_upward),
+                    onPressed: () {
+                      Ses.instance.tik();
+                      _hizliKaydet();
+                    }),
               ]),
             ),
             Padding(
@@ -201,7 +208,10 @@ class _EylemDugmesi extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         child: InkWell(
           borderRadius: BorderRadius.circular(20),
-          onTap: onTap,
+          onTap: () {
+            Ses.instance.tik();
+            onTap();
+          },
           child: Padding(
             padding: const EdgeInsets.symmetric(vertical: 8),
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [

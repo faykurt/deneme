@@ -128,7 +128,37 @@ class _KlasorSatiri extends StatelessWidget {
       );
 }
 
-/// Bir kategorinin içi: alt klasörler ve doğrudan bu kategorideki notlar.
+/// Bir kategorinin içeriği: alt klasörler ve doğrudan bu kategorideki notlar (başlıksız, sayfa içinde kullanılır).
+class KategoriGovdesi extends StatelessWidget {
+  final Kategori kategori;
+  const KategoriGovdesi({super.key, required this.kategori});
+
+  @override
+  Widget build(BuildContext context) {
+    final depo = Depo.instance;
+    return ListenableBuilder(
+      listenable: depo,
+      builder: (context, _) {
+        final altlar = depo.agac.altlari(kategori.id);
+        return NotListesi(
+          kaynak: () => depo.aktifNotlar.where((n) => n.kategoriIdler.contains(kategori.id)).toList(),
+          klasorKategoriId: kategori.id,
+          ustKisim: [
+            for (final alt in altlar)
+              _KlasorSatiri(
+                ad: alt.ad,
+                sayi: depo.aktifNotlar.where((n) => n.kategoriIdler.contains(alt.id)).length,
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => KategoriSayfasi(kategori: alt))),
+              ),
+            if (altlar.isNotEmpty) const Divider(indent: 16, endIndent: 16),
+          ],
+        );
+      },
+    );
+  }
+}
+
+/// Bir kategorinin sayfası (alt kategoriler için).
 class KategoriSayfasi extends StatelessWidget {
   final Kategori kategori;
   const KategoriSayfasi({super.key, required this.kategori});
@@ -147,26 +177,7 @@ class KategoriSayfasi extends StatelessWidget {
             icon: const Icon(Icons.note_add_outlined),
             onPressed: () => yaziliNotAc(kategoriId: kategori.id)),
       ]),
-      body: ListenableBuilder(
-        listenable: depo,
-        builder: (context, _) {
-          final altlar = depo.agac.altlari(kategori.id);
-          return NotListesi(
-            kaynak: () => depo.aktifNotlar.where((n) => n.kategoriIdler.contains(kategori.id)).toList(),
-            klasorKategoriId: kategori.id,
-            ustKisim: [
-              for (final alt in altlar)
-                _KlasorSatiri(
-                  ad: alt.ad,
-                  sayi: depo.aktifNotlar.where((n) => n.kategoriIdler.contains(alt.id)).length,
-                  onTap: () => Navigator.push(
-                      context, MaterialPageRoute(builder: (_) => KategoriSayfasi(kategori: alt))),
-                ),
-              if (altlar.isNotEmpty) const Divider(indent: 16, endIndent: 16),
-            ],
-          );
-        },
-      ),
+      body: KategoriGovdesi(kategori: kategori),
     );
   }
 }
