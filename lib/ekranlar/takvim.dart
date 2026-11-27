@@ -8,6 +8,7 @@ import '../takvim/takvim_ayarlari.dart';
 import '../takvim/takvim_deposu.dart';
 import '../takvim/takvim_modeller.dart';
 import 'etkinlik_duzenle.dart';
+import 'gun_akisi.dart';
 
 enum Gorunum { ay, hafta, gun }
 
@@ -241,17 +242,32 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
               },
               child: _AyGorunumu(odak: _odak, onGunTikla: _gunPenceresi),
             ),
-          Gorunum.hafta => RefreshIndicator(
-              onRefresh: _yenile,
-              child: _HaftaGorunumu(odak: _odak, onAc: _ac),
-            ),
-          Gorunum.gun => RefreshIndicator(
-              onRefresh: _yenile,
-              child: _GunGorunumu(gun: _odak, onAc: _ac),
-            ),
+          Gorunum.hafta => Column(children: [
+              _HaftaSeridi(odak: _odak, onGun: _odakDegistir),
+              Expanded(child: _gunAkisi()),
+            ]),
+          Gorunum.gun => _gunAkisi(),
         },
       ),
     ]);
+  }
+
+  /// Günün akışı; yana kaydırınca önceki / sonraki güne geçer.
+  Widget _gunAkisi() => GestureDetector(
+        behavior: HitTestBehavior.translucent,
+        onHorizontalDragEnd: (d) {
+          final v = d.primaryVelocity ?? 0;
+          if (v < -350) _odakDegistir(_odak.add(const Duration(days: 1)));
+          if (v > 350) _odakDegistir(_odak.subtract(const Duration(days: 1)));
+        },
+        child: RefreshIndicator(
+          onRefresh: _yenile,
+          child: GunAkisi(gun: _odak, onAc: _ac, onEkle: _ekle),
+        ),
+      );
+
+  Future<void> _ekle({String? baslik, DateTime? baslangic}) async {
+    await etkinlikDuzenleAc(baslik: baslik ?? '', baslangic: baslangic);
   }
 
   Future<void> _yenile() async {
@@ -345,46 +361,6 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
             ),
           ),
       ],
-    );
-  }
-}
-
-class _EtkinlikKarti extends StatelessWidget {
-  final TEtkinlik e;
-  final DateTime gun;
-  final void Function(TEtkinlik) onAc;
-  const _EtkinlikKarti({required this.e, required this.gun, required this.onAc});
-
-  @override
-  Widget build(BuildContext context) {
-    final depo = TakvimDeposu.instance;
-    final renk = depo.renkli(e) ? depo.renkOf(e)! : (e.uygulamaninMi ? Renk.vurgu : Renk.yazi);
-    final simge = depo.simgeOf(e, size: 20, renk: renk);
-    return Card(
-      margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
-      elevation: 0,
-      color: renk.withValues(alpha: 0.12),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(14),
-        onTap: () => onAc(e),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(children: [
-            Container(width: 4, height: 34, decoration: BoxDecoration(color: renk, borderRadius: BorderRadius.circular(2))),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                Text(e.baslik, maxLines: 2, overflow: TextOverflow.ellipsis, style: TextStyle(color: Renk.yazi, fontWeight: FontWeight.w600)),
-                Text(etkinlikSaati(e, gun: gun), style: TextStyle(color: Renk.yazi.withValues(alpha: 0.7), fontSize: 12)),
-              ]),
-            ),
-            if (simge != null) Padding(padding: const EdgeInsets.only(right: 6), child: simge),
-            if (e.tekrarli) Icon(Icons.repeat, size: 16, color: Renk.yazi),
-            if (!e.meshgul) Padding(padding: EdgeInsets.only(left: 4), child: Icon(Icons.event_available, size: 16, color: Renk.yazi)),
-          ]),
-        ),
-      ),
     );
   }
 }
@@ -663,175 +639,76 @@ class _GunPenceresi extends StatelessWidget {
   }
 }
 
-class _HaftaGorunumu extends StatelessWidget {
+/// Hafta şeridi: yedi gün, her günün altında etkinliklerin renkli noktaları. Seçili gün dolu daire.
+class _HaftaSeridi extends StatelessWidget {
   final DateTime odak;
-  final void Function(TEtkinlik) onAc;
-  const _HaftaGorunumu({required this.odak, required this.onAc});
+  final void Function(DateTime) onGun;
+  const _HaftaSeridi({required this.odak, required this.onGun});
 
   @override
   Widget build(BuildContext context) {
     final depo = TakvimDeposu.instance;
     final bas = haftaBasi(odak);
     final bugun = gunBasi(DateTime.now());
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120),
-      children: [
-        for (var i = 0; i < 7; i++) ...[
-          Builder(builder: (context) {
-            final g = bas.add(Duration(days: i));
-            final liste = depo.gununEtkinlikleri(g);
-            final bugunMu = g == bugun;
-            return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                child: Text(
-                  DateFormat('d MMMM, EEEE', 'tr').format(g),
-                  style: TextStyle(
-                    color: bugunMu ? Renk.vurgu : Renk.yazi,
-                    fontWeight: bugunMu ? FontWeight.bold : FontWeight.w600,
-                  ),
-                ),
-              ),
-              if (liste.isEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 0, 16, 4),
-                  child: Text('—', style: TextStyle(color: Renk.yazi.withValues(alpha: 0.4))),
-                ),
-              for (final e in liste) _EtkinlikKarti(e: e, gun: g, onAc: onAc),
-            ]);
-          }),
-        ],
-      ],
-    );
-  }
-}
-
-class _GunGorunumu extends StatelessWidget {
-  final DateTime gun;
-  final void Function(TEtkinlik) onAc;
-  const _GunGorunumu({required this.gun, required this.onAc});
-
-  static const _saatYuksekligi = 56.0;
-  static const _solBosluk = 48.0;
-
-  @override
-  Widget build(BuildContext context) {
-    final depo = TakvimDeposu.instance;
-    final liste = depo.gununEtkinlikleri(gun);
-    final tumGun = liste.where((e) => e.tumGun).toList();
-    final saatli = liste.where((e) => !e.tumGun).toList();
-    final g0 = gunBasi(gun);
-    final g1 = sonrakiGun(g0);
-    final yerlesim = _yerlestir(saatli, g0, g1);
-    return ListView(
-      physics: const AlwaysScrollableScrollPhysics(),
-      padding: const EdgeInsets.only(bottom: 120),
-      children: [
-        for (final e in tumGun) _EtkinlikKarti(e: e, gun: gun, onAc: onAc),
-        const SizedBox(height: 8),
-        LayoutBuilder(builder: (context, c) {
-          final genislik = c.maxWidth - _solBosluk - 12;
-          return SizedBox(
-            height: 24 * _saatYuksekligi,
-            child: Stack(children: [
-              for (var s = 0; s < 24; s++)
-                Positioned(
-                  top: s * _saatYuksekligi,
-                  left: 0,
-                  right: 0,
-                  child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                    SizedBox(
-                      width: _solBosluk,
-                      child: Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: Text('${s.toString().padLeft(2, '0')}:00',
-                            style: TextStyle(fontSize: 11, color: Renk.yazi.withValues(alpha: 0.5))),
-                      ),
-                    ),
-                    Expanded(child: Divider(height: 8, color: Renk.yazi.withValues(alpha: 0.12))),
-                  ]),
-                ),
-              for (final y in yerlesim)
-                Positioned(
-                  top: y.ustDk / 60 * _saatYuksekligi + 6,
-                  left: _solBosluk + y.sutun * genislik / y.sutunSayisi,
-                  width: genislik / y.sutunSayisi - 3,
-                  height: math.max(26, y.sureDk / 60 * _saatYuksekligi - 2),
-                  child: GestureDetector(
-                    onTap: () => onAc(y.e),
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+    return Container(
+      padding: const EdgeInsets.fromLTRB(8, 4, 8, 10),
+      child: Row(children: [
+        for (var i = 0; i < 7; i++)
+          Expanded(
+            child: Builder(builder: (context) {
+              final g = bas.add(Duration(days: i));
+              final secili = g == gunBasi(odak);
+              final bugunMu = g == bugun;
+              final renkler = <Color>[];
+              for (final e in depo.gununEtkinlikleri(g)) {
+                final r = depo.renkOf(e) ?? Renk.vurgu;
+                if (!renkler.any((x) => x.toARGB32() == r.toARGB32())) renkler.add(r);
+                if (renkler.length == 3) break;
+              }
+              return InkWell(
+                borderRadius: BorderRadius.circular(20),
+                onTap: () => onGun(g),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Column(children: [
+                    Text(_gunKisa[i],
+                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Renk.yazi.withValues(alpha: 0.6))),
+                    const SizedBox(height: 4),
+                    Container(
+                      width: 38,
+                      height: 38,
+                      alignment: Alignment.center,
                       decoration: BoxDecoration(
-                        color: _haftaRengi(depo, y.e).withValues(alpha: depo.renkli(y.e) ? 0.32 : 0.2),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border(left: BorderSide(color: _haftaRengi(depo, y.e), width: 3)),
+                        shape: BoxShape.circle,
+                        color: secili ? Renk.vurgu : Colors.transparent,
+                        border: !secili && bugunMu ? Border.all(color: Renk.vurgu, width: 2) : null,
                       ),
-                      child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
-                        if (depo.kategoriOf(y.e) != null)
-                          Padding(
-                              padding: const EdgeInsets.only(right: 3, top: 1),
-                              child: depo.simgeOf(y.e, size: 12, renk: _haftaRengi(depo, y.e))),
-                        Expanded(
-                          child: Text('${y.e.baslik}\n${etkinlikSaati(y.e, gun: gun)}',
-                              maxLines: 3,
-                              overflow: TextOverflow.ellipsis,
-                              style: TextStyle(fontSize: 11, color: Renk.yazi)),
-                        ),
+                      child: Text('${g.day}',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 16,
+                            color: secili ? Renk.vurguUstu : (i >= 5 ? Renk.hata : Renk.yazi),
+                          )),
+                    ),
+                    const SizedBox(height: 4),
+                    SizedBox(
+                      height: 7,
+                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+                        for (final r in renkler)
+                          Container(
+                            width: 6,
+                            height: 6,
+                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
+                            decoration: BoxDecoration(color: r, shape: BoxShape.circle),
+                          ),
                       ]),
                     ),
-                  ),
+                  ]),
                 ),
-            ]),
-          );
-        }),
-      ],
+              );
+            }),
+          ),
+      ]),
     );
   }
-
-  Color _haftaRengi(TakvimDeposu depo, TEtkinlik e) =>
-      depo.renkli(e) ? depo.renkOf(e)! : (e.uygulamaninMi ? Renk.vurgu : Renk.yazi);
-
-  /// Çakışan etkinlikleri yan yana sütunlara dağıtır.
-  List<_Yerlesim> _yerlestir(List<TEtkinlik> liste, DateTime g0, DateTime g1) {
-    final sonuc = <_Yerlesim>[];
-    final sirali = [...liste]..sort((a, b) => a.baslangic.compareTo(b.baslangic));
-    var grup = <_Yerlesim>[];
-    DateTime? grupBitis;
-    void grubuKapat() {
-      final n = grup.fold<int>(0, (m, y) => math.max(m, y.sutun + 1));
-      for (final y in grup) {
-        y.sutunSayisi = n;
-      }
-      sonuc.addAll(grup);
-      grup = [];
-      grupBitis = null;
-    }
-
-    for (final e in sirali) {
-      final b = e.baslangic.isBefore(g0) ? g0 : e.baslangic;
-      var s = e.bitis.isAfter(g1) ? g1 : e.bitis;
-      if (!s.isAfter(b)) s = b.add(const Duration(minutes: 30));
-      if (grupBitis != null && !b.isBefore(grupBitis!)) grubuKapat();
-      var sutun = 0;
-      while (grup.any((y) => y.sutun == sutun && y.bitis.isAfter(b))) {
-        sutun++;
-      }
-      grup.add(_Yerlesim(e, b, s, sutun, b.difference(g0).inMinutes, s.difference(b).inMinutes));
-      grupBitis = grupBitis == null || s.isAfter(grupBitis!) ? s : grupBitis;
-    }
-    if (grup.isNotEmpty) grubuKapat();
-    return sonuc;
-  }
-}
-
-class _Yerlesim {
-  final TEtkinlik e;
-  final DateTime bas;
-  final DateTime bitis;
-  final int sutun;
-  final int ustDk;
-  final int sureDk;
-  int sutunSayisi = 1;
-  _Yerlesim(this.e, this.bas, this.bitis, this.sutun, this.ustDk, this.sureDk);
 }

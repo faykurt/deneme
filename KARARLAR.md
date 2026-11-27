@@ -104,6 +104,12 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Not tarih hatırlatması: nottaki "Hatırlat" ile hazır seçenekler (5 dk, 30 dk, 1 saat, 1 gün, 1 hafta önce, aynı gün 09:00) ya da serbest zaman; günlük sınıra dahil değil.
 - Henüz yok: kategori başına saat aralığı ayarı (zamanlama şimdilik yapay zekaya takvim, uyku ve iş bloğu bilgisiyle bırakıldı), öğrenme sinyali olarak "bildirime dokunulmadı" sayımı (şimdilik yalnızca erteleme sayısı kullanılıyor).
 
+### Takvim yenilendi (v0.4.24)
+- Günlük görünüm (Structured'dan esinli): dikey zaman çizgisi, süreyle uzayan renkli ikon kapsülleri, "Şimdi" işareti, etkinlikler arasında boşluk ve uygun not önerisi, bugünün sonunda "Günü kapatalım mı?" kartı (sık yazılan başlıklarla hızlı ekleme).
+- İkon ve renk: başlıktaki emoji, yoksa kategorinin ikonu/rengi, yoksa başlıktaki kelimeye göre tür (market, yemek, toplantı, spor, tez...). Kullanıcı değiştirebilir.
+- Haftalık: üstte hafta şeridi (günler ve renkli noktalar), altında seçili günün akışı. Aylık: Samsung Takvim ızgarası korundu.
+- Sonraki: ana sayfada kişiselleştirilebilir kitaplar (ön kapaklı, yana kaydırmalı raflar), mum/bitki hareketi, UI sesleri, kitap açılma animasyonu; yazı tipleri ve palet mood board'a göre.
+
 ### Kütüphane ve liste (v0.4.17)
 - Ana sayfa: sahne arkada kalır, ortada kütüphane: her ana kategori bir kitap (renk ve ikon kategoriden; alt kategoriler üst kitabın içinde). Kitaba dokununca içindeki notlar açılır, orada "Liste ekle / Not ekle". Kategorisiz notlar rafta eğik post-it kâğıtlar (en yeni 8, "Tümü" ile hepsi). Kartlar (yaptın mı, onay bekleyen vb.) kütüphanenin altında. Alt menüde yalnızca ikon.
 - Liste: not türünün bir şekli (`tur = liste`), maddeler `adimlar` tablosunda. Maddeler tek tek eklenir, işaretlenince üstü çizilir, hepsi bitince liste kendiliğinden tamamlanmaz. Tarihten bağımsız. Oluştururken "Yapay zeka düzenlesin" sorulur (varsayılan kapalı). Sesle madde eklenince metin yapay zekayla maddelere bölünür (hemen çalışır; anahtar yoksa tek madde).

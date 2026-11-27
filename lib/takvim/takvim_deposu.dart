@@ -1,5 +1,5 @@
 import 'dart:ui' show Color;
-import 'package:flutter/widgets.dart' show Widget;
+import 'package:flutter/widgets.dart' show Icon, Text, TextStyle, Widget;
 
 import 'package:flutter/foundation.dart';
 
@@ -7,6 +7,7 @@ import '../kategori_gorunum.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'bos_zaman.dart';
+import 'etkinlik_simgesi.dart';
 import 'takvim_ayarlari.dart';
 import 'takvim_kaynagi.dart';
 import 'takvim_modeller.dart';
@@ -125,20 +126,28 @@ class TakvimDeposu extends ChangeNotifier {
     return null;
   }
 
-  /// Etkinlik özel renge ya da kategoriye sahipse vurgulu (renkli) gösterilir.
-  bool renkli(TEtkinlik e) => e.renk != null || kategoriOf(e) != null;
-
-  /// Kategorisi olan etkinliğin ikonu.
+  /// Etkinliğin simgesi: başlıktaki emoji, yoksa kategorinin simgesi, yoksa başlıktaki kelimeye göre ikon.
+  /// Hiçbiri yoksa null.
   Widget? simgeOf(TEtkinlik e, {double size = 20, Color? renk}) {
+    final emoji = EtkinlikSimgesi.bastakiEmoji(e.baslik);
+    if (emoji != null) return Text(emoji, style: TextStyle(fontSize: size * 0.9, height: 1.1));
     final k = kategoriOf(e);
-    return k == null ? null : kategoriSimgesi(Depo.instance.agac, k, size: size, renk: renk);
+    if (k != null) return kategoriSimgesi(Depo.instance.agac, k, size: size, renk: renk);
+    final tur = EtkinlikSimgesi.turBul(e.baslik);
+    return tur == null ? null : Icon(tur.ikon, size: size, color: renk ?? tur.renk);
   }
+
+  /// Etkinlik özel renge, kategoriye, emojiye ya da tanınan bir türe sahipse vurgulu (renkli) gösterilir.
+  bool renkli(TEtkinlik e) =>
+      e.renk != null || kategoriOf(e) != null || EtkinlikSimgesi.turBul(e.baslik) != null;
 
   /// Etkinliğin rengi: etkinliğe özel renk, yoksa kategorisinin rengi, o da yoksa takviminin rengi.
   Color? renkOf(TEtkinlik e) {
     if (e.renk != null) return e.renk; // etkinliğe özel renk (Samsung Takvim'deki yuvarlak)
     final k = kategoriOf(e);
     if (k != null) return Depo.instance.agac.renkOf(k);
+    final tur = EtkinlikSimgesi.turBul(e.baslik);
+    if (tur != null) return tur.renk;
     for (final t in takvimler) {
       if (t.id == e.takvimId) return t.renk;
     }
