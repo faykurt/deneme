@@ -1,0 +1,289 @@
+import 'dart:ui' show Color;
+import 'package:flutter/widgets.dart' show Icon, Text, TextStyle, Widget;
+
+import 'package:flutter/foundation.dart';
+
+import '../kategori_gorunum.dart';
+import '../veri/depo.dart';
+import '../veri/modeller.dart';
+import 'bos_zaman.dart';
+import 'etkinlik_ikonlari.dart';
+import 'etkinlik_simgesi.dart';
+import 'takvim_ayarlari.dart';
+import 'takvim_kaynagi.dart';
+import 'takvim_modeller.dart';
+
+/// Takvim ekranının ve notlarla takvimin bağlantısının merkezi.
+class TakvimDeposu extends ChangeNotifier {
+  TakvimDeposu(this.kaynak, this.ayarlar);
+
+  /// Uygulamadaki tek örnek. Testlerde sahte kaynakla değiştirilir.
+  static TakvimDeposu instance = TakvimDeposu(CihazTakvimi(), TakvimAyarlari.instance);
+
+  final TakvimKaynagi kaynak;
+  final TakvimAyarlari ayarlar;
+
+  bool izinVar = false;
+  bool izinSorgulandi = false;
+  List<TakvimBilgi> takvimler = [];
+  List<TEtkinlik> etkinlikler = [];
+  DateTime? _bas;
+  DateTime? _bit;
+  String? hata;
+
+  bool get yuklendi => _bas != null;
+  bool get takvimSecili => ayarlar.takvimId != null;
+  bool get hazir => izinVar && takvimSecili;
+
+  /// Okunacak takvimler: kullanıcının işaretledikleri, yoksa gizli olmayan hepsi (iş ve kişisel hesaplar birlikte).
+  List<String>? get _secili {
+    final g = ayarlar.gorunenTakvimler;
+    if (g != null) return g.toList();
+    final idler = takvimler.map((t) => t.id).toList();
+    if (idler.isNotEmpty) return idler;
+    return ayarlar.takvimId == null ? null : [ayarlar.takvimId!];
+  }
+
+  /// Görünen takvim sayısı birden fazlaysa etkinliklerde hangi takvimden geldiği yazılır.
+  bool get cokTakvimli => (_secili?.length ?? 0) > 1;
+
+  String? takvimAdi(String takvimId) => takvimler.where((t) => t.id == takvimId).firstOrNull?.ad;
+
+  Future<void> gorunenTakvimleriAyarla(Set<String>? ids) async {
+    await ayarlar.gorunenAyarla(ids);
+    _bas = _bit = null;
+    etkinlikler = [];
+    notifyListeners();
+    await yenile();
+  }
+
+  Future<void> baslat() async {
+    try {
+      izinVar = await kaynak.izinVar();
+    } catch (_) {
+      izinVar = false;
+    }
+    izinSorgulandi = true;
+    if (izinVar) await takvimleriYukle();
+    notifyListeners();
+  }
+
+  Future<bool> izinIste() async {
+    try {
+      izinVar = await kaynak.izinIste();
+    } catch (_) {
+      izinVar = false;
+    }
+    izinSorgulandi = true;
+    if (izinVar) await takvimleriYukle();
+    notifyListeners();
+    return izinVar;
+  }
+
+  Future<void> takvimleriYukle() async {
+    try {
+      takvimler = (await kaynak.takvimler()).where((t) => !t.gizli).toList();
+      hata = null;
+      // Seçili takvim artık yoksa seçimi sıfırla
+      if (ayarlar.takvimId != null && !takvimler.any((t) => t.id == ayarlar.takvimId)) {
+        await ayarlar.takvimiSifirla();
+      }
+    } on TakvimHatasi catch (e) {
+      hata = e.mesaj;
+      if (e.izinYok) izinVar = false;
+    }
+    notifyListeners();
+  }
+
+  /// Her takvimde son/gelecek 3 ayda kaç etkinlik olduğu (takvim seçerken gösterilir).
+  Future<Map<String, int>> etkinlikSayilari() async {
+    final simdi = DateTime.now();
+    final sonuc = <String, int>{};
+    try {
+      final liste = await kaynak.etkinlikler(
+          simdi.subtract(const Duration(days: 90)), simdi.add(const Duration(days: 90)));
+      for (final e in liste) {
+        sonuc[e.takvimId] = (sonuc[e.takvimId] ?? 0) + 1;
+      }
+    } on TakvimHatasi catch (_) {}
+    return sonuc;
+  }
+
+  Future<void> takvimSec(TakvimBilgi t) async {
+    await ayarlar.takvimSec(t.id, t.ad);
+    etkinlikler = [];
+    _bas = _bit = null;
+    notifyListeners();
+  }
+
+  /// [bas, bit) aralığındaki etkinlikleri yükler. Aynı aralık yeniden istenirse (zorla değilse) atlanır.
+  Future<void> yukle(DateTime bas, DateTime bit, {bool zorla = false}) async {
+    if (!hazir) return;
+    if (!zorla && _bas != null && _bit != null && !bas.isBefore(_bas!) && !bit.isAfter(_bit!)) return;
+    try {
+      etkinlikler = await kaynak.etkinlikler(bas, bit, takvimIdler: _secili);
+      _bas = bas;
+      _bit = bit;
+      hata = null;
+    } on TakvimHatasi catch (e) {
+      hata = e.mesaj;
+    }
+    notifyListeners();
+  }
+
+  Future<void> yenile() async {
+    if (_bas != null && _bit != null) await yukle(_bas!, _bit!, zorla: true);
+  }
+
+  /// Etkinliğe bağlı notun (ilk) kategorisi; bağlı not ya da kategori yoksa null.
+  int? kategoriOf(TEtkinlik e) {
+    for (final n in Depo.instance.notlar) {
+      if (n.takvimEtkinlikId != null &&
+          (n.takvimEtkinlikId == e.eventId || n.takvimEtkinlikId == e.instanceId) &&
+          n.kategoriIdler.isNotEmpty) {
+        return n.kategoriIdler.first;
+      }
+    }
+    return null;
+  }
+
+  /// Etkinliğin simgesi: başlıktaki emoji, yoksa kategorinin simgesi, yoksa başlıktaki kelimeye göre ikon.
+  /// Hiçbiri yoksa null.
+  Widget? simgeOf(TEtkinlik e, {double size = 20, Color? renk}) {
+    final ozel = EtkinlikIkonlari.instance.ikonOf(e.eventId);
+    if (ozel != null) return Icon(ozel, size: size, color: renk ?? renkOf(e));
+    final emoji = EtkinlikSimgesi.bastakiEmoji(e.baslik);
+    if (emoji != null) return Text(emoji, style: TextStyle(fontSize: size * 0.9, height: 1.1));
+    final k = kategoriOf(e);
+    if (k != null) return kategoriSimgesi(Depo.instance.agac, k, size: size, renk: renk);
+    final tur = EtkinlikSimgesi.turBul(e.baslik);
+    return tur == null ? null : Icon(tur.ikon, size: size, color: renk ?? tur.renk);
+  }
+
+  /// Etkinlik özel renge, kategoriye, emojiye ya da tanınan bir türe sahipse vurgulu (renkli) gösterilir.
+  bool renkli(TEtkinlik e) =>
+      EtkinlikIkonlari.instance.ikonOf(e.eventId) != null ||
+      e.renk != null || kategoriOf(e) != null || EtkinlikSimgesi.turBul(e.baslik) != null;
+
+  /// Etkinliğin rengi: etkinliğe özel renk, yoksa kategorisinin rengi, o da yoksa takviminin rengi.
+  Color? renkOf(TEtkinlik e) {
+    if (e.renk != null) return e.renk; // etkinliğe özel renk (Samsung Takvim'deki yuvarlak)
+    final k = kategoriOf(e);
+    if (k != null) return Depo.instance.agac.renkOf(k);
+    final tur = EtkinlikSimgesi.turBul(e.baslik);
+    if (tur != null) return tur.renk;
+    for (final t in takvimler) {
+      if (t.id == e.takvimId) return t.renk;
+    }
+    return null;
+  }
+
+  List<TEtkinlik> gununEtkinlikleri(DateTime gun) {
+    final l = etkinlikler.where((e) => e.gunuKapsar(gun)).toList();
+    l.sort((a, b) {
+      if (a.tumGun != b.tumGun) return a.tumGun ? -1 : 1;
+      return a.baslangic.compareTo(b.baslangic);
+    });
+    return l;
+  }
+
+  // ---- Yazma işlemleri (hata olursa TakvimHatasi fırlatır)
+
+  Future<String> ekle(TEtkinlikTaslagi t) async {
+    t.takvimId ??= ayarlar.takvimId;
+    final id = await kaynak.ekle(t);
+    await yenile();
+    return id;
+  }
+
+  Future<void> guncelle(TEtkinlik eski, TEtkinlikTaslagi yeni, Kapsam kapsam) async {
+    yeni.takvimId ??= eski.takvimId;
+    await kaynak.guncelle(eski, yeni, kapsam);
+    await yenile();
+    await notlariSenkronla();
+  }
+
+  Future<void> sil(TEtkinlik e, Kapsam kapsam) async {
+    await kaynak.sil(e, kapsam);
+    await yenile();
+    await notlariSenkronla();
+  }
+
+  /// Kimliğine göre etkinliği (silinmişse null) getirir.
+  Future<TEtkinlik?> getir(String id) async {
+    try {
+      return await kaynak.getir(id);
+    } on TakvimHatasi catch (_) {
+      return null;
+    }
+  }
+
+  /// Bir notu takvime bağlar (not ↔ etkinlik).
+  Future<void> notuBagla(Not not, String etkinlikId, DateTime bas, DateTime bit) async {
+    not.takvimEtkinlikId = etkinlikId;
+    not.takvimBaslangic = bas.millisecondsSinceEpoch;
+    not.takvimBitis = bit.millisecondsSinceEpoch;
+    not.yaptinCevap = false;
+    await Depo.instance.notGuncelle(not, dokunma: false);
+  }
+
+  Future<void> baglantiyiKaldir(Not not) async {
+    not.takvimEtkinlikId = null;
+    not.takvimBaslangic = null;
+    not.takvimBitis = null;
+    not.yaptinCevap = false;
+    await Depo.instance.notGuncelle(not, dokunma: false);
+  }
+
+  /// Takvime bağlı notları takvimdeki gerçek duruma getirir: etkinlik silinmişse bağlantı kalkar, saat değişmişse güncellenir.
+  Future<void> notlariSenkronla() async {
+    if (!izinVar) return;
+    final depo = Depo.instance;
+    for (final n in List.of(depo.notlar.where((n) => n.takvimEtkinlikId != null))) {
+      try {
+        final e = await kaynak.getir(n.takvimEtkinlikId!);
+        if (e == null) {
+          await baglantiyiKaldir(n);
+        } else if (e.baslangic.millisecondsSinceEpoch != n.takvimBaslangic ||
+            e.bitis.millisecondsSinceEpoch != n.takvimBitis) {
+          n.takvimBaslangic = e.baslangic.millisecondsSinceEpoch;
+          n.takvimBitis = e.bitis.millisecondsSinceEpoch;
+          n.yaptinCevap = false;
+          await depo.notGuncelle(n, dokunma: false);
+        }
+      } on TakvimHatasi catch (_) {
+        // Okunamadıysa dokunma, bir sonraki senkronda tekrar denenir.
+      }
+    }
+  }
+
+  /// Bir günün etkinlikleri (izin ya da takvim sorunu varsa boş liste).
+  Future<List<TEtkinlik>> gunEtkinlikleri(DateTime gun) async {
+    try {
+      final g = gunBasi(gun);
+      final liste = await kaynak.etkinlikler(g, g.add(const Duration(days: 1)), takvimIdler: _secili);
+      liste.sort((a, b) => a.baslangic.compareTo(b.baslangic));
+      return liste;
+    } catch (_) {
+      return [];
+    }
+  }
+
+  /// Bir not için takvimde uygun boş zamanı bulur (hiç yoksa null).
+  Future<DateTime?> bosZamanBul({
+    required int sureDk,
+    required bool isNotu,
+    DateTime? simdi,
+  }) async {
+    final s = simdi ?? DateTime.now();
+    final gun = gunBasi(s);
+    final liste = await kaynak.etkinlikler(gun, gun.add(const Duration(days: 16)), takvimIdler: _secili);
+    return BosZamanBulucu.bul(
+      simdi: s,
+      sureDk: sureDk,
+      isNotu: isNotu,
+      etkinlikler: liste,
+      kurallar: ayarlar.kurallar,
+    );
+  }
+}

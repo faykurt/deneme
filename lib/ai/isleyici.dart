@@ -1,0 +1,246 @@
+import 'dart:convert';
+import 'dart:io';
+import 'dart:math' as math;
+
+import 'package:flutter/foundation.dart';
+import 'package:image/image.dart' as img;
+
+import '../veri/depo.dart';
+import '../veri/modeller.dart';
+import 'ai_ayarlar.dart';
+import 'ai_modeller.dart';
+import 'ai_servisi.dart';
+import 'ai_zamanlama.dart';
+
+/// Fotoğrafı yapay zekaya göndermeden önce küçültür (hız ve maliyet için).
+String? _kucultBase64(String yol) {
+  try {
+    final bayt = File(yol).readAsBytesSync();
+    var resim = img.decodeImage(bayt);
+    if (resim == null) return null;
+    const sinir = 1568;
+    if (math.max(resim.width, resim.height) > sinir) {
+      resim = resim.width >= resim.height
+          ? img.copyResize(resim, width: sinir, interpolation: img.Interpolation.average)
+          : img.copyResize(resim, height: sinir, interpolation: img.Interpolation.average);
+    }
+    return base64Encode(img.encodeJpg(resim, quality: 80));
+  } catch (_) {
+    return null;
+  }
+}
+
+/// Notları sırayla yapay zekaya gönderip sonucu notlara yazar.
+/// İnternet yoksa notlar bekler, bağlantı gelince (uygulama açılınca / belli aralıkla) devam edilir.
+class AiIsleyici extends ChangeNotifier {
+  AiIsleyici._();
+  static final AiIsleyici instance = AiIsleyici._();
+
+  final Set<String> _calisan = {};
+  bool _dongu = false;
+  AiHata? sonHata;
+
+  bool get mesgul => _calisan.isNotEmpty;
+
+  void hatayiTemizle() {
+    sonHata = null;
+    notifyListeners();
+  }
+  bool notIsleniyor(String id) => _calisan.contains(id);
+  int get bekleyenSayisi => Depo.instance.notlar.where((n) => !n.islendi && !n.aiDisi).length;
+
+  /// Son çalışma saatine kadar kaydedilmiş, işlenmemiş notları işler. Saatten sonra kaydedilenler bir
+  /// sonraki saati bekler. Uygulama açılınca ve aralıklarla çağrılır, işlenecek bir şey yoksa ağa çıkmaz.
+  Future<void> zamanlanmisIsle({DateTime? simdi}) async {
+    final s = simdi ?? DateTime.now();
+    final sinir = AiZamanlama.instance.sonSlot(s);
+    if (sinir == null || !AiAyarlar.instance.otomatik) return;
+    await bekleyenleriIsle(sinir: sinir);
+  }
+
+  /// Henüz işlenmemiş notları sırayla işler ([sinir] verilirse o andan önce kaydedilenleri). İlk hatada durur.
+  Future<void> bekleyenleriIsle({DateTime? sinir}) async {
+    if (_dongu || !AiAyarlar.instance.anahtarVar) return;
+    _dongu = true;
+    try {
+      final liste = Depo.instance.notlar.where((n) =>
+          !n.islendi && !n.aiDisi && (sinir == null || n.olusturma <= sinir.millisecondsSinceEpoch));
+      for (final n in List.of(liste)) {
+        if (_calisan.contains(n.id)) continue;
+        final hata = await _isle(n);
+        if (hata != null) break;
+      }
+    } finally {
+      _dongu = false;
+      notifyListeners();
+    }
+  }
+
+  /// Yapay zeka dışı bırakılmış notu yapay zekaya gönderir (kart üzerindeki küçük bağlantı).
+  Future<AiHata?> notuGonder(Not not) async {
+    not.aiDisi = false;
+    await Depo.instance.notGuncelle(not, dokunma: false);
+    return hemenIsle(not);
+  }
+
+  /// Tek bir notu hemen işler (not kaydedilince açılan onay penceresi için). Hata varsa döner.
+  Future<AiHata?> hemenIsle(Not not) => _calisan.contains(not.id) ? Future.value(null) : _isle(not);
+
+  Future<AiHata?> _isle(Not not) async {
+    _calisan.add(not.id);
+    notifyListeners();
+    try {
+      final anahtar = AiAyarlar.instance.anahtar;
+      if (anahtar == null || anahtar.isEmpty) {
+        throw const AiHata('Yapay zeka için henüz anahtar eklenmedi.', AiHataTuru.anahtarYok);
+      }
+      final depo = Depo.instance;
+      if (not.liste) {
+        await _listeyiUygula(not, anahtar);
+        sonHata = null;
+        return null;
+      }
+      if (not.metin.trim().isEmpty && not.fotograflar.isEmpty) {
+        not.islendi = true;
+        await depo.notGuncelle(not, dokunma: false);
+        return null;
+      }
+      final resimler = <String>[];
+      for (final yol in not.fotograflar.take(4)) {
+        final b = await compute(_kucultBase64, yol);
+        if (b != null) resimler.add(b);
+      }
+      final sonuc = await AiServisi.notuIsle(
+        apiKey: anahtar,
+        not: not,
+        agac: depo.agac,
+        resimlerBase64: resimler,
+      );
+      await _uygula(not.id, sonuc);
+      sonHata = null;
+      return null;
+    } on AiHata catch (e) {
+      sonHata = e;
+      return e;
+    } catch (e) {
+      sonHata = AiHata('Beklenmeyen bir sorun oldu: $e', AiHataTuru.diger);
+      return sonHata;
+    } finally {
+      _calisan.remove(not.id);
+      notifyListeners();
+    }
+  }
+
+  /// Listeyi (başlık + mevcut maddeler) yapay zekaya verir; maddeleri böler, ad ve kategori önerir.
+  /// İşaretli maddeler işaretli kalır. Liste onay beklemez.
+  Future<void> _listeyiUygula(Not not, String anahtar) async {
+    final depo = Depo.instance;
+    final parcalar = [
+      if (not.metin.trim().isNotEmpty) not.metin.trim(),
+      ...not.adimlar.map((a) => a.metin),
+    ];
+    if (parcalar.isEmpty) {
+      not.islendi = true;
+      not.onayli = true;
+      await depo.notGuncelle(not, dokunma: false);
+      return;
+    }
+    final sonuc = await AiServisi.listeyiCoz(apiKey: anahtar, metin: parcalar.join('\n'), agac: depo.agac);
+    final i = depo.notlar.indexWhere((n) => n.id == not.id);
+    if (i < 0) return;
+    final guncel = depo.notlar[i];
+    final yapilanlar = guncel.adimlar.where((a) => a.yapildi).map((a) => a.metin.toLowerCase()).toSet();
+    if (sonuc.maddeler.isNotEmpty) {
+      await depo.adimlariKaydet(
+        guncel.id,
+        [
+          for (final m in sonuc.maddeler)
+            Adim(
+                notId: guncel.id,
+                sira: 0,
+                metin: m,
+                durum: yapilanlar.contains(m.toLowerCase()) ? Durum.yapildi : Durum.yapilacak),
+        ],
+      );
+    }
+    if (sonuc.baslik.isNotEmpty) guncel.metin = sonuc.baslik;
+    guncel.islendi = true;
+    guncel.onayli = true;
+    await depo.notGuncelle(guncel, dokunma: false);
+    if (guncel.kategoriIdler.isEmpty) {
+      final gecerli = sonuc.kategoriIdler.where((id) => depo.agac.bul(id) != null).toSet();
+      if (gecerli.isNotEmpty) await depo.kategorileriAyarla(guncel.id, gecerli);
+    }
+  }
+
+  /// Konuşulan ya da yazılan bir metni liste maddelerine böler (liste ekranındaki mikrofon için).
+  /// Anahtar yoksa ya da bir sorun olursa metin tek madde olarak döner.
+  Future<List<String>> metniMaddelereBol(String metin) async {
+    final t = metin.trim();
+    if (t.isEmpty) return [];
+    final anahtar = AiAyarlar.instance.anahtar;
+    if (anahtar == null || anahtar.isEmpty) return [t];
+    try {
+      final s = await AiServisi.listeyiCoz(apiKey: anahtar, metin: t, agac: Depo.instance.agac);
+      return s.maddeler.isEmpty ? [t] : s.maddeler;
+    } on AiHata catch (e) {
+      sonHata = e;
+      notifyListeners();
+      return [t];
+    }
+  }
+
+  Future<void> _uygula(String notId, AiSonuc sonuc) async {
+    final depo = Depo.instance;
+    final i = depo.notlar.indexWhere((n) => n.id == notId);
+    if (i < 0) return; // arada silinmiş
+    final not = depo.notlar[i];
+    not.islendi = true;
+    if (sonuc.fikirler.isNotEmpty) {
+      not.aiJson = jsonEncode(sonuc.toJson());
+      if (sonuc.fikirler.length == 1) {
+        await fikriUygula(not, sonuc.fikirler.first);
+        return;
+      }
+    }
+    await depo.notGuncelle(not, dokunma: false);
+  }
+
+  /// Fikrin başlık, süre, tarih ve (notta kategori yoksa) kategorisini nota yazar.
+  Future<void> fikriUygula(Not not, AiFikir f) async {
+    final depo = Depo.instance;
+    if (f.baslik.isNotEmpty) not.baslik = f.baslik;
+    if (not.metin.trim().isEmpty && f.metin.isNotEmpty) not.metin = f.metin;
+    if (f.sureDk > 0) not.sureDk = f.sureDk;
+    final dt = f.tarihDt;
+    if (dt != null) {
+      not.tarih = dt.millisecondsSinceEpoch;
+      not.tarihSaatli = f.saatVar;
+    }
+    not.islendi = true;
+    await depo.notGuncelle(not, dokunma: false);
+    if (not.kategoriIdler.isEmpty) {
+      final gecerli = f.kategoriIdler.where((id) => depo.agac.bul(id) != null).toSet();
+      if (gecerli.isNotEmpty) await depo.kategorileriAyarla(not.id, gecerli);
+    }
+  }
+
+  /// Birden fazla fikri ayrı notlara böler. İlk fikir mevcut notta kalır (fotoğraflar da orada).
+  Future<void> bol(Not not, List<AiFikir> fikirler) async {
+    final depo = Depo.instance;
+    for (var i = 0; i < fikirler.length; i++) {
+      final f = fikirler[i];
+      final tek = jsonEncode(AiSonuc([f]).toJson());
+      if (i == 0) {
+        not.metin = f.metin.isNotEmpty ? f.metin : not.metin;
+        not.aiJson = tek;
+        await fikriUygula(not, f);
+      } else {
+        final yeni = await depo.notEkle(metin: f.metin, kaynak: not.kaynak);
+        yeni.aiJson = tek;
+        yeni.yorum = not.yorum;
+        await fikriUygula(yeni, f);
+      }
+    }
+  }
+}

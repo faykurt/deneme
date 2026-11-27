@@ -1,0 +1,840 @@
+import 'dart:async';
+import 'dart:io';
+
+import 'package:flutter/services.dart';
+import 'package:intl/intl.dart';
+import 'package:material_ui/material_ui.dart';
+
+import '../ai/ai_ayarlar.dart';
+import '../ai/ai_modeller.dart';
+import '../ai/ai_zamanlama.dart';
+import '../ai/isleyici.dart';
+import '../oneri/bildirim_servisi.dart';
+import '../ortak.dart';
+import '../takvim/takvim_deposu.dart';
+import '../veri/depo.dart';
+import '../veri/modeller.dart';
+import 'onay_penceresi.dart';
+import 'takvim_ayar_pencereleri.dart';
+import 'sesli_not.dart';
+import 'takvime_ekle.dart';
+import 'yazili_not.dart';
+
+/// Bir notun ayrıntısı: metni, fotoğrafları, kategorileri ve durumu düzenlenir.
+class NotDetay extends StatefulWidget {
+  final String notId;
+  const NotDetay({super.key, required this.notId});
+
+  @override
+  State<NotDetay> createState() => _NotDetayState();
+}
+
+class _NotDetayState extends State<NotDetay> {
+  final _depo = Depo.instance;
+  late final TextEditingController _metin;
+  late final TextEditingController _yorum;
+  Timer? _kayitZamanlayici;
+
+  Not? get _not {
+    for (final n in _depo.notlar) {
+      if (n.id == widget.notId) return n;
+    }
+    return null;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _metin = TextEditingController(text: _not?.metin ?? '');
+    _yorum = TextEditingController(text: _not?.yorum ?? '');
+  }
+
+  void _yaziDegisti() {
+    _kayitZamanlayici?.cancel();
+    _kayitZamanlayici = Timer(const Duration(milliseconds: 700), _yaziyiKaydet);
+  }
+
+  Future<void> _yaziyiKaydet() async {
+    final n = _not;
+    if (n == null) return;
+    final yorum = _yorum.text.trim().isEmpty ? null : _yorum.text.trim();
+    if (n.metin == _metin.text && n.yorum == yorum) return;
+    n.metin = _metin.text;
+    n.yorum = yorum;
+    await _depo.notGuncelle(n);
+  }
+
+  @override
+  void dispose() {
+    _kayitZamanlayici?.cancel();
+    _yaziyiKaydet();
+    _metin.dispose();
+    _yorum.dispose();
+    _yeniMadde.dispose();
+    super.dispose();
+  }
+
+  Future<void> _fotoEkle(bool kamera) async {
+    final yollar = await fotografSec(kamera: kamera);
+    for (final y in yollar) {
+      await _depo.fotografEkle(widget.notId, y);
+    }
+  }
+
+  Future<void> _kategoriEkle() async {
+    final n = _not;
+    if (n == null) return;
+    final k = await kategoriSec(context, baslik: 'Kategori ekle');
+    if (k != null) {
+      await _depo.kategorileriAyarla(n.id, [...n.kategoriIdler, k]);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return ListenableBuilder(
+      listenable: _depo,
+      builder: (context, _) {
+        final n = _not;
+        if (n == null) {
+          return Scaffold(
+            appBar: AppBar(),
+            body: const Center(child: Text('Bu not artık yok.')),
+          );
+        }
+        final agac = _depo.agac;
+        final yazi = Theme.of(context).textTheme;
+        return Scaffold(
+          appBar: AppBar(
+            backgroundColor: Renk.zemin,
+            title: Text(n.arsiv ? 'Not (arşivde)' : 'Not'),
+            actions: [
+              IconButton(
+                tooltip: n.arsiv ? 'Arşivden çıkar' : 'Arşivle',
+                icon: Icon(
+                  n.arsiv ? Icons.unarchive_outlined : Icons.archive_outlined,
+                ),
+                onPressed: () => arsivleVeGeriAlGoster([n.id], !n.arsiv),
+              ),
+              IconButton(
+                tooltip: 'Sil',
+                icon: const Icon(Icons.delete_outline),
+                onPressed: () async {
+                  _kayitZamanlayici?.cancel();
+                  Navigator.pop(context);
+                  await silVeGeriAlGoster([n.id]);
+                },
+              ),
+            ],
+          ),
+          body: ListView(
+            padding: const EdgeInsets.all(16),
+            children: [
+              Text(
+                '${tarihYazisi(n.olusturma)} · ${switch (n.kaynak) {
+                  Kaynak.sesli => 'sesli not',
+                  Kaynak.paylasim => 'paylaşımdan',
+                  _ => 'yazılı not',
+                }}',
+                style: yazi.labelMedium?.copyWith(
+                  color: Renk.yazi.withValues(alpha: 0.6),
+                ),
+              ),
+              if (n.onayBekliyor) ...[
+                const SizedBox(height: 10),
+                Material(
+                  color: Renk.vurgu.withValues(alpha: 0.16),
+                  borderRadius: BorderRadius.circular(14),
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.auto_awesome,
+                      color: Renk.vurgu,
+                    ),
+                    title: const Text('Yapay zeka bu notu düzenledi'),
+                    subtitle: const Text(
+                      'Önerileri kontrol edip onaylayabilirsin.',
+                    ),
+                    trailing: FilledButton(
+                      onPressed: () => onayPenceresiAc(n.id),
+                      child: const Text('İncele'),
+                    ),
+                  ),
+                ),
+              ] else if (!n.islendi && AiAyarlar.instance.anahtarVar) ...[
+                const SizedBox(height: 6),
+                Row(children: [
+                  Expanded(
+                    child: Text(
+                      '⏳ Yapay zeka bu notu ${AiZamanlama.instance.sonrakiMetni(DateTime.now())} düzenleyecek.',
+                      style: yazi.bodySmall?.copyWith(color: Renk.yazi.withValues(alpha: 0.7)),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () => onayPenceresiAc(n.id, canli: true),
+                    child: const Text('Şimdi analiz et'),
+                  ),
+                ]),
+              ],
+              const SizedBox(height: 8),
+              TextField(
+                controller: _metin,
+                onChanged: (_) => _yaziDegisti(),
+                minLines: 4,
+                maxLines: null,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  hintText: 'Not',
+                  filled: true,
+                  fillColor: Renk.kart,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                ),
+              ),
+              if (n.link != null) ...[
+                const SizedBox(height: 8),
+                ListTile(
+                  contentPadding: EdgeInsets.zero,
+                  leading: const Icon(Icons.link),
+                  title: Text(
+                    n.link!,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  subtitle: const Text('Kopyalamak için dokun'),
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: n.link!));
+                    mesajGoster('Link kopyalandı');
+                  },
+                ),
+              ],
+              SwitchListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Bana hatırlat / öner'),
+                subtitle: const Text('Kapalıysa bu not sadece not olarak kalır.'),
+                value: n.oneriDahil,
+                onChanged: (v) {
+                  n.oneriDahil = v;
+                  _depo.notGuncelle(n, dokunma: false);
+                },
+              ),
+              if (!n.islendi && AiAyarlar.instance.anahtarVar)
+                SwitchListTile(
+                  dense: true,
+                  contentPadding: EdgeInsets.zero,
+                  title: const Text('Yapay zeka düzenlesin'),
+                  subtitle: Text(n.aiDisi ? 'Kapalı, not olduğu gibi kalır.' : 'Çalışma saatinde işlenir.'),
+                  value: !n.aiDisi,
+                  onChanged: (v) {
+                    n.aiDisi = !v;
+                    _depo.notGuncelle(n, dokunma: false);
+                  },
+                ),
+              const SizedBox(height: 12),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  ActionChip(
+                    avatar: const Icon(Icons.timer_outlined, size: 18),
+                    label: Text(
+                      n.sureDk == null ? 'Süre ekle' : '${n.sureDk} dk',
+                    ),
+                    onPressed: () => _sureDuzenle(n),
+                  ),
+                  ActionChip(
+                    avatar: const Icon(Icons.event, size: 18),
+                    label: Text(
+                      n.tarih == null
+                          ? 'Tarih ekle'
+                          : DateFormat(
+                              n.tarihSaatli ? 'd MMMM, HH:mm' : 'd MMMM',
+                              'tr',
+                            ).format(
+                              DateTime.fromMillisecondsSinceEpoch(n.tarih!),
+                            ),
+                    ),
+                    onPressed: () => _tarihDuzenle(n),
+                  ),
+                  ActionChip(
+                    avatar: const Icon(Icons.alarm, size: 18),
+                    label: Text(n.hatirlatma == null
+                        ? 'Hatırlat'
+                        : 'Hatırlatma: ${DateFormat('d MMM, HH:mm', 'tr').format(DateTime.fromMillisecondsSinceEpoch(n.hatirlatma!))}'),
+                    onPressed: () => _hatirlatSec(n),
+                  ),
+                  if (n.tarih != null)
+                    ActionChip(
+                      avatar: const Icon(Icons.close, size: 16),
+                      label: const Text('Tarihi kaldır'),
+                      onPressed: () {
+                        n.tarih = null;
+                        _depo.notGuncelle(n);
+                      },
+                    ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              _takvimBolumu(n),
+              const SizedBox(height: 16),
+              ..._adimBolumu(n, yazi),
+              Text('Fotoğraflar', style: yazi.titleSmall),
+              const SizedBox(height: 8),
+              SizedBox(
+                height: 96,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    for (final f in n.fotograflar)
+                      Padding(
+                        padding: const EdgeInsets.only(right: 8),
+                        child: GestureDetector(
+                          onTap: () => _fotografGoster(f),
+                          onLongPress: () => _fotografSilSor(n.id, f),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(12),
+                            child: Image.file(
+                              File(f),
+                              width: 96,
+                              height: 96,
+                              fit: BoxFit.cover,
+                              cacheWidth: 288,
+                            ),
+                          ),
+                        ),
+                      ),
+                    _KareButon(
+                      icon: Icons.photo_camera_outlined,
+                      onTap: () => _fotoEkle(true),
+                    ),
+                    _KareButon(
+                      icon: Icons.photo_library_outlined,
+                      onTap: () => _fotoEkle(false),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+              Text('Kategoriler', style: yazi.titleSmall),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final k in n.kategoriIdler)
+                    InputChip(
+                      label: Text(agac.tamAd(k)),
+                      onDeleted: () => _depo.kategorileriAyarla(
+                        n.id,
+                        n.kategoriIdler.where((x) => x != k),
+                      ),
+                    ),
+                  ActionChip(
+                    avatar: const Icon(Icons.add, size: 18),
+                    label: const Text('Kategori ekle'),
+                    onPressed: _kategoriEkle,
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+              Text('Durum', style: yazi.titleSmall),
+              const SizedBox(height: 8),
+              Wrap(
+                spacing: 8,
+                children: [
+                  for (final d in Durum.hepsi)
+                    ChoiceChip(
+                      label: Text(Durum.ad(d)),
+                      selected: n.durum == d,
+                      onSelected: (_) {
+                        n.durum = d;
+                        _depo.notGuncelle(n);
+                      },
+                    ),
+                ],
+              ),
+              if (n.kaynak == Kaynak.paylasim || n.yorum != null) ...[
+                const SizedBox(height: 16),
+                TextField(
+                  controller: _yorum,
+                  onChanged: (_) => _yaziDegisti(),
+                  decoration: InputDecoration(
+                    labelText: 'Yorum',
+                    filled: true,
+                    fillColor: Renk.kart,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _sureDuzenle(Not n) async {
+    final c = TextEditingController(text: n.sureDk?.toString() ?? '');
+    final tamam = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Tahmini süre (dakika)'),
+        content: TextField(
+          controller: c,
+          autofocus: true,
+          keyboardType: TextInputType.number,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    );
+    if (tamam != true) return;
+    n.sureDk = int.tryParse(c.text.trim());
+    await _depo.notGuncelle(n);
+  }
+
+  Future<void> _tarihDuzenle(Not n) async {
+    final simdi = DateTime.now();
+    final eski = n.tarih == null
+        ? simdi
+        : DateTime.fromMillisecondsSinceEpoch(n.tarih!);
+    final gun = await showDatePicker(
+      context: context,
+      initialDate: eski,
+      firstDate: DateTime(simdi.year - 1),
+      lastDate: DateTime(simdi.year + 5),
+    );
+    if (gun == null || !mounted) return;
+    final saat = await showTimePicker(
+      context: context,
+      initialTime: n.tarihSaatli
+          ? TimeOfDay.fromDateTime(eski)
+          : const TimeOfDay(hour: 9, minute: 0),
+      helpText: 'Saat de eklemek ister misin? (Vazgeç: sadece gün)',
+    );
+    n.tarihSaatli = saat != null;
+    n.tarih = DateTime(
+      gun.year,
+      gun.month,
+      gun.day,
+      saat?.hour ?? 0,
+      saat?.minute ?? 0,
+    ).millisecondsSinceEpoch;
+    await _depo.notGuncelle(n);
+  }
+
+  Widget _takvimBolumu(Not n) {
+    if (n.takvimEtkinlikId == null) {
+      return Align(
+        alignment: Alignment.centerLeft,
+        child: OutlinedButton.icon(
+          onPressed: () => takvimeEkle(context, n),
+          icon: const Icon(Icons.event_available),
+          label: const Text('Takvime ekle'),
+        ),
+      );
+    }
+    final bas = n.takvimBaslangic == null ? null : DateTime.fromMillisecondsSinceEpoch(n.takvimBaslangic!);
+    return Material(
+      color: Renk.vurgu.withValues(alpha: 0.12),
+      borderRadius: BorderRadius.circular(14),
+      child: ListTile(
+        leading: const Text('📅', style: TextStyle(fontSize: 22)),
+        title: const Text('Takvimde'),
+        subtitle: Text(bas == null ? '' : zamanMetni(bas)),
+        onTap: () => bagliEtkinligiAc(n),
+        trailing: PopupMenuButton<String>(
+          onSelected: (v) {
+            if (v == 'sil') bagliEtkinligiSil(n);
+            if (v == 'kaldir') TakvimDeposu.instance.baglantiyiKaldir(n);
+          },
+          itemBuilder: (_) => const [
+            PopupMenuItem(value: 'sil', child: Text('Takvimden sil')),
+            PopupMenuItem(value: 'kaldir', child: Text('Bağlantıyı kaldır (etkinlik kalsın)')),
+          ],
+        ),
+      ),
+    );
+  }
+
+  /// Hatırlatma zamanı: notun tarihine göre hazır seçenekler ya da serbest tarih/saat.
+  Future<void> _hatirlatSec(Not n) async {
+    final tarih = n.tarih == null ? null : DateTime.fromMillisecondsSinceEpoch(n.tarih!);
+    // Saati olmayan tarihlerde baz saat 09:00 sayılır.
+    final baz = tarih == null ? null : (n.tarihSaatli ? tarih : DateTime(tarih.year, tarih.month, tarih.day, 9));
+    final secenekler = <(String, DateTime)>[
+      if (baz != null) ...[
+        if (n.tarihSaatli) ('5 dakika önce', baz.subtract(const Duration(minutes: 5))),
+        if (n.tarihSaatli) ('30 dakika önce', baz.subtract(const Duration(minutes: 30))),
+        if (n.tarihSaatli) ('1 saat önce', baz.subtract(const Duration(hours: 1))),
+        ('1 gün önce', baz.subtract(const Duration(days: 1))),
+        ('1 hafta önce', baz.subtract(const Duration(days: 7))),
+        ('Aynı gün sabah 09:00', DateTime(baz.year, baz.month, baz.day, 9)),
+      ],
+    ];
+    final secim = await showDialog<Object>(
+      context: context,
+      builder: (ctx) => SimpleDialog(
+        title: const Text('Ne zaman hatırlatayım?'),
+        children: [
+          if (baz == null)
+            const Padding(
+              padding: EdgeInsets.fromLTRB(24, 0, 24, 8),
+              child: Text('Hazır seçenekler için nota önce bir tarih ekle.'),
+            ),
+          for (final s in secenekler) SimpleDialogOption(onPressed: () => Navigator.pop(ctx, s.$2), child: Text(s.$1)),
+          SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'serbest'), child: const Text('Tarih ve saat seç…')),
+          if (n.hatirlatma != null)
+            SimpleDialogOption(onPressed: () => Navigator.pop(ctx, 'kaldir'), child: const Text('Hatırlatmayı kaldır')),
+        ],
+      ),
+    );
+    if (secim == null || !mounted) return;
+    DateTime? zaman;
+    if (secim is DateTime) {
+      zaman = secim;
+    } else if (secim == 'kaldir') {
+      n.hatirlatma = null;
+      await BildirimServisi.instance.hatirlatmaIptal(n.id);
+      await _depo.notGuncelle(n);
+      return;
+    } else {
+      final simdi = DateTime.now();
+      final gun = await showDatePicker(
+          context: context, initialDate: simdi, firstDate: simdi.subtract(const Duration(days: 1)), lastDate: DateTime(simdi.year + 5));
+      if (gun == null || !mounted) return;
+      final saat = await showTimePicker(context: context, initialTime: const TimeOfDay(hour: 9, minute: 0));
+      if (saat == null) return;
+      zaman = DateTime(gun.year, gun.month, gun.day, saat.hour, saat.minute);
+    }
+    if (!zaman.isAfter(DateTime.now())) {
+      mesajGoster('Bu zaman geçmiş, hatırlatma kurulmadı.');
+      return;
+    }
+    n.hatirlatma = zaman.millisecondsSinceEpoch;
+    await _depo.notGuncelle(n);
+    final kuruldu = await BildirimServisi.instance.hatirlatmaKur(n);
+    if (!kuruldu) {
+      mesajGoster('Hatırlatma kaydedildi ama bildirim kurulamadı. Ayarlar > Bildirimi dene ile izni kontrol et.');
+    } else {
+      mesajGoster('Hatırlatma kuruldu: ${DateFormat('d MMMM, HH:mm', 'tr').format(zaman)}');
+    }
+  }
+
+  /// Adımlar: sıralı liste. Sıradaki (ilk yapılmamış) adım vurgulanır.
+  List<Widget> _adimBolumu(Not n, TextTheme yazi) {
+    if (n.liste) return _listeBolumu(n, yazi);
+    final siradaki = n.adimlar.indexWhere((a) => !a.yapildi);
+    final oneri = AiSonuc.coz(n.aiJson);
+    final oneriVar =
+        n.adimlar.isEmpty &&
+        oneri != null &&
+        oneri.fikirler.length == 1 &&
+        oneri.fikirler.first.yapilabilirIs &&
+        oneri.fikirler.first.adimlar.isNotEmpty;
+    return [
+      Row(
+        children: [
+          Text('Adımlar', style: yazi.titleSmall),
+          const Spacer(),
+          if (oneriVar)
+            TextButton.icon(
+              onPressed: () => onayPenceresiAc(n.id),
+              icon: const Icon(Icons.auto_awesome, size: 18),
+              label: const Text('Adım önerisini gör'),
+            ),
+        ],
+      ),
+      for (var i = 0; i < n.adimlar.length; i++)
+        _adimSatiri(n, n.adimlar[i], i == siradaki),
+      Align(
+        alignment: Alignment.centerLeft,
+        child: TextButton.icon(
+          onPressed: () => _adimDuzenle(n, null),
+          icon: const Icon(Icons.add),
+          label: const Text('Adım ekle'),
+        ),
+      ),
+      const SizedBox(height: 8),
+    ];
+  }
+
+  /// Liste notu: işaretlenebilir maddeler, tek tek ekleme. Hepsi bitince liste kendiliğinden tamamlanmaz.
+  List<Widget> _listeBolumu(Not n, TextTheme yazi) {
+    final bitti = n.adimlar.where((a) => a.yapildi).length;
+    return [
+      Row(children: [
+        Text('Liste${n.adimlar.isEmpty ? '' : '  ($bitti/${n.adimlar.length})'}', style: yazi.titleSmall),
+        const Spacer(),
+        if (AiAyarlar.instance.anahtarVar && n.adimlar.isNotEmpty)
+          TextButton(
+            onPressed: () async {
+              final hata = await AiIsleyici.instance.notuGonder(n);
+              mesajGoster(hata == null ? 'Yapay zeka listeyi düzenledi.' : hata.mesaj);
+            },
+            child: Text('Yapay zekaya gönder',
+                style: TextStyle(fontSize: 12, color: Renk.yazi.withValues(alpha: 0.6))),
+          ),
+      ]),
+      for (final a in n.adimlar)
+        ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.only(left: 0, right: 0),
+          leading: Checkbox(value: a.yapildi, onChanged: (v) => _depo.adimDurumu(a.id!, v == true ? Durum.yapildi : Durum.yapilacak)),
+          title: Text(a.metin,
+              style: TextStyle(
+                decoration: a.yapildi ? TextDecoration.lineThrough : null,
+                color: a.yapildi ? Renk.yazi.withValues(alpha: 0.5) : Renk.yazi,
+              )),
+          onTap: () => _adimDuzenle(n, a),
+          trailing: IconButton(
+            tooltip: 'Maddeyi sil',
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: () => _depo.adimlariKaydet(n.id, n.adimlar.where((x) => x.id != a.id).toList()),
+          ),
+        ),
+      Row(children: [
+        Expanded(
+          child: TextField(
+            controller: _yeniMadde,
+            textCapitalization: TextCapitalization.sentences,
+            onSubmitted: (_) => _maddeEkle(n),
+            decoration: const InputDecoration(hintText: 'Madde ekle', isDense: true),
+          ),
+        ),
+        IconButton(
+            tooltip: 'Sesle ekle (yapay zeka maddelere böler)',
+            icon: const Icon(Icons.mic_none),
+            onPressed: () => _sesleMaddeEkle(n)),
+        IconButton(tooltip: 'Ekle', icon: const Icon(Icons.add_circle_outline), onPressed: () => _maddeEkle(n)),
+      ]),
+      const SizedBox(height: 8),
+    ];
+  }
+
+  final _yeniMadde = TextEditingController();
+
+  Future<void> _maddeEkle(Not n) async {
+    final t = _yeniMadde.text.trim();
+    if (t.isEmpty) return;
+    _yeniMadde.clear();
+    await _depo.adimlariKaydet(n.id, [...n.adimlar, Adim(notId: n.id, sira: 0, metin: t)]);
+  }
+
+  Future<void> _sesleMaddeEkle(Not n) async {
+    final metin = await sesliMetinAl();
+    if (metin == null || metin.trim().isEmpty || !mounted) return;
+    final liste = await AiIsleyici.instance.metniMaddelereBol(metin);
+    final guncel = _not;
+    if (guncel == null) return;
+    await _depo.adimlariKaydet(guncel.id, [
+      ...guncel.adimlar,
+      for (final m in liste) Adim(notId: guncel.id, sira: 0, metin: m),
+    ]);
+  }
+
+  Widget _adimSatiri(Not n, Adim a, bool siradaki) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Material(
+        color: siradaki
+            ? Renk.vurgu.withValues(alpha: 0.12)
+            : Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        clipBehavior: Clip.antiAlias,
+        child: ListTile(
+          dense: true,
+          contentPadding: const EdgeInsets.only(left: 4, right: 4),
+          leading: Checkbox(
+            value: a.yapildi,
+            onChanged: (v) => _adimIsaretle(n, a, v == true),
+          ),
+          title: Text(
+            a.metin,
+            style: TextStyle(
+              decoration: a.yapildi ? TextDecoration.lineThrough : null,
+              color: a.yapildi ? Renk.yazi.withValues(alpha: 0.5) : Renk.yazi,
+            ),
+          ),
+          subtitle: Text(
+            [
+              if (siradaki) 'Sıradaki',
+              if (a.sureDk != null) '${a.sureDk} dk',
+              if (a.bekleme) 'bekleme',
+            ].join(' · '),
+          ),
+          onTap: () => _adimDuzenle(n, a),
+          trailing: IconButton(
+            tooltip: 'Adımı sil',
+            icon: const Icon(Icons.close, size: 18),
+            onPressed: () => _depo.adimlariKaydet(
+              n.id,
+              n.adimlar.where((x) => x.id != a.id).toList(),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _adimIsaretle(Not n, Adim a, bool yapildi) async {
+    await _depo.adimDurumu(a.id!, yapildi ? Durum.yapildi : Durum.yapilacak);
+    final guncel = _not;
+    if (!mounted || guncel == null || !yapildi || guncel.liste) return;
+    if (guncel.adimlar.isNotEmpty &&
+        guncel.adimlar.every((x) => x.yapildi) &&
+        !guncel.arsiv) {
+      final evet = await showDialog<bool>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Tüm adımlar bitti 🎉'),
+          content: const Text('Not tamamlanmış olarak arşive gitsin mi?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: const Text('Kalsın'),
+            ),
+            FilledButton(
+              onPressed: () => Navigator.pop(ctx, true),
+              child: const Text('Arşive taşı'),
+            ),
+          ],
+        ),
+      );
+      if (evet == true) {
+        guncel.durum = Durum.yapildi;
+        await _depo.notGuncelle(guncel);
+        await arsivleVeGeriAlGoster([guncel.id], true);
+      }
+    }
+  }
+
+  Future<void> _adimDuzenle(Not n, Adim? a) async {
+    final metin = TextEditingController(text: a?.metin ?? '');
+    final sure = TextEditingController(text: a?.sureDk?.toString() ?? '');
+    final tamam = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(a == null ? 'Adım ekle' : 'Adımı düzenle'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: metin,
+              autofocus: true,
+              textCapitalization: TextCapitalization.sentences,
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: sure,
+              keyboardType: TextInputType.number,
+              decoration: const InputDecoration(labelText: 'Süre (dk)'),
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Kaydet'),
+          ),
+        ],
+      ),
+    );
+    if (tamam != true || metin.text.trim().isEmpty) return;
+    final liste = [...n.adimlar];
+    final sureDk = int.tryParse(sure.text.trim());
+    if (a == null) {
+      liste.add(
+        Adim(
+          notId: n.id,
+          sira: liste.length,
+          metin: metin.text.trim(),
+          sureDk: sureDk,
+        ),
+      );
+    } else {
+      final i = liste.indexWhere((x) => x.id == a.id);
+      if (i >= 0) {
+        liste[i].metin = metin.text.trim();
+        liste[i].sureDk = sureDk;
+      }
+    }
+    await _depo.adimlariKaydet(n.id, liste);
+  }
+
+  void _fotografGoster(String yol) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.black,
+            foregroundColor: Colors.white,
+          ),
+          body: Center(child: InteractiveViewer(child: Image.file(File(yol)))),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _fotografSilSor(String notId, String yol) async {
+    final evet = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Fotoğraf silinsin mi?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Vazgeç'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Sil'),
+          ),
+        ],
+      ),
+    );
+    if (evet == true) await _depo.fotografSil(notId, yol);
+  }
+}
+
+class _KareButon extends StatelessWidget {
+  final IconData icon;
+  final VoidCallback onTap;
+  const _KareButon({required this.icon, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(right: 8),
+    child: InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        width: 96,
+        height: 96,
+        decoration: BoxDecoration(
+          color: Renk.kart,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Renk.sinir),
+        ),
+        child: Icon(icon, color: Renk.yazi),
+      ),
+    ),
+  );
+}
