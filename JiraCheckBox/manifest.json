@@ -5,7 +5,7 @@
   "description": "Jira listesinde baktigim CR'lari isaretler (yerel)",
   "content_scripts": [
     {
-      "matches": ["*://d.dmntai.intra/*"],
+      "matches": ["*://taijiraprod.dmntai.intra/*"],
       "js": ["content.js"],
       "run_at": "document_idle"
     }
