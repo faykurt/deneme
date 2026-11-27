@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Jira Baktim",
+  "name": "JiraCheckBox",
   "version": "1.0",
   "description": "Jira listesinde baktigim CR'lari isaretler (yerel)",
   "content_scripts": [
