@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Jira Baktim",
+  "version": "1.0",
+  "description": "Jira listesinde baktigim CR'lari isaretler (yerel)",
+  "content_scripts": [
+    {
+      "matches": ["*://d.dmntai.intra/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
