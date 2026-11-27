@@ -1,58 +1,13 @@
 (function () {
   const KEY = 'baktim';
-  const HIDE_KEY = 'baktim_hide';
   const get = () => JSON.parse(localStorage.getItem(KEY) || '{}');
   const set = (v) => localStorage.setItem(KEY, JSON.stringify(v));
-  const hideOn = () => localStorage.getItem(HIDE_KEY) === '1';
-
-  function rows() {
-    return Array.from(document.querySelectorAll('tr[data-issuekey]'));
-  }
-
-  function buildPanel() {
-    if (document.getElementById('baktim-panel')) return;
-    const p = document.createElement('div');
-    p.id = 'baktim-panel';
-    p.style.cssText =
-      'position:fixed;top:8px;right:8px;z-index:99999;background:#fff;border:1px solid #999;' +
-      'border-radius:4px;padding:6px 10px;font:12px Arial,sans-serif;box-shadow:0 2px 6px rgba(0,0,0,.3);' +
-      'display:flex;gap:10px;align-items:center;';
-    p.innerHTML =
-      '<label style="cursor:pointer"><input type="checkbox" id="baktim-all"> Sayfadakilerin hepsi</label>' +
-      '<label style="cursor:pointer"><input type="checkbox" id="baktim-hide"> Baktıklarımı gizle</label>' +
-      '<button id="baktim-reset" style="cursor:pointer">Tümünü sıfırla</button>' +
-      '<span id="baktim-count"></span>';
-    document.body.appendChild(p);
-
-    p.querySelector('#baktim-all').onclick = (e) => {
-      const s = get();
-      rows().forEach((tr) => {
-        const k = tr.getAttribute('data-issuekey');
-        e.target.checked ? (s[k] = 1) : delete s[k];
-      });
-      set(s);
-      apply();
-    };
-    p.querySelector('#baktim-hide').onclick = (e) => {
-      localStorage.setItem(HIDE_KEY, e.target.checked ? '1' : '0');
-      apply();
-    };
-    p.querySelector('#baktim-reset').onclick = () => {
-      const n = Object.keys(get()).length;
-      if (confirm('Kayıtlı ' + n + ' işaretin HEPSİ silinecek. Emin misiniz?')) {
-        set({});
-        apply();
-      }
-    };
-  }
 
   function apply() {
-    const list = rows();
-    if (!list.length) return;
-    buildPanel();
     const seen = get();
-    const hide = hideOn();
-    let marked = 0;
+    const list = Array.from(document.querySelectorAll('tr[data-issuekey]'));
+    if (!list.length) return;
+
     list.forEach((tr) => {
       const key = tr.getAttribute('data-issuekey');
       let cb = tr.querySelector('.baktim-cb');
@@ -70,16 +25,38 @@
         const td = tr.querySelector('td');
         if (td) td.prepend(cb);
       }
-      const isSeen = !!seen[key];
-      if (isSeen) marked++;
-      cb.checked = isSeen;
-      tr.style.opacity = isSeen ? '0.35' : '';
-      tr.style.display = isSeen && hide ? 'none' : '';
+      cb.checked = !!seen[key];
+      tr.style.opacity = seen[key] ? '0.35' : '';
     });
-    document.getElementById('baktim-all').checked = marked === list.length;
-    document.getElementById('baktim-hide').checked = hide;
-    document.getElementById('baktim-count').textContent =
-      'İşaretli: ' + marked + '/' + list.length + ' (toplam kayıt: ' + Object.keys(seen).length + ')';
+
+    // Tablo basligindaki "hepsini sec / kaldir" kutusu
+    const table = list[0].closest('table');
+    const th = table && table.querySelector('thead th');
+    if (!th) return;
+    let all = th.querySelector('.baktim-all');
+    if (!all) {
+      all = document.createElement('input');
+      all.type = 'checkbox';
+      all.className = 'baktim-all';
+      all.title = 'Sayfadakilerin hepsini işaretle / kaldır (Shift+tık: tüm kayıtları sıfırla)';
+      all.onclick = (e) => {
+        e.stopPropagation();
+        if (e.shiftKey) {
+          if (confirm('Kayıtlı TÜM işaretler silinecek. Emin misiniz?')) set({});
+          apply();
+          return;
+        }
+        const s = get();
+        document.querySelectorAll('tr[data-issuekey]').forEach((tr) => {
+          const k = tr.getAttribute('data-issuekey');
+          all.checked ? (s[k] = 1) : delete s[k];
+        });
+        set(s);
+        apply();
+      };
+      th.prepend(all);
+    }
+    all.checked = list.every((tr) => seen[tr.getAttribute('data-issuekey')]);
   }
 
   apply();
