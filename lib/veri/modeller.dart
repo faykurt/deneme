@@ -128,6 +128,9 @@ class Not {
   String? aiJson;
   /// true ise yapay zeka bu notu kendiliğinden işlemez (kullanıcı "yapay zekaya gönder" derse işlenir).
   bool aiDisi;
+
+  /// true ise not öneri ve hatırlatmalarda kullanılır (kullanıcı kendi seçer, varsayılan kapalı).
+  bool oneriDahil;
   String tur;
   List<String> fotograflar;
   List<int> kategoriIdler;
@@ -159,6 +162,7 @@ class Not {
     this.yaptinCevap = false,
     this.aiJson,
     this.aiDisi = false,
+    this.oneriDahil = false,
     this.tur = NotTuru.not,
     List<String>? fotograflar,
     List<int>? kategoriIdler,
@@ -208,6 +212,7 @@ class Not {
         'yaptin_cevap': yaptinCevap ? 1 : 0,
         'ai_json': aiJson,
         'ai_disi': aiDisi ? 1 : 0,
+        'oneri': oneriDahil ? 1 : 0,
         'tur': tur,
       };
 
@@ -237,6 +242,7 @@ class Not {
         yaptinCevap: m['yaptin_cevap'] == 1,
         aiJson: m['ai_json'] as String?,
         aiDisi: m['ai_disi'] == 1,
+        oneriDahil: m['oneri'] == 1,
         tur: (m['tur'] as String?) ?? NotTuru.not,
       );
 }

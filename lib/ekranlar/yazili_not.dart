@@ -61,6 +61,7 @@ class _YaziliNotPenceresiState extends State<_YaziliNotPenceresi> {
   final _madde = TextEditingController();
   final List<String> _maddeler = [];
   bool _aiAcik = false;
+  bool _oneri = false;
   bool _sesBoluyor = false;
 
   @override
@@ -116,6 +117,7 @@ class _YaziliNotPenceresiState extends State<_YaziliNotPenceresi> {
       tur: NotTuru.liste,
       aiDisi: !_aiAcik,
       kategoriIdler: [?widget.kategoriId],
+      oneriDahil: _oneri,
     );
     await depo.adimlariKaydet(not.id, [
       for (final m in _maddeler) Adim(notId: not.id, sira: 0, metin: m),
@@ -135,6 +137,7 @@ class _YaziliNotPenceresiState extends State<_YaziliNotPenceresi> {
       kaynak: Kaynak.yazili,
       fotografYollari: _fotograflar,
       kategoriIdler: [?widget.kategoriId],
+      oneriDahil: _oneri,
     );
     if (mounted) Navigator.pop(context, not);
   }
@@ -246,7 +249,14 @@ class _YaziliNotPenceresiState extends State<_YaziliNotPenceresi> {
               ),
             ),
           ],
-          const SizedBox(height: 10),
+          SwitchListTile(
+            dense: true,
+            contentPadding: EdgeInsets.zero,
+            title: const Text('Bana hatırlat / öner'),
+            subtitle: const Text('Kapalıysa bu not sadece not olarak kalır.'),
+            value: _oneri,
+            onChanged: (v) => setState(() => _oneri = v),
+          ),
           Row(
             children: [
               if (!_listeKipi) ...[

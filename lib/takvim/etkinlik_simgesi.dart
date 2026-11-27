@@ -57,6 +57,13 @@ class EtkinlikSimgesi {
     return t;
   }
 
+  /// Başlığa [emoji] koyar (null ise baştaki emojiyi kaldırır); uygulama işareti varsa korunur.
+  static String baslikEmojiyle(String baslik, String? emoji) {
+    final isaretli = _isaretsiz(baslik) != baslik.trimLeft();
+    final temiz = temizBaslik(baslik);
+    return '${isaretli ? '$uygulamaIsareti ' : ''}${emoji == null ? '' : '$emoji '}$temiz'.trimRight();
+  }
+
   /// Başlıkta geçen kelimeye göre tür; bulunamazsa null.
   static EtkinlikTuru? turBul(String baslik) {
     final t = ' ${temizBaslik(baslik).toLowerCase().replaceAll('İ', 'i')} ';

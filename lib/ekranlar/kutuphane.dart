@@ -130,7 +130,7 @@ class _KutuphaneState extends State<Kutuphane> with SingleTickerProviderStateMix
   static const double _zemin2 = 0.905 * _rafYuksekligi;
   static const double _kagitMax = 6;
 
-  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 7));
+  late final AnimationController _c = AnimationController(vsync: this, duration: const Duration(seconds: 12));
 
   @override
   void initState() {
@@ -332,29 +332,31 @@ class _Susler extends StatelessWidget {
       builder: (context, _) {
         final t = denetleyici.value;
         double dalga(double katsayi, [double faz = 0]) => math.sin(2 * math.pi * (t * katsayi + faz));
-        // mum
+        // mum: alev yavaşça büyüyüp küçülür, ışık rastgele gibi yayılıp söner
         const mumW = 54.0, mumH = 54.0 * 234 / 300;
         const mumSol = 74.0;
         final mumUst = rafUstu - mumH;
         const alevW = 14.0, alevH = 14.0 * 273 / 160;
-        final alevOlcek = 1 + 0.07 * dalga(9) + 0.05 * dalga(23, .3);
-        final alevDonus = 0.06 * dalga(5) + 0.03 * dalga(13, .2);
-        final isik = (0.28 + 0.08 * dalga(9) + 0.05 * dalga(23, .3)).clamp(0.12, 0.45);
-        // bitki
+        final nefes = 0.035 * dalga(2) + 0.02 * dalga(3, .5) + 0.012 * dalga(1, .2);
+        final alevOlcek = 1 + nefes;
+        final isik = (0.26 + 0.07 * dalga(1, .1) + 0.05 * dalga(2, .45) + 0.035 * dalga(3, .8)).clamp(0.1, 0.45);
+        final isikCap = 100 + 22 * dalga(1, .3) + 14 * dalga(3, .1);
+        // bitki: üç yavaş dalga birleşir, bazen biraz daha savrulur
         const saksiW = 48.0, saksiH = 48.0 * 256 / 300;
         const yaprakW = 80.0, yaprakH = 80.0 * 335 / 380;
-        final saksiSag = 26.0;
+        const saksiSag = 26.0;
         final saksiLeft = genislik - saksiSag - saksiW;
-        final yaprakDonus = 0.035 * dalga(1, .4) + 0.012 * dalga(3);
-        final asmaDonus = 0.05 * dalga(2, .1) + 0.015 * dalga(5);
+        final savrul = 0.6 + 0.4 * dalga(1, .15); // 0.2 .. 1.0
+        final yaprakDonus = savrul * (0.03 * dalga(1, .4) + 0.016 * dalga(2, .1) + 0.008 * dalga(3, .7));
+        final yaprakOlcek = 1 + 0.012 * dalga(2, .6);
         return Stack(clipBehavior: Clip.none, children: [
           // mum ışığı
           Positioned(
-            left: mumSol + mumW / 2 - 50,
-            top: mumUst - alevH * 0.5 - 38,
+            left: mumSol + mumW / 2 - isikCap / 2,
+            top: mumUst - alevH * 0.5 - isikCap / 2 + 4,
             child: Container(
-              width: 100,
-              height: 100,
+              width: isikCap,
+              height: isikCap,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 gradient: RadialGradient(colors: [const Color(0xFFFFB347).withValues(alpha: isik), const Color(0xFFFFB347).withValues(alpha: 0)]),
@@ -369,9 +371,7 @@ class _Susler extends StatelessWidget {
             height: alevH,
             child: Transform(
               alignment: Alignment.bottomCenter,
-              transform: Matrix4.identity()
-                ..rotateZ(alevDonus)
-                ..scaleByDouble(1 - 0.04 * dalga(11), alevOlcek, 1, 1),
+              transform: Matrix4.identity()..scaleByDouble(1 + nefes * 0.5, alevOlcek, 1, 1),
               child: Image.asset('$_gorsel/alev.webp', fit: BoxFit.fill, filterQuality: FilterQuality.medium),
             ),
           ),
@@ -381,25 +381,15 @@ class _Susler extends StatelessWidget {
             top: rafUstu - saksiH - yaprakH + 12,
             width: yaprakW,
             height: yaprakH,
-            child: Transform.rotate(
+            child: Transform(
               alignment: Alignment.bottomCenter,
-              angle: yaprakDonus,
+              transform: Matrix4.identity()
+                ..rotateZ(yaprakDonus)
+                ..scaleByDouble(yaprakOlcek, yaprakOlcek, 1, 1),
               child: Image.asset('$_gorsel/yaprak.webp', fit: BoxFit.fill, filterQuality: FilterQuality.medium),
             ),
           ),
           Positioned(left: saksiLeft, top: rafUstu - saksiH, width: saksiW, height: saksiH, child: Image.asset('$_gorsel/saksi.webp', fit: BoxFit.fill, filterQuality: FilterQuality.medium)),
-          // asma (sol üst köşeden sarkar)
-          Positioned(
-            left: 4,
-            top: rafUstu - 8,
-            width: 22,
-            height: 22 * 700 / 106,
-            child: Transform.rotate(
-              alignment: Alignment.topCenter,
-              angle: asmaDonus,
-              child: Image.asset('$_gorsel/asma.webp', fit: BoxFit.fill, filterQuality: FilterQuality.medium),
-            ),
-          ),
         ]);
       },
     );

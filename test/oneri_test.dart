@@ -78,8 +78,8 @@ void main() {
   });
 
   test('Öneri paketi yapay zekadan alınır, geçersiz not kimlikleri ayıklanır, saat bildirimi sınıra göre kurulur', () async {
-    final a = await depo.notEkle(metin: 'Dolabı düzenle', kaynak: Kaynak.yazili);
-    final b = await depo.notEkle(metin: 'Kitabı bitir', kaynak: Kaynak.yazili);
+    final a = await depo.notEkle(metin: 'Dolabı düzenle', kaynak: Kaynak.yazili, oneriDahil: true);
+    final b = await depo.notEkle(metin: 'Kitabı bitir', kaynak: Kaynak.yazili, oneriDahil: true);
     final simdi = DateTime(2026, 11, 25, 8, 0); // Çarşamba sabah
     AiServisi.istemciUret = () => MockClient((r) async => oneriYaniti([
           {'not_id': a.id, 'neden': '20 dk boşsun, 2 haftadır bekliyor', 'bildirim_saati': '19:30'},
@@ -116,8 +116,8 @@ void main() {
   });
 
   test('Hafta sonu planı: Cuma günü yapay zekadan istenir ve plan notları döner', () async {
-    final a = await depo.notEkle(metin: 'Parka git', kaynak: Kaynak.yazili);
-    final b = await depo.notEkle(metin: 'Film izle', kaynak: Kaynak.yazili);
+    final a = await depo.notEkle(metin: 'Parka git', kaynak: Kaynak.yazili, oneriDahil: true);
+    final b = await depo.notEkle(metin: 'Film izle', kaynak: Kaynak.yazili, oneriDahil: true);
     final simdi = DateTime(2026, 11, 27, 11, 0); // Cuma öğle
     AiServisi.istemciUret = () => MockClient((r) async => oneriYaniti([], ogle: [a.id], aksam: [b.id, 'uydurma']));
     await oneri.yenile(simdi: simdi);
@@ -129,7 +129,7 @@ void main() {
   });
 
   test('Eylemler: adımlı notta sıradaki adım tamamlanır, sonra hatırlat yarına bırakır, öneriden çıkarır', () async {
-    final n = await depo.notEkle(metin: 'Tabloyu as', kaynak: Kaynak.yazili);
+    final n = await depo.notEkle(metin: 'Tabloyu as', kaynak: Kaynak.yazili, oneriDahil: true);
     await depo.adimlariKaydet(n.id, [Adim(notId: n.id, sira: 0, metin: 'Ölç'), Adim(notId: n.id, sira: 1, metin: 'Çivile')]);
     var g = depo.notlar.firstWhere((x) => x.id == n.id);
     expect(await oneri.sonrakiAdimiTamamla(g), isTrue);
@@ -151,8 +151,8 @@ void main() {
   });
 
   test('Şu an ne yapabilirim: süreye uyanlar gelir, eski dokunulmayan önce', () async {
-    final kisa = await depo.notEkle(metin: 'Kısa iş (10dk)', kaynak: Kaynak.yazili);
-    final uzun = await depo.notEkle(metin: 'Uzun iş (3 saat)', kaynak: Kaynak.yazili);
+    final kisa = await depo.notEkle(metin: 'Kısa iş (10dk)', kaynak: Kaynak.yazili, oneriDahil: true);
+    final uzun = await depo.notEkle(metin: 'Uzun iş (3 saat)', kaynak: Kaynak.yazili, oneriDahil: true);
     kisa.sureDk = 10;
     uzun.sureDk = 180;
     await depo.notGuncelle(kisa);

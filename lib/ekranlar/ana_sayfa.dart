@@ -1,19 +1,17 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import '../ai/ai_ayarlar.dart';
 import '../ai/isleyici.dart';
 import '../ortak.dart';
-import '../veri/depo.dart';
-import '../veri/modeller.dart';
 import '../selam.dart';
+import '../veri/depo.dart';
 import '../ses.dart';
-import 'kayit_sonrasi.dart';
 import 'kutuphane.dart';
 import 'oneri_kartlari.dart';
 import '../oneri/oneri_deposu.dart';
 import 'sahne_arka_plan.dart';
 import 'onay_bekleyenler.dart';
-import 'sesli_not.dart';
 import 'yaptin_mi.dart';
 import 'yazili_not.dart';
 
@@ -25,21 +23,41 @@ class AnaSayfa extends StatefulWidget {
 }
 
 class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
-  final _hizliNot = TextEditingController();
-  final _alan = FocusNode();
+  bool _liste = false;
+
+  static const _modAnahtari = 'ana_liste_modu';
 
   @override
   void initState() {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     WidgetsBinding.instance.addPostFrameCallback((_) => OneriDeposu.instance.yenile());
+    _modYukle();
   }
+
+  Future<void> _modYukle() async {
+    try {
+      final p = await SharedPreferences.getInstance();
+      if (mounted) setState(() => _liste = p.getBool(_modAnahtari) ?? false);
+    } catch (_) {}
+  }
+
+  Future<void> _modDegistir(bool liste) async {
+    Ses.instance.tik();
+    setState(() => _liste = liste);
+    try {
+      final p = await SharedPreferences.getInstance();
+      await p.setBool(_modAnahtari, liste);
+    } catch (_) {}
+  }
+
+  void _ac() => yaziliNotAc(liste: _liste);
+
+  bool get _koyuZemin => Renk.koyu || SahneIsigi.simdi() == SahneIsigi.gece;
 
   @override
   void dispose() {
     WidgetsBinding.instance.removeObserver(this);
-    _hizliNot.dispose();
-    _alan.dispose();
     super.dispose();
   }
 
@@ -54,15 +72,6 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
 
   String get _selam => Selam.instance.simdi(DateTime.now());
 
-  Future<void> _hizliKaydet() async {
-    final metin = _hizliNot.text.trim();
-    if (metin.isEmpty) return;
-    _hizliNot.clear();
-    FocusScope.of(context).unfocus();
-    final not = await Depo.instance.notEkle(metin: metin, kaynak: Kaynak.yazili);
-    await kayitSonrasi(not);
-  }
-
   @override
   Widget build(BuildContext context) {
     final yazi = Theme.of(context).textTheme;
@@ -73,20 +82,25 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(20, 24, 20, 120),
           children: [
-            Container(
-              padding: const EdgeInsets.fromLTRB(18, 12, 18, 14),
-              decoration: BoxDecoration(
-                color: Renk.kart.withValues(alpha: 0.9),
-                borderRadius: BorderRadius.circular(20),
-              ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(6, 4, 6, 0),
               child: Text(_selam,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: yazi.headlineSmall?.copyWith(color: Renk.yazi, fontWeight: FontWeight.bold)),
+                  style: TextStyle(
+                    fontFamily: 'Caveat',
+                    fontVariations: const [FontVariation('wght', 700)],
+                    fontSize: 44,
+                    height: 1.0,
+                    color: _koyuZemin ? const Color(0xFFFFF4E0) : const Color(0xFF2B1F18),
+                    shadows: _koyuZemin
+                        ? const [Shadow(color: Color(0x99000000), blurRadius: 8)]
+                        : const [Shadow(color: Color(0x88FFFFFF), blurRadius: 10)],
+                  )),
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 18),
             Container(
-              padding: const EdgeInsets.fromLTRB(16, 6, 6, 6),
+              padding: const EdgeInsets.fromLTRB(6, 6, 6, 6),
               decoration: BoxDecoration(
                 color: Renk.kart.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(28),
@@ -94,35 +108,23 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
               ),
               child: Row(children: [
                 Expanded(
-                  child: TextField(
-                    controller: _hizliNot,
-                    focusNode: _alan,
-                    textCapitalization: TextCapitalization.sentences,
-                    decoration: const InputDecoration(hintText: 'Aklında ne var?', border: InputBorder.none),
-                    onSubmitted: (_) => _hizliKaydet(),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(22),
+                    onTap: _ac,
+                    child: Padding(
+                      padding: const EdgeInsets.fromLTRB(12, 12, 8, 12),
+                      child: Row(children: [
+                        Icon(_liste ? Icons.checklist : Icons.edit_note, color: Renk.vurgu),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text('Aklında ne var?',
+                              style: TextStyle(fontSize: 16, color: Renk.yazi.withValues(alpha: 0.7))),
+                        ),
+                      ]),
+                    ),
                   ),
                 ),
-                IconButton(
-                    tooltip: 'Fotoğraflı not',
-                    icon: const Icon(Icons.photo_camera_outlined),
-                    onPressed: () => yaziliNotAc(kameraIleBasla: true)),
-                IconButton.filled(
-                    tooltip: 'Kaydet',
-                    icon: const Icon(Icons.arrow_upward),
-                    onPressed: () {
-                      Ses.instance.tik();
-                      _hizliKaydet();
-                    }),
-              ]),
-            ),
-            Padding(
-              padding: const EdgeInsets.only(top: 8),
-              child: Row(children: [
-                _EylemDugmesi(ikon: Icons.edit_note, ad: 'Not', secili: true, onTap: () => _alan.requestFocus()),
-                const SizedBox(width: 8),
-                _EylemDugmesi(ikon: Icons.checklist, ad: 'Liste', onTap: () => yaziliNotAc(liste: true)),
-                const SizedBox(width: 8),
-                _EylemDugmesi(ikon: Icons.mic_none, ad: 'Sesli', onTap: sesliNotAc),
+                _ModAnahtari(liste: _liste, degisti: _modDegistir),
               ]),
             ),
             const Kutuphane(),
@@ -192,36 +194,50 @@ class _AnaSayfaState extends State<AnaSayfa> with WidgetsBindingObserver {
   }
 }
 
-/// Hızlı not alanının altındaki küçük eylem düğmesi (Not / Liste / Sesli).
-class _EylemDugmesi extends StatelessWidget {
-  final IconData ikon;
-  final String ad;
-  final bool secili;
-  final VoidCallback onTap;
-  const _EylemDugmesi({required this.ikon, required this.ad, required this.onTap, this.secili = false});
+/// Alanın içindeki Not / Liste anahtarı: ikisinden biri seçili.
+class _ModAnahtari extends StatelessWidget {
+  final bool liste;
+  final void Function(bool) degisti;
+  const _ModAnahtari({required this.liste, required this.degisti});
 
   @override
   Widget build(BuildContext context) {
-    return Expanded(
-      child: Material(
-        color: secili ? Renk.vurgu.withValues(alpha: 0.9) : Renk.kart.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(20),
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () {
-            Ses.instance.tik();
-            onTap();
-          },
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 8),
-            child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              Icon(ikon, size: 18, color: secili ? Renk.vurguUstu : Renk.yazi),
-              const SizedBox(width: 6),
-              Text(ad, style: TextStyle(fontSize: 13, color: secili ? Renk.vurguUstu : Renk.yazi)),
+    Widget parca(bool listeMi, IconData ikon, String ad) {
+      final secili = liste == listeMi;
+      return Semantics(
+        button: true,
+        selected: secili,
+        label: ad,
+        child: GestureDetector(
+          onTap: () => degisti(listeMi),
+          child: AnimatedContainer(
+            duration: const Duration(milliseconds: 180),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: secili ? Renk.vurgu : Colors.transparent,
+              borderRadius: BorderRadius.circular(18),
+            ),
+            child: Row(mainAxisSize: MainAxisSize.min, children: [
+              Icon(ikon, size: 17, color: secili ? Renk.vurguUstu : Renk.yazi.withValues(alpha: 0.7)),
+              const SizedBox(width: 5),
+              Text(ad,
+                  style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w700,
+                      color: secili ? Renk.vurguUstu : Renk.yazi.withValues(alpha: 0.7))),
             ]),
           ),
         ),
-      ),
+      );
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(3),
+      decoration: BoxDecoration(color: Renk.yazi.withValues(alpha: 0.08), borderRadius: BorderRadius.circular(22)),
+      child: Row(mainAxisSize: MainAxisSize.min, children: [
+        parca(false, Icons.edit_note, 'Not'),
+        parca(true, Icons.checklist, 'Liste'),
+      ]),
     );
   }
 }

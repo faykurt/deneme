@@ -75,6 +75,9 @@ class TakvimAyarlari extends ChangeNotifier {
 
   SharedPreferences? _p;
   String? takvimId;
+
+  /// Aklımda'da görünen takvimler (telefondaki bütün hesaplardan). null: gizli olmayan hepsi.
+  Set<String>? gorunenTakvimler;
   String? takvimAdi;
   UykuAraligi? uykuHaftaIci;
   UykuAraligi? uykuHaftaSonu;
@@ -92,6 +95,7 @@ class TakvimAyarlari extends ChangeNotifier {
     try {
       final p = _p = await SharedPreferences.getInstance();
       takvimId = p.getString('takvim_id');
+      gorunenTakvimler = p.getStringList('gorunen_takvimler')?.toSet();
       takvimAdi = p.getString('takvim_adi');
       uykuHaftaIci = _oku(p, 'uyku_hafta_ici');
       uykuHaftaSonu = _oku(p, 'uyku_hafta_sonu');
@@ -116,6 +120,16 @@ class TakvimAyarlari extends ChangeNotifier {
     takvimAdi = ad;
     await _p?.setString('takvim_id', id);
     await _p?.setString('takvim_adi', ad);
+    notifyListeners();
+  }
+
+  Future<void> gorunenAyarla(Set<String>? ids) async {
+    gorunenTakvimler = ids;
+    if (ids == null) {
+      await _p?.remove('gorunen_takvimler');
+    } else {
+      await _p?.setStringList('gorunen_takvimler', ids.toList()..sort());
+    }
     notifyListeners();
   }
 

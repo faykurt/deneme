@@ -7,6 +7,7 @@ import '../kategori_gorunum.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'bos_zaman.dart';
+import 'etkinlik_ikonlari.dart';
 import 'etkinlik_simgesi.dart';
 import 'takvim_ayarlari.dart';
 import 'takvim_kaynagi.dart';
@@ -34,7 +35,27 @@ class TakvimDeposu extends ChangeNotifier {
   bool get takvimSecili => ayarlar.takvimId != null;
   bool get hazir => izinVar && takvimSecili;
 
-  List<String>? get _secili => ayarlar.takvimId == null ? null : [ayarlar.takvimId!];
+  /// Okunacak takvimler: kullanıcının işaretledikleri, yoksa gizli olmayan hepsi (iş ve kişisel hesaplar birlikte).
+  List<String>? get _secili {
+    final g = ayarlar.gorunenTakvimler;
+    if (g != null) return g.toList();
+    final idler = takvimler.map((t) => t.id).toList();
+    if (idler.isNotEmpty) return idler;
+    return ayarlar.takvimId == null ? null : [ayarlar.takvimId!];
+  }
+
+  /// Görünen takvim sayısı birden fazlaysa etkinliklerde hangi takvimden geldiği yazılır.
+  bool get cokTakvimli => (_secili?.length ?? 0) > 1;
+
+  String? takvimAdi(String takvimId) => takvimler.where((t) => t.id == takvimId).firstOrNull?.ad;
+
+  Future<void> gorunenTakvimleriAyarla(Set<String>? ids) async {
+    await ayarlar.gorunenAyarla(ids);
+    _bas = _bit = null;
+    etkinlikler = [];
+    notifyListeners();
+    await yenile();
+  }
 
   Future<void> baslat() async {
     try {
@@ -129,6 +150,8 @@ class TakvimDeposu extends ChangeNotifier {
   /// Etkinliğin simgesi: başlıktaki emoji, yoksa kategorinin simgesi, yoksa başlıktaki kelimeye göre ikon.
   /// Hiçbiri yoksa null.
   Widget? simgeOf(TEtkinlik e, {double size = 20, Color? renk}) {
+    final ozel = EtkinlikIkonlari.instance.ikonOf(e.eventId);
+    if (ozel != null) return Icon(ozel, size: size, color: renk ?? renkOf(e));
     final emoji = EtkinlikSimgesi.bastakiEmoji(e.baslik);
     if (emoji != null) return Text(emoji, style: TextStyle(fontSize: size * 0.9, height: 1.1));
     final k = kategoriOf(e);
@@ -139,6 +162,7 @@ class TakvimDeposu extends ChangeNotifier {
 
   /// Etkinlik özel renge, kategoriye, emojiye ya da tanınan bir türe sahipse vurgulu (renkli) gösterilir.
   bool renkli(TEtkinlik e) =>
+      EtkinlikIkonlari.instance.ikonOf(e.eventId) != null ||
       e.renk != null || kategoriOf(e) != null || EtkinlikSimgesi.turBul(e.baslik) != null;
 
   /// Etkinliğin rengi: etkinliğe özel renk, yoksa kategorisinin rengi, o da yoksa takviminin rengi.

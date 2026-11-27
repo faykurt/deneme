@@ -22,6 +22,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path_provider_platform_interface/path_provider_platform_interface.dart';
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
 
 class _SahtePathProvider extends PathProviderPlatform with MockPlatformInterfaceMixin {
@@ -245,15 +246,27 @@ void main() {
     expect(depo.notlar.firstWhere((x) => x.id == n.id).aiDisi, isTrue);
   });
 
-  testWidgets('Ana sayfada alanın altında Not, Liste, Sesli düğmeleri var; Liste liste penceresini açar', (tester) async {
+  testWidgets('Ana sayfada alanın içinde Not / Liste anahtarı var; seçili olana göre doğru arayüz açılır', (tester) async {
     tester.view.physicalSize = const Size(1080, 2400);
     tester.view.devicePixelRatio = 2.75;
     addTearDown(tester.view.reset);
+    SharedPreferences.setMockInitialValues({});
     await tester.pumpWidget(MaterialApp(navigatorKey: navigatorKey, home: const AnaSayfa()));
     await tester.pump();
-    expect(find.text('Not'), findsOneWidget);
-    expect(find.text('Sesli'), findsOneWidget);
-    await tester.tap(find.text('Liste'));
+    expect(find.text('Aklında ne var?'), findsOneWidget);
+    expect(find.text('Sesli'), findsNothing); // sesli düğmesi kalktı, alttaki mikrofon var
+    expect(find.byTooltip('Fotoğraflı not'), findsNothing); // kamera düğmesi kalktı
+    // Not seçiliyken yazı arayüzü
+    await tester.tap(find.text('Aklında ne var?'));
+    await tester.pumpAndSettle();
+    expect(find.text('Liste adı (ör. Market)'), findsNothing);
+    expect(find.text('Aklında ne var?'), findsWidgets); // yazı kutusunun ipucu
+    await tester.tapAt(const Offset(10, 10)); // pencereyi kapat
+    await tester.pumpAndSettle();
+    // Liste seçiliyken liste arayüzü
+    await tester.tap(find.text('Liste').first);
+    await tester.pump();
+    await tester.tap(find.text('Aklında ne var?'));
     await tester.pumpAndSettle();
     expect(find.text('Liste adı (ör. Market)'), findsOneWidget);
     await tester.pumpAndSettle(const Duration(seconds: 6));

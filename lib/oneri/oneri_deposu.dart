@@ -93,9 +93,9 @@ class OneriDeposu extends ChangeNotifier {
     return g != null && g.compareTo(gunAnahtari(simdi)) > 0;
   }
 
-  /// Önerilebilecek notlar: arşivde olmayan, bitmemiş, liste olmayan, ertelemede olmayanlar.
+  /// Önerilebilecek notlar: kullanıcının "Bana hatırlat / öner" dediği, arşivde olmayan, bitmemiş, liste olmayan, ertelemede olmayanlar.
   List<Not> adaylar(DateTime simdi) => Depo.instance.notlar
-      .where((n) => !n.arsiv && !n.liste && n.durum != Durum.yapildi && !_ertelemede(n.id, simdi))
+      .where((n) => n.oneriDahil && !n.arsiv && !n.liste && n.durum != Durum.yapildi && !_ertelemede(n.id, simdi))
       .toList();
 
   bool paketGuncelMi(DateTime simdi) {

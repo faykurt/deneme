@@ -46,6 +46,6 @@ class Ses extends ChangeNotifier {
     }
   }
 
-  Future<void> tik() => _cal(() => _tik, (o) => _tik = o, 'ses/tik.wav', 0.5);
-  Future<void> sayfa() => _cal(() => _sayfa, (o) => _sayfa = o, 'ses/hisirti.wav', 0.6);
+  Future<void> tik() => _cal(() => _tik, (o) => _tik = o, 'ses/tik.wav', 0.35);
+  Future<void> sayfa() => _cal(() => _sayfa, (o) => _sayfa = o, 'ses/hisirti.wav', 0.4);
 }

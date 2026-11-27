@@ -85,15 +85,22 @@ void main() {
     expect(s['sam'], isNull, reason: '3 aylık pencerenin dışındaki etkinlik sayılmaz');
   });
 
-  test('Sadece seçili takvimin etkinlikleri yüklenir', () async {
+  test('Görünen takvimler: varsayılan hepsi (iş ve kişisel birlikte), işaretlenenler yalnızca onlar', () async {
     sahte.izin = true;
     await td.baslat();
     await td.takvimSec(td.takvimler.firstWhere((t) => t.id == 'sam'));
     expect(ayar.takvimId, 'sam');
     expect(ayar.takvimAdi, 'Samsung takvimim');
+    // varsayılan: telefondaki bütün takvimler birlikte
+    await td.yukle(DateTime(2026, 11, 1), DateTime(2026, 12, 1));
+    expect(td.etkinlikler.map((e) => e.takvimId).toSet().length, greaterThan(0));
+    expect(td.cokTakvimli, isTrue);
+    // yalnızca Samsung takvimi işaretlenirse
+    await td.gorunenTakvimleriAyarla({'sam'});
     await td.yukle(DateTime(2026, 11, 1), DateTime(2026, 12, 1));
     expect(td.etkinlikler.map((e) => e.baslik), ['Toplantı', 'Haftalık']);
     expect(td.gununEtkinlikleri(DateTime(2026, 11, 24)).single.baslik, 'Toplantı');
+    expect(td.cokTakvimli, isFalse);
   });
 
   test('Seçilen takvim telefonda kalmamışsa seçim sıfırlanır', () async {
@@ -120,6 +127,7 @@ void main() {
     ]);
     await td.baslat();
     await ayar.takvimSec('sam', 'S');
+    await ayar.gorunenAyarla({'sam'});
     await td.yukle(DateTime(2026, 11, 1), DateTime(2026, 12, 1));
     expect(td.gununEtkinlikleri(DateTime(2026, 11, 24)).map((e) => e.baslik), ['Tüm gün', 'Erken', 'Toplantı']);
   });

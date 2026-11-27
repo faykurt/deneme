@@ -82,6 +82,11 @@ flutter:
   # the material Icons class.
   uses-material-design: true
 
+  fonts:
+    - family: Caveat
+      fonts:
+        - asset: assets/fonts/Caveat.ttf
+
   assets:
     - assets/sahne/
     - assets/gorsel/

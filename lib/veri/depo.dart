@@ -14,7 +14,7 @@ class Depo extends ChangeNotifier {
   Depo._();
   static final Depo instance = Depo._();
 
-  static const _surum = 5;
+  static const _surum = 6;
 
   /// Yeni notun yapay zeka dışı başlayıp başlamayacağı (Ayarlar'daki otomatik anahtarı).
   static bool Function() yeniNotAiDisi = () => false;
@@ -75,6 +75,7 @@ class Depo extends ChangeNotifier {
         yaptin_cevap INTEGER NOT NULL DEFAULT 0,
         ai_json TEXT,
         ai_disi INTEGER NOT NULL DEFAULT 0,
+        oneri INTEGER NOT NULL DEFAULT 0,
         tur TEXT NOT NULL DEFAULT 'not'
       )''');
     await db.execute('''
@@ -153,6 +154,9 @@ class Depo extends ChangeNotifier {
     if (eski < 5) {
       await db.execute('ALTER TABLE kategoriler ADD COLUMN kapak_resim TEXT');
     }
+    if (eski < 6) {
+      await db.execute('ALTER TABLE notlar ADD COLUMN oneri INTEGER NOT NULL DEFAULT 0');
+    }
   }
 
   Future<void> yenile() async {
@@ -195,6 +199,7 @@ class Depo extends ChangeNotifier {
     List<int> kategoriIdler = const [],
     String tur = NotTuru.not,
     bool aiDisi = false,
+    bool oneriDahil = false,
   }) async {
     final simdi = _simdi;
     final not = Not(
@@ -207,6 +212,7 @@ class Depo extends ChangeNotifier {
       sonDokunma: simdi,
       tur: tur,
       aiDisi: aiDisi || yeniNotAiDisi(),
+      oneriDahil: oneriDahil,
     );
     await _db.insert('notlar', not.toMap());
     for (final yol in fotografYollari) {

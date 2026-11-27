@@ -33,6 +33,22 @@ class OneriKartlari extends StatelessWidget {
             ),
             for (final o in liste) _OneriKarti(not: o.not, neden: o.oneri.neden),
           ],
+          if (oneri.acik && AiAyarlar.instance.anahtarVar && liste.isEmpty && !oneri.yenileniyor && oneri.adaylar(DateTime.now()).isEmpty)
+            Padding(
+              padding: const EdgeInsets.only(top: 12),
+              child: Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(color: Renk.kart.withValues(alpha: 0.93), borderRadius: BorderRadius.circular(16)),
+                child: Row(children: [
+                  Icon(Icons.notifications_none, color: Renk.vurgu),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text('Öneri ve hatırlatma almak istediğin notlarda "Bana hatırlat / öner" anahtarını aç.',
+                        style: TextStyle(color: Renk.yazi.withValues(alpha: 0.8), fontSize: 13)),
+                  ),
+                ]),
+              ),
+            ),
           if (plan != null) _HaftaSonuKarti(plan: plan),
           Padding(
             padding: const EdgeInsets.only(top: 12),

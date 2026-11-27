@@ -21,6 +21,7 @@ import '../takvim/takvim_ayarlari.dart';
 import '../oneri/bildirim_servisi.dart';
 import '../oneri/oneri_deposu.dart';
 import 'fikir_kutusu.dart';
+import 'gorunen_takvimler.dart';
 import 'yazili_not.dart' show fotografSec;
 import 'onay_penceresi.dart';
 import 'takvim_ayar_pencereleri.dart';
@@ -318,12 +319,20 @@ class _AyarlarEkraniState extends State<AyarlarEkrani> {
               return Column(children: [
                 ListTile(
                   leading: Icon(Icons.calendar_month_outlined, color: Renk.vurgu),
-                  title: const Text('Kullanılan takvim'),
+                  title: const Text('Yeni etkinliklerin takvimi'),
                   subtitle: Text(t.takvimAdi ?? 'Henüz seçilmedi'),
                   onTap: () async {
                     await t.takvimiSifirla();
                     sekmeSecici.value = 1;
                   },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.event_repeat_outlined),
+                  title: const Text('Görünen takvimler'),
+                  subtitle: Text(t.gorunenTakvimler == null
+                      ? 'Telefondaki hepsi (iş ve kişisel hesaplar)'
+                      : '${t.gorunenTakvimler!.length} takvim seçili'),
+                  onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const GorunenTakvimlerEkrani())),
                 ),
                 ListTile(
                   leading: const Icon(Icons.bedtime_outlined),

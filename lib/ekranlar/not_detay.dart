@@ -208,6 +208,17 @@ class _NotDetayState extends State<NotDetay> {
                   },
                 ),
               ],
+              SwitchListTile(
+                dense: true,
+                contentPadding: EdgeInsets.zero,
+                title: const Text('Bana hatırlat / öner'),
+                subtitle: const Text('Kapalıysa bu not sadece not olarak kalır.'),
+                value: n.oneriDahil,
+                onChanged: (v) {
+                  n.oneriDahil = v;
+                  _depo.notGuncelle(n, dokunma: false);
+                },
+              ),
               if (!n.islendi && AiAyarlar.instance.anahtarVar)
                 SwitchListTile(
                   dense: true,

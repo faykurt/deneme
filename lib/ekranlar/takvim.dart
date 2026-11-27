@@ -9,6 +9,7 @@ import '../takvim/takvim_deposu.dart';
 import '../takvim/takvim_modeller.dart';
 import 'etkinlik_duzenle.dart';
 import 'gun_akisi.dart';
+import 'hafta_ozeti.dart';
 
 enum Gorunum { ay, hafta, gun }
 
@@ -242,10 +243,25 @@ class _TakvimEkraniState extends State<TakvimEkrani> {
               },
               child: _AyGorunumu(odak: _odak, onGunTikla: _gunPenceresi),
             ),
-          Gorunum.hafta => Column(children: [
-              _HaftaSeridi(odak: _odak, onGun: _odakDegistir),
-              Expanded(child: _gunAkisi()),
-            ]),
+          Gorunum.hafta => GestureDetector(
+              behavior: HitTestBehavior.translucent,
+              onHorizontalDragEnd: (d) {
+                final v = d.primaryVelocity ?? 0;
+                if (v < -350) _git(1);
+                if (v > 350) _git(-1);
+              },
+              child: RefreshIndicator(
+                onRefresh: _yenile,
+                child: HaftaOzeti(
+                  odak: _odak,
+                  onAc: _ac,
+                  onGun: (g) {
+                    setState(() => _gorunum = Gorunum.gun);
+                    _odakDegistir(g);
+                  },
+                ),
+              ),
+            ),
           Gorunum.gun => _gunAkisi(),
         },
       ),
@@ -635,80 +651,6 @@ class _GunPenceresi extends StatelessWidget {
           if (e.tekrarli) Padding(padding: EdgeInsets.only(left: 6), child: Icon(Icons.repeat, size: 16, color: Renk.yazi)),
         ]),
       ),
-    );
-  }
-}
-
-/// Hafta şeridi: yedi gün, her günün altında etkinliklerin renkli noktaları. Seçili gün dolu daire.
-class _HaftaSeridi extends StatelessWidget {
-  final DateTime odak;
-  final void Function(DateTime) onGun;
-  const _HaftaSeridi({required this.odak, required this.onGun});
-
-  @override
-  Widget build(BuildContext context) {
-    final depo = TakvimDeposu.instance;
-    final bas = haftaBasi(odak);
-    final bugun = gunBasi(DateTime.now());
-    return Container(
-      padding: const EdgeInsets.fromLTRB(8, 4, 8, 10),
-      child: Row(children: [
-        for (var i = 0; i < 7; i++)
-          Expanded(
-            child: Builder(builder: (context) {
-              final g = bas.add(Duration(days: i));
-              final secili = g == gunBasi(odak);
-              final bugunMu = g == bugun;
-              final renkler = <Color>[];
-              for (final e in depo.gununEtkinlikleri(g)) {
-                final r = depo.renkOf(e) ?? Renk.vurgu;
-                if (!renkler.any((x) => x.toARGB32() == r.toARGB32())) renkler.add(r);
-                if (renkler.length == 3) break;
-              }
-              return InkWell(
-                borderRadius: BorderRadius.circular(20),
-                onTap: () => onGun(g),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
-                  child: Column(children: [
-                    Text(_gunKisa[i],
-                        style: TextStyle(fontSize: 11, fontWeight: FontWeight.w700, color: Renk.yazi.withValues(alpha: 0.6))),
-                    const SizedBox(height: 4),
-                    Container(
-                      width: 38,
-                      height: 38,
-                      alignment: Alignment.center,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: secili ? Renk.vurgu : Colors.transparent,
-                        border: !secili && bugunMu ? Border.all(color: Renk.vurgu, width: 2) : null,
-                      ),
-                      child: Text('${g.day}',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                            color: secili ? Renk.vurguUstu : (i >= 5 ? Renk.hata : Renk.yazi),
-                          )),
-                    ),
-                    const SizedBox(height: 4),
-                    SizedBox(
-                      height: 7,
-                      child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-                        for (final r in renkler)
-                          Container(
-                            width: 6,
-                            height: 6,
-                            margin: const EdgeInsets.symmetric(horizontal: 1.5),
-                            decoration: BoxDecoration(color: r, shape: BoxShape.circle),
-                          ),
-                      ]),
-                    ),
-                  ]),
-                ),
-              );
-            }),
-          ),
-      ]),
     );
   }
 }

@@ -110,6 +110,12 @@ Günlük hayat, tez ve iş yerindeki işler, mini projeler, dekorasyon fikirleri
 - Haftalık: üstte hafta şeridi (günler ve renkli noktalar), altında seçili günün akışı. Aylık: Samsung Takvim ızgarası korundu.
 - Sonraki: ana sayfada kişiselleştirilebilir kitaplar (ön kapaklı, yana kaydırmalı raflar), mum/bitki hareketi, UI sesleri, kitap açılma animasyonu; yazı tipleri ve palet mood board'a göre.
 
+### Sadeleştirme ve takvim hesapları (v0.4.26)
+- Karşılama: beyaz blok yok, yalnızca Caveat el yazısı (arka plana göre koyu ya da açık renk, hafif gölge). Alan: "Aklında ne var?" içinde Not / Liste anahtarı; dokununca seçili olana göre yazı ya da liste arayüzü açılır. Sesli ve kamera düğmeleri ana sayfadan kalktı (kamera yazı arayüzünde).
+- Mum alevi yavaşça büyüyüp küçülür, ışığı rastgele gibi yayılıp söner; asma kaldırıldı, saksı bitkisi üç yavaş dalgayla doğal sallanır. Sesler çok yumuşak ve kısık.
+- Öneri ve hatırlatma yalnızca "Bana hatırlat / öner" anahtarı açık notlar için (varsayılan kapalı; yazı arayüzünde ve not detayında).
+- Takvim: Ayarlar > Görünen takvimler ile telefondaki bütün hesapların takvimleri (kişisel, iş) birlikte görünür; yeni etkinlikler seçilen takvime yazılır. Gün akışında ikon dairesine dokununca hazır ikon ya da emoji seçilir (emoji başlığa yazılır). Haftalık görünüm "hafta özeti": yedi gün alt alta, güne dokununca günlük görünüm.
+
 ### Kütüphane yenilendi (v0.4.25)
 - Ana sayfada yana kaydırmalı iki katlı ahşap raf (ChatGPT'den gelen parçalarla: raf, 6 kitap kapağı, mum, alev, saksı, yaprak, asma; kupa ve kedi dosyaları hazır, henüz kullanılmıyor). Kitaplar önden bakışlı kapaklar: kategori rengine en yakın kapak, ortada resim / emoji / ikon, altta ad, köşede not sayısı. Sütun sütun ilerler (üst, alt raf), sağa kaydırılır.
 - Kapak kişiselleştirme: Kategorileri düzenle > kategori > "Kitap kapağı" ile kendi resmini koyabilirsin; yoksa emoji, o da yoksa ikon.
