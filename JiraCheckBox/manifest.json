@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "JiraCheckBox",
+  "name": "Jira Operatörü",
   "version": "1.0",
   "description": "Jira listesinde baktigim CR'lari isaretler (yerel)",
   "content_scripts": [
