@@ -76,3 +76,7 @@ Onaylanan tasarım `KARARLAR.md` bölüm 7'de. Özet ve teknik notlar:
 - `AiServisi.oneriPaketi` (Haiku, JSON şema). `lib/ekranlar/oneri_kartlari.dart` ana sayfada. Ayarlar'da öneriler bölümü; notta "Hatırlat" çipi.
 - Android: desugaring (build.gradle.kts), POST_NOTIFICATIONS, RECEIVE_BOOT_COMPLETED, bildirim receiver'ları (manifest), MainActivity'de etkinlik rengi kanalı (`aklimda/etkinlik_rengi`).
 - Doğrulanmadı (telefonda denenecek): bildirimin gerçekten zamanında gelmesi (Samsung pil), etkinlik rengi yazma, sesli not ara sonuç düzeltmesi.
+
+## Aşama 4 (tarif kitabı) durumu
+Tamam: model, ayrıştırıcı, içe aktarma, TarifSayfasi, TarifEkleEkrani, notuAc yönlendirme, kart etiketleri, paylaşım girişi, testler.
+Kalan: tarif araması (başlık+malzeme) için ayrı alan, ana renk/yazı tipi (Lora/Inter), kupa/kedi görselleri.

@@ -7,6 +7,7 @@ import 'ai/ai_ayarlar.dart';
 import 'ai/isleyici.dart';
 import 'oneri/bildirim_servisi.dart';
 import 'takvim/takvim_deposu.dart';
+import 'tarif/tarif_modeli.dart';
 import 'takvim/takvim_modeller.dart';
 import 'veri/depo.dart';
 import 'veri/modeller.dart';
@@ -213,6 +214,10 @@ class NotKarti extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Row(children: [
+                      if (not.tarifMi)
+                        Padding(
+                            padding: EdgeInsets.only(right: 4),
+                            child: Icon(Icons.restaurant_menu, size: 16, color: Renk.vurgu)),
                       if (not.liste)
                         Padding(
                             padding: EdgeInsets.only(right: 4),
@@ -251,6 +256,8 @@ class NotKarti extends StatelessWidget {
                       children: [
                         Text(tarihYazisi(not.olusturma),
                             style: yazi.labelSmall?.copyWith(color: Renk.yazi.withValues(alpha: 0.6))),
+                        if (not.tarif?.sure != null) _Etiket('⏱ ${Tarif.sureMetni(not.tarif!.sure!)}'),
+                        if (not.tarif?.kisi != null) _Etiket('👤 ${not.tarif!.kisi}'),
                         if (not.liste && not.adimlar.isNotEmpty)
                           _Etiket('${not.adimlar.where((a) => a.yapildi).length}/${not.adimlar.length} madde'),
                         if (not.durum != Durum.yapilacak) _Etiket(Durum.ad(not.durum)),

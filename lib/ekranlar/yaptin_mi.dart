@@ -1,3 +1,4 @@
+import 'not_ac.dart';
 import 'dart:async';
 
 import 'package:material_ui/material_ui.dart';
@@ -5,7 +6,6 @@ import 'package:material_ui/material_ui.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
-import 'not_detay.dart';
 
 /// Takvime eklenen bir etkinlik bittikten 5 dakika sonra "yaptın mı?" diye sorar.
 /// Bildirim değildir, uygulama açılınca ana sayfada görünür.
@@ -75,7 +75,7 @@ class _YaptinMiKartlariState extends State<YaptinMiKartlari> {
                     Text('Yaptın mı?', style: TextStyle(color: Renk.vurgu, fontWeight: FontWeight.w600)),
                     const SizedBox(height: 4),
                     InkWell(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NotDetay(notId: n.id))),
+                      onTap: () => notuAc(context, n),
                       child: Text(n.gorunenBaslik,
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,

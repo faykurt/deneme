@@ -6,6 +6,7 @@ import 'package:receive_sharing_intent/receive_sharing_intent.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
+import 'tarif_ekle.dart';
 
 final _linkDeseni = RegExp(r'https?://\S+');
 
@@ -79,6 +80,14 @@ class _KaydedildiPenceresiState extends State<_KaydedildiPenceresi> {
     if (mounted) Navigator.pop(context);
   }
 
+  void _tarifEkle() {
+    _kapat?.cancel();
+    final nav = Navigator.of(context);
+    final not = widget.not;
+    nav.pop();
+    nav.push(MaterialPageRoute(builder: (_) => TarifEkleEkrani(baglanti: not.link, silinecekNotId: not.id)));
+  }
+
   @override
   void dispose() {
     _kapat?.cancel();
@@ -114,10 +123,16 @@ class _KaydedildiPenceresiState extends State<_KaydedildiPenceresi> {
             onSubmitted: (_) => _bitir(),
           ),
           const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerRight,
-            child: FilledButton(onPressed: _bitir, child: const Text('Tamam')),
-          ),
+          Row(children: [
+            if (widget.not.link != null)
+              TextButton.icon(
+                onPressed: _tarifEkle,
+                icon: const Icon(Icons.restaurant_menu),
+                label: const Text('Tarif olarak ekle'),
+              ),
+            const Spacer(),
+            FilledButton(onPressed: _bitir, child: const Text('Tamam')),
+          ]),
         ],
       ),
     );

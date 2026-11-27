@@ -7,6 +7,7 @@ import 'ai/ai_harcama.dart';
 import 'ai/ai_servisi.dart';
 import 'ai/ai_zamanlama.dart';
 import 'takvim/takvim_ayarlari.dart';
+import 'ekranlar/not_ac.dart';
 import 'ekranlar/iskelet.dart';
 import 'fikirler.dart';
 import 'ekranlar/not_detay.dart';
@@ -50,7 +51,8 @@ Future<void> main() async {
 void _bildirimAc(String payload) {
   if (!payload.startsWith('not:')) return;
   final id = payload.substring(4);
-  navigatorKey.currentState?.push(MaterialPageRoute(builder: (_) => NotDetay(notId: id)));
+  final n = Depo.instance.notlar.where((x) => x.id == id).firstOrNull;
+  navigatorKey.currentState?.push(n == null ? MaterialPageRoute<void>(builder: (_) => NotDetay(notId: id)) : notRotasi(n));
 }
 
 class AklimdaApp extends StatelessWidget {

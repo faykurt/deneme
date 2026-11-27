@@ -1,3 +1,4 @@
+import 'not_ac.dart';
 import 'dart:math' as math;
 
 import 'package:intl/intl.dart';
@@ -11,7 +12,6 @@ import '../takvim/etkinlik_simgesi.dart';
 import '../takvim/takvim_deposu.dart';
 import '../takvim/takvim_kaynagi.dart' show TakvimHatasi;
 import '../takvim/takvim_modeller.dart';
-import 'not_detay.dart';
 
 /// Bir günün dikey akışı: süreyle uzayan renkli ikon kapsülleri, "şimdi" işareti,
 /// etkinlikler arasındaki boşluklarda öneri ve gün sonunda "Günü kapatalım mı?" kartı.
@@ -352,7 +352,7 @@ class _BosAralik extends StatelessWidget {
             padding: const EdgeInsets.fromLTRB(8, 4, 0, 4),
             child: InkWell(
               borderRadius: BorderRadius.circular(14),
-              onTap: oneri == null ? null : () => Navigator.push(context, MaterialPageRoute(builder: (_) => NotDetay(notId: oneri.id))),
+              onTap: oneri == null ? null : () => notuAc(context, oneri),
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 9),
                 decoration: BoxDecoration(

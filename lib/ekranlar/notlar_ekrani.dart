@@ -1,9 +1,10 @@
+import 'not_ac.dart';
+import 'tarif_ekle.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
-import 'not_detay.dart';
 import 'onay_bekleyenler.dart';
 import 'yazili_not.dart';
 
@@ -168,6 +169,11 @@ class KategoriSayfasi extends StatelessWidget {
     final depo = Depo.instance;
     return Scaffold(
       appBar: AppBar(backgroundColor: Renk.zemin, title: Text(depo.agac.tamAd(kategori.id)), actions: [
+        if (RegExp('yemek|tarif', caseSensitive: false).hasMatch(depo.agac.tamAd(kategori.id)))
+          IconButton(
+              tooltip: 'Tarif ekle',
+              icon: const Icon(Icons.restaurant_menu),
+              onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TarifEkleEkrani()))),
         IconButton(
             tooltip: 'Liste ekle',
             icon: const Icon(Icons.checklist),
@@ -346,7 +352,7 @@ class _NotListesiState extends State<NotListesi> {
                         if (_secimModu) {
                           setState(() => _secili.contains(n.id) ? _secili.remove(n.id) : _secili.add(n.id));
                         } else {
-                          Navigator.push(context, MaterialPageRoute(builder: (_) => NotDetay(notId: n.id)));
+                          notuAc(context, n);
                         }
                       },
                       onLongPress: () => setState(() => _secili.add(n.id)),

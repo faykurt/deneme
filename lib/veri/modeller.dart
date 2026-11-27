@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../kategori_gorunum.dart';
+import '../tarif/tarif_modeli.dart';
 
 /// Not durumları. Kullanıcı isterse elle değiştirir, zorunlu değildir.
 class Durum {
@@ -23,6 +24,7 @@ class Durum {
 class NotTuru {
   static const not = 'not';
   static const liste = 'liste';
+  static const tarif = 'tarif';
 }
 
 /// Notun nereden geldiği.
@@ -132,6 +134,9 @@ class Not {
   /// true ise not öneri ve hatırlatmalarda kullanılır (kullanıcı kendi seçer, varsayılan kapalı).
   bool oneriDahil;
   String tur;
+
+  /// Yemek kitabındaki tarif verisi (JSON). Yalnızca `tur == tarif` notlarda dolu.
+  String? tarifJson;
   List<String> fotograflar;
   List<int> kategoriIdler;
   List<Adim> adimlar;
@@ -164,6 +169,7 @@ class Not {
     this.aiDisi = false,
     this.oneriDahil = false,
     this.tur = NotTuru.not,
+    this.tarifJson,
     List<String>? fotograflar,
     List<int>? kategoriIdler,
     List<Adim>? adimlar,
@@ -175,6 +181,10 @@ class Not {
   bool get onayBekliyor => islendi && !onayli;
 
   bool get liste => tur == NotTuru.liste;
+
+  bool get tarifMi => tur == NotTuru.tarif;
+
+  Tarif? get tarif => tarifMi ? Tarif.coz(tarifJson) : null;
 
   /// Listede görünen başlık: yapay zeka başlığı yoksa metnin ilk satırı.
   String get gorunenBaslik {
@@ -214,6 +224,7 @@ class Not {
         'ai_disi': aiDisi ? 1 : 0,
         'oneri': oneriDahil ? 1 : 0,
         'tur': tur,
+        'tarif_json': tarifJson,
       };
 
   factory Not.fromMap(Map<String, Object?> m) => Not(
@@ -244,6 +255,7 @@ class Not {
         aiDisi: m['ai_disi'] == 1,
         oneriDahil: m['oneri'] == 1,
         tur: (m['tur'] as String?) ?? NotTuru.not,
+        tarifJson: m['tarif_json'] as String?,
       );
 }
 

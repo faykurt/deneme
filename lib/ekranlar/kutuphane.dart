@@ -1,3 +1,4 @@
+import 'not_ac.dart';
 import 'dart:io';
 import 'dart:math' as math;
 
@@ -7,7 +8,6 @@ import '../ses.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
 import 'kitap_acilisi.dart';
-import 'not_detay.dart';
 import 'notlar_ekrani.dart';
 
 const _gorsel = 'assets/gorsel';
@@ -248,7 +248,7 @@ class _KutuphaneState extends State<Kutuphane> with SingleTickerProviderStateMix
       child: GestureDetector(
         onTap: () {
           Ses.instance.tik();
-          Navigator.push(context, MaterialPageRoute(builder: (_) => NotDetay(notId: n.id)));
+          notuAc(context, n);
         },
         child: Container(
           padding: const EdgeInsets.fromLTRB(5, 7, 5, 3),

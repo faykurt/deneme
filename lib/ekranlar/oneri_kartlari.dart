@@ -1,3 +1,4 @@
+import 'not_ac.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../ai/ai_ayarlar.dart';
@@ -5,7 +6,6 @@ import '../oneri/oneri_deposu.dart';
 import '../ortak.dart';
 import '../veri/depo.dart';
 import '../veri/modeller.dart';
-import 'not_detay.dart';
 import 'takvime_ekle.dart';
 
 /// Ana sayfadaki öneri kartları, hafta sonu planı ve "Şu an ne yapabilirim?" düğmesi.
@@ -144,7 +144,7 @@ class _OneriKarti extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(14, 12, 8, 6),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           InkWell(
-            onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NotDetay(notId: not.id))),
+            onTap: () => notuAc(context, not),
             child: Text(not.gorunenBaslik, maxLines: 2, overflow: TextOverflow.ellipsis,
                 style: yazi.titleSmall?.copyWith(color: Renk.yazi, fontWeight: FontWeight.w600)),
           ),
@@ -196,7 +196,7 @@ class _HaftaSonuKarti extends StatelessWidget {
             ),
             for (final n in notlar)
               InkWell(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => NotDetay(notId: n.id))),
+                onTap: () => notuAc(context, n),
                 child: Padding(
                   padding: const EdgeInsets.symmetric(vertical: 4),
                   child: Row(children: [
@@ -282,7 +282,7 @@ class _SuAnPenceresiState extends State<_SuAnPenceresi> {
               subtitle: Text('${n.sureDk ?? 30} dk'),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => NotDetay(notId: n.id)));
+                notuAc(context, n);
               },
             ),
         ]),

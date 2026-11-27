@@ -6,6 +6,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:uuid/uuid.dart';
 
+import '../tarif/tarif_modeli.dart';
 import 'modeller.dart';
 
 /// Tüm notların ve kategorilerin telefonda saklandığı yer.
@@ -14,7 +15,7 @@ class Depo extends ChangeNotifier {
   Depo._();
   static final Depo instance = Depo._();
 
-  static const _surum = 6;
+  static const _surum = 7;
 
   /// Yeni notun yapay zeka dışı başlayıp başlamayacağı (Ayarlar'daki otomatik anahtarı).
   static bool Function() yeniNotAiDisi = () => false;
@@ -76,7 +77,8 @@ class Depo extends ChangeNotifier {
         ai_json TEXT,
         ai_disi INTEGER NOT NULL DEFAULT 0,
         oneri INTEGER NOT NULL DEFAULT 0,
-        tur TEXT NOT NULL DEFAULT 'not'
+        tur TEXT NOT NULL DEFAULT 'not',
+        tarif_json TEXT
       )''');
     await db.execute('''
       CREATE TABLE kategoriler (
@@ -156,6 +158,9 @@ class Depo extends ChangeNotifier {
     }
     if (eski < 6) {
       await db.execute('ALTER TABLE notlar ADD COLUMN oneri INTEGER NOT NULL DEFAULT 0');
+    }
+    if (eski < 7) {
+      await db.execute('ALTER TABLE notlar ADD COLUMN tarif_json TEXT');
     }
   }
 
@@ -389,6 +394,54 @@ class Depo extends ChangeNotifier {
       final f = File(eski);
       if (await f.exists()) await f.delete();
     }
+    await yenile();
+  }
+
+  /// Yemek kitabını (ana kategori "Yemek") bulur, yoksa oluşturur.
+  Future<int> yemekKategorisi() async {
+    final var_ = kategoriler.where((k) => k.ustId == null && k.ad.toLowerCase().contains('yemek')).firstOrNull;
+    return var_?.id ?? await kategoriEkle('Yemek');
+  }
+
+  /// Yemek kitabının altında verilen adda bölüm bulur (Tatlılar, Ana yemekler...), yoksa oluşturur.
+  Future<int> tarifBolumu(String ad) async {
+    final yemek = await yemekKategorisi();
+    final var_ = kategoriler.where((k) => k.ustId == yemek && k.ad.toLowerCase() == ad.toLowerCase()).firstOrNull;
+    return var_?.id ?? await kategoriEkle(ad, ustId: yemek);
+  }
+
+  /// Tarifi yemek kitabına yeni not olarak ekler. [kapakDosya] ve [adimDosyalari] yerel dosyalardır (kopyalanır).
+  Future<Not> tarifEkle(Tarif tarif, {String? kapakDosya, List<String?> adimDosyalari = const []}) async {
+    final bolum = await tarifBolumu(tarif.kategori);
+    final not = await notEkle(
+      metin: tarif.baslik,
+      kaynak: Kaynak.paylasim,
+      link: tarif.kaynakUrl,
+      tur: NotTuru.tarif,
+      kategoriIdler: [bolum],
+      aiDisi: true,
+    );
+    // Önce kapak, sonra adım resimleri notun fotoğrafları olur; adımlara yollarını yazarız.
+    if (kapakDosya != null) await fotografEkle(not.id, kapakDosya, yenidenYukle: false);
+    final adimlar = <TarifAdimi>[];
+    for (var i = 0; i < tarif.adimlar.length; i++) {
+      final dosya = i < adimDosyalari.length ? adimDosyalari[i] : null;
+      String? yol;
+      if (dosya != null) {
+        await fotografEkle(not.id, dosya, yenidenYukle: false);
+        final satir = await _db.query('fotograflar', where: 'not_id = ?', whereArgs: [not.id], orderBy: 'id DESC', limit: 1);
+        yol = satir.isEmpty ? null : satir.first['dosya'] as String?;
+      }
+      adimlar.add(TarifAdimi(tarif.adimlar[i].metin, resim: yol));
+    }
+    final kaydedilecek = tarif.kopya(adimlar: adimlar);
+    await _db.update('notlar', {'baslik': tarif.baslik, 'tarif_json': kaydedilecek.toJsonMetni()}, where: 'id = ?', whereArgs: [not.id]);
+    await yenile();
+    return notlar.firstWhere((n) => n.id == not.id);
+  }
+
+  Future<void> tarifiGuncelle(String notId, Tarif tarif) async {
+    await _db.update('notlar', {'tarif_json': tarif.toJsonMetni(), 'guncelleme': _simdi}, where: 'id = ?', whereArgs: [notId]);
     await yenile();
   }
 

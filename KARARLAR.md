@@ -182,3 +182,9 @@ Eklenmeyecek: 2 dakika kuralı (Ö10). Kullanırken eksik hissedilirse sonra de�
 6. **Görünüm:** piksel art arka plan ve son cila (sıcak renkler baştan kullanılır).
 
 Her aşama sonunda kullanıcı telefonda dener. Kullanıcı "yap" demeden bir sonraki aşamaya geçilmez.
+
+## Aşama 4: Tarif kitabı
+- Tarif de bir nottur (`tur = tarif`, `tarif_json`); "Yemek" ana kategorisinin altındaki bölümlere (Tatlılar, Ana yemekler…) otomatik yerleşir.
+- Bağlantıdan ekleme: sayfadaki JSON-LD Recipe okunur; yoksa yapay zeka sayfa metninden çıkarır. Instagram doğrudan okunamaz: açıklama metni yapıştırılır / ekran görüntüsü eklenir.
+- Tarif sayfası: büyük resim, süre/kişi, işaretlenebilir malzemeler (kalıcı), adımlar, kaynağı/videoyu aç.
+- Girişler: Yemek kategorisi sayfasında çatal-kaşık düğmesi; paylaşılan bağlantıda "Tarif olarak ekle". Liste kartlarında ⏱ süre görünür.
