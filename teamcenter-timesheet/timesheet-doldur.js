@@ -1,5 +1,5 @@
 /*
- * Teamcenter Active Workspace - Timesheet Entry otomatik doldurma
+ * TeamCenter Operatörü - Active Workspace Timesheet Entry otomatik doldurma
  * Başlangıç-bitiş arasındaki tüm hafta içi günlere: açıklama + 08 saat + 00 dk + tarih girer,
  * her gün için SADECE "Add" butonuna basar. "Submit" butonuna ASLA dokunmaz.
  */
@@ -15,8 +15,8 @@
   try {
     await ana();
   } catch (e) {
-    console.error('[Timesheet]', e);
-    alert('HATA: ' + e.message + '\n\nİşlem durduruldu. O ana kadar eklenen kayıtlar listede duruyor.');
+    console.error('[TeamCenter Operatörü]', e);
+    alert('TeamCenter Operatörü - HATA: ' + e.message + '\n\nİşlem durduruldu. O ana kadar eklenen kayıtlar listede duruyor.');
   } finally {
     window.__tcTimesheetCalisiyor = false;
   }
@@ -59,9 +59,9 @@
 
     for (var i = 0; i < gunler.length; i++) {
       var t = tcFormat(gunler[i]);
-      console.log('[Timesheet] ' + (i + 1) + '/' + gunler.length + ' giriliyor: ' + t);
+      console.log('[TeamCenter Operatörü] ' + (i + 1) + '/' + gunler.length + ' giriliyor: ' + t);
       await kayitEkle(acik, t);
-      console.log('[Timesheet] Eklendi: ' + t);
+      console.log('[TeamCenter Operatörü] Eklendi: ' + t);
       if (i === 0 && gunler.length > 1) {
         if (!confirm('İlk kayıt eklendi (' + t + ').\nListede doğru göründüğünü kontrol edin.\n\nKalan ' +
                      (gunler.length - 1) + ' gün için devam edilsin mi?')) {
