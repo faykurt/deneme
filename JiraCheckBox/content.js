@@ -21,7 +21,7 @@
       const l = document.createElement('span');
       l.style.cssText = LOZENGE;
       l.textContent = text;
-      l.title = text + '  (düzenlemek için tıklayın)';
+      l.title = text + '  (click to edit)';
       l.onclick = (e) => {
         e.stopPropagation();
         e.preventDefault();
@@ -33,7 +33,7 @@
     const inp = document.createElement('input');
     inp.type = 'text';
     inp.style.cssText = INPUT;
-    inp.placeholder = '+ not';
+    inp.title = 'Add note';
     inp.value = text || '';
     let done = false;
     const commit = () => {
@@ -107,18 +107,18 @@
     if (!headRow.querySelector('th.baktim-note-th')) {
       const nth = document.createElement('th');
       nth.className = 'baktim-note-th';
-      nth.appendChild(document.createTextNode('Not '));
+      nth.appendChild(document.createTextNode('My notes '));
       const clr = document.createElement('a');
       clr.textContent = 'Clear all';
       clr.href = '#';
-      clr.title = 'Tüm notları sil';
+      clr.title = 'Delete all notes';
       clr.style.cssText = 'font-size:11px;font-weight:normal;margin-left:6px;';
       clr.onclick = (e) => {
         e.preventDefault();
         e.stopPropagation();
         const n = Object.keys(getNotes()).length;
         if (!n) return;
-        if (confirm('Kayıtlı ' + n + ' notun HEPSİ silinecek. Emin misiniz?')) {
+        if (confirm('All ' + n + ' saved notes will be deleted. Are you sure?')) {
           setNotes({});
           document.querySelectorAll('tr[data-issuekey]').forEach((tr) => {
             const td = tr.querySelector('td.baktim-note-td');
@@ -136,11 +136,11 @@
       all = document.createElement('input');
       all.type = 'checkbox';
       all.className = 'baktim-all';
-      all.title = 'Sayfadakilerin hepsini işaretle / kaldır (Shift+tık: tüm tikleri sıfırla; notlar silinmez)';
+      all.title = 'Check / uncheck all rows on this page (Shift+click: reset all checks; notes are kept)';
       all.onclick = (e) => {
         e.stopPropagation();
         if (e.shiftKey) {
-          if (confirm('Kayıtlı TÜM tikler silinecek (notlar kalır). Emin misiniz?')) set({});
+          if (confirm('ALL saved checks will be cleared (notes are kept). Are you sure?')) set({});
           apply();
           return;
         }
