@@ -1,0 +1,729 @@
+<title>Falan</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: tek ekranlık telefon uygulaması — üstte sayfa başlığı, ortada kaydırılan başlık listesi, altta eylem butonları + sekme çubuğu. Sadece açık tema. */
+:root {
+  --bg: #FFFFFF;
+  --surface: #F7F4F1;
+  --line: #ECE5DE;
+  --fg: #2B2622;
+  --muted: #8E857D;
+  --accent: #F1B58E;
+  --accent-soft: #FCEBDD;
+  --accent-ink: #8A4A20;
+  --danger: #CF5A4C;
+  --danger-soft: #FBE5E1;
+  --font: "Manrope", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --r: 14px;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 16px; overflow: hidden; -webkit-tap-highlight-color: transparent; }
+button, input, textarea { font: inherit; color: inherit; }
+button { cursor: pointer; background: none; border: 0; padding: 0; }
+:focus-visible { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+.gut { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+
+#app { height: 100%; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; }
+.top { display: flex; align-items: center; gap: 10px; padding-block: 14px 10px; }
+.top h1 { margin: 0; font-size: 1.45rem; font-weight: 700; letter-spacing: -0.01em; flex: 1; min-width: 0; text-wrap: balance; }
+.ver { font-size: .72rem; font-weight: 700; letter-spacing: .06em; color: var(--accent-ink); background: var(--accent-soft); padding: 3px 8px; border-radius: 99px; }
+.icon-btn { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; color: var(--muted); }
+.icon-btn:active { background: var(--surface); }
+.icon-btn svg { width: 22px; height: 22px; }
+
+.list { flex: 1; overflow-y: auto; padding-block: 4px 16px; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.item { display: flex; align-items: center; gap: 10px; width: 100%; text-align: left; padding: 15px 16px; background: var(--surface); border-radius: var(--r); font-weight: 600; min-width: 0; }
+.item:active { background: var(--line); }
+.item .t { flex: 1; min-width: 0; overflow-wrap: anywhere; }
+.item.old { color: var(--muted); font-weight: 500; }
+.bang { flex: none; width: 22px; height: 22px; border-radius: 50%; background: var(--danger); color: #fff; font-size: .8rem; font-weight: 700; display: grid; place-items: center; }
+.empty { margin: auto 0; text-align: center; color: var(--muted); padding: 40px 12px; display: grid; gap: 6px; }
+.empty b { color: var(--fg); font-weight: 600; font-size: 1.05rem; }
+
+.actions { display: flex; justify-content: center; gap: 18px; padding-block: 10px 12px; }
+.fab { width: 60px; height: 60px; border-radius: 50%; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-ink); }
+.fab.mic { background: var(--accent); color: var(--fg); }
+.fab svg { width: 28px; height: 28px; }
+.fab:active { transform: scale(.96); }
+
+.tabs { display: flex; border-top: 1px solid var(--line); padding-block: 6px 6px; background: var(--bg); }
+.tab { flex: 1; display: grid; justify-items: center; gap: 2px; padding: 6px 2px; color: var(--muted); font-size: .72rem; font-weight: 600; min-width: 0; }
+.tab svg { width: 22px; height: 22px; }
+.tab.on { color: var(--accent-ink); }
+.tab.pending { flex: 0 0 76px; }
+.pill { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 99px; background: var(--surface); color: var(--fg); font-variant-numeric: tabular-nums; font-size: .85rem; font-weight: 700; }
+.pill svg { width: 16px; height: 16px; }
+
+/* overlays */
+.backdrop { position: fixed; inset: 0; background: rgba(43, 38, 34, .32); z-index: 20; }
+.sheet { position: fixed; left: 0; right: 0; bottom: 0; margin: 0 auto; max-width: 520px; max-height: 86%; overflow-y: auto; background: var(--bg); border-radius: 22px 22px 0 0; z-index: 21; padding-top: 10px; padding-bottom: calc(18px + env(safe-area-inset-bottom, 0px)); }
+.grab { width: 40px; height: 5px; border-radius: 9px; background: var(--line); margin: 0 auto 12px; }
+.sheet h2 { margin: 0 0 10px; font-size: 1.3rem; line-height: 1.3; text-wrap: balance; overflow-wrap: anywhere; }
+.meta { display: grid; gap: 6px; margin-bottom: 14px; }
+.meta-row { display: flex; gap: 8px; align-items: center; font-size: .92rem; color: var(--muted); }
+.meta-row svg { width: 18px; height: 18px; flex: none; }
+.meta-row span { color: var(--fg); font-variant-numeric: tabular-nums; }
+.content { white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.55; margin: 0 0 16px; }
+.att-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
+.thumb { width: 84px; height: 84px; border-radius: 12px; object-fit: cover; background: var(--surface); display: block; }
+.chip { display: inline-flex; align-items: center; gap: 6px; max-width: 100%; padding: 8px 12px; border-radius: 12px; background: var(--surface); font-size: .88rem; color: var(--fg); text-decoration: none; min-width: 0; }
+.chip span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip svg { width: 16px; height: 16px; flex: none; }
+.btn-row { display: flex; gap: 8px; }
+.btn { flex: 1; padding: 13px 10px; border-radius: 12px; font-weight: 700; background: var(--surface); text-align: center; }
+.btn.primary { background: var(--accent); color: var(--fg); }
+.btn.danger { color: var(--danger); background: var(--danger-soft); }
+.btn:disabled { opacity: .45; cursor: default; }
+.small-note { font-size: .82rem; color: var(--muted); }
+
+.screen { position: fixed; inset: 0; z-index: 30; background: var(--bg); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
+.screen-inner { width: 100%; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.bar { display: flex; align-items: center; gap: 8px; padding-block: 12px; border-bottom: 1px solid var(--line); }
+.bar h2 { flex: 1; margin: 0; font-size: 1.05rem; text-align: center; }
+.bar .link { font-weight: 700; padding: 6px 4px; min-width: 64px; }
+.bar .link.right { text-align: right; color: var(--accent-ink); }
+.bar .link.left { text-align: left; color: var(--muted); }
+.form { flex: 1; overflow-y: auto; padding-block: 16px 30px; display: grid; gap: 14px; align-content: start; }
+.field { display: grid; gap: 6px; }
+.field > label, .sec-label { font-size: .78rem; font-weight: 700; letter-spacing: .05em; text-transform: uppercase; color: var(--muted); }
+.inp { width: 100%; padding: 12px 14px; border-radius: 12px; border: 1.5px solid var(--line); background: var(--bg); min-width: 0; }
+textarea.inp { min-height: 150px; resize: vertical; line-height: 1.5; }
+.inp:focus { border-color: var(--accent); outline: none; }
+.inp.miss { border-color: var(--danger); background: var(--danger-soft); }
+.group { background: var(--surface); border-radius: var(--r); padding: 12px 14px; display: grid; gap: 10px; }
+.row { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.row > .inp { flex: 1 1 130px; }
+.switch-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-weight: 600; }
+.sw { position: relative; width: 48px; height: 28px; flex: none; }
+.sw input { position: absolute; inset: 0; opacity: 0; margin: 0; cursor: pointer; }
+.sw i { position: absolute; inset: 0; border-radius: 99px; background: var(--line); transition: background .15s; pointer-events: none; }
+.sw i::after { content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.18); transition: transform .15s; }
+.sw input:checked + i { background: var(--accent); }
+.sw input:checked + i::after { transform: translateX(20px); }
+.sw input:focus-visible + i { outline: 2px solid var(--accent-ink); outline-offset: 2px; }
+.stepper { display: flex; align-items: center; gap: 10px; font-weight: 600; }
+.stepper button { width: 36px; height: 36px; border-radius: 10px; background: var(--bg); border: 1.5px solid var(--line); font-size: 1.2rem; font-weight: 700; }
+.stepper output { min-width: 2.2ch; text-align: center; font-variant-numeric: tabular-nums; font-size: 1.1rem; }
+.att-btns { display: flex; gap: 8px; flex-wrap: wrap; }
+.att-btns label { flex: 1 1 140px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 12px; border-radius: 12px; background: var(--bg); border: 1.5px dashed var(--line); font-weight: 600; cursor: pointer; }
+.att-btns label svg { width: 18px; height: 18px; }
+.att-btns input { position: absolute; width: 1px; height: 1px; opacity: 0; pointer-events: none; }
+
+/* recording */
+.rec-body { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding-block: 24px; }
+.timer { font-size: 3.2rem; font-weight: 700; font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
+.timer small { display: block; text-align: center; font-size: .9rem; color: var(--muted); font-weight: 600; letter-spacing: 0; }
+#wave { width: 100%; max-width: 360px; height: 110px; display: block; }
+.rec-status { color: var(--muted); font-size: .9rem; text-align: center; min-height: 1.4em; }
+.rec-ctrl { display: flex; gap: 28px; justify-content: center; padding-block: 18px 28px; }
+.round { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; }
+.round svg { width: 30px; height: 30px; }
+.round.stop { background: var(--danger); color: #fff; }
+.round.del { background: var(--danger-soft); color: var(--danger); }
+.round.send { background: var(--accent); color: var(--fg); }
+.round-wrap { display: grid; justify-items: center; gap: 6px; font-size: .85rem; font-weight: 600; color: var(--muted); }
+
+/* dialog, toast, viewer, busy */
+.dialog-wrap { position: fixed; inset: 0; z-index: 50; background: rgba(43, 38, 34, .36); display: grid; place-items: center; padding: 24px; }
+.dialog { width: 100%; max-width: 340px; background: var(--bg); border-radius: 18px; padding: 20px; display: grid; gap: 16px; }
+.dialog p { margin: 0; line-height: 1.5; font-weight: 500; }
+.toast { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(150px + env(safe-area-inset-bottom, 0px)); z-index: 60; background: var(--fg); color: var(--bg); padding: 10px 16px; border-radius: 12px; font-size: .9rem; font-weight: 600; max-width: calc(100% - 32px); text-align: center; }
+.viewer { position: fixed; inset: 0; z-index: 55; background: rgba(20, 17, 15, .92); display: grid; place-items: center; padding: 20px; }
+.viewer img { max-width: 100%; max-height: 100%; border-radius: 10px; }
+.busy { position: fixed; inset: 0; z-index: 45; background: rgba(255, 255, 255, .86); display: grid; place-items: center; align-content: center; gap: 14px; font-weight: 600; }
+.spin { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--accent-soft); border-top-color: var(--accent-ink); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .spin { animation-duration: 2.4s; } .sw i, .sw i::after { transition: none; } }
+</style>
+
+<div id="app">
+  <header class="top gut">
+    <h1 id="pageTitle">Notlarım</h1>
+    <span class="ver" title="Taslak sürümü">v1</span>
+    <button id="gearBtn" class="icon-btn" aria-label="Ayarlar">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+    </button>
+  </header>
+
+  <main id="list" class="list gut" aria-live="polite"></main>
+
+  <div id="actions" class="actions gut">
+    <button id="micBtn" class="fab mic" aria-label="Sesli not al">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+    </button>
+    <button id="addBtn" class="fab" aria-label="Yazılı not ekle">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
+    </button>
+  </div>
+
+  <nav class="tabs gut" aria-label="Sayfalar">
+    <button class="tab on" data-tab="notes">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/></svg>
+      Notlarım
+    </button>
+    <button class="tab" data-tab="fix">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/></svg>
+      Düzeltilecek
+    </button>
+    <button class="tab" data-tab="old">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7h18v13H3zM3 7l2-3h14l2 3M10 11h4"/></svg>
+      Eski
+    </button>
+    <button class="tab pending" id="pendingBtn" aria-label="İşlenmeyi bekleyen kayıtlar">
+      <span class="pill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 3h12M6 21h12M7 3c0 5 5 6 5 9s-5 4-5 9M17 3c0 5-5 6-5 9s5 4 5 9"/></svg><span id="pendingCount">0</span></span>
+      Bekleyen
+    </button>
+  </nav>
+</div>
+
+<div id="backdrop" class="backdrop" hidden></div>
+
+<section id="noteSheet" class="sheet gut" hidden role="dialog" aria-modal="true" aria-labelledby="sheetTitle">
+  <div class="grab"></div>
+  <h2 id="sheetTitle"></h2>
+  <div id="sheetMeta" class="meta"></div>
+  <p id="sheetContent" class="content"></p>
+  <div id="sheetAtt" class="att-grid"></div>
+  <div id="sheetBtns" class="btn-row"></div>
+</section>
+
+<section id="pendingSheet" class="sheet gut" hidden role="dialog" aria-modal="true" aria-labelledby="pendingTitle">
+  <div class="grab"></div>
+  <h2 id="pendingTitle">İşlenmeyi bekleyen</h2>
+  <p id="pendingText" class="small-note" style="margin:0 0 16px"></p>
+  <div class="btn-row">
+    <button id="processBtn" class="btn primary">İşle</button>
+  </div>
+</section>
+
+<section id="editScreen" class="screen" hidden role="dialog" aria-modal="true" aria-labelledby="editTitle">
+  <div class="screen-inner">
+    <div class="bar gut">
+      <button id="editCancel" class="link left">Vazgeç</button>
+      <h2 id="editTitle">Yeni not</h2>
+      <button id="editSave" class="link right">Kaydet</button>
+    </div>
+    <div class="form gut">
+      <div class="field">
+        <label for="fTitle">Başlık</label>
+        <input id="fTitle" class="inp" type="text" autocomplete="off" maxlength="120">
+      </div>
+      <div class="field">
+        <label for="fContent">İçerik</label>
+        <textarea id="fContent" class="inp"></textarea>
+      </div>
+
+      <div class="group">
+        <div class="switch-row"><span>Deadline</span><label class="sw"><input id="fDlOn" type="checkbox" aria-label="Deadline ekle"><i></i></label></div>
+        <div id="dlBox" class="row" hidden>
+          <input id="fDlDate" class="inp" type="date" aria-label="Deadline tarihi">
+          <input id="fDlTime" class="inp" type="time" aria-label="Deadline saati">
+        </div>
+        <div id="dlHint" class="small-note" hidden>Saat seçmezsen 16:00 olur.</div>
+      </div>
+
+      <div class="group">
+        <div class="switch-row"><span>Hatırlatma</span><label class="sw"><input id="fRmOn" type="checkbox" aria-label="Hatırlatma ekle"><i></i></label></div>
+        <div id="rmBox" class="row" hidden>
+          <input id="fRmDate" class="inp" type="date" aria-label="Hatırlatma tarihi">
+          <input id="fRmTime" class="inp" type="time" aria-label="Hatırlatma saati">
+        </div>
+        <div id="rmHint" class="small-note" hidden>Saat seçmezsen 16:00 olur.</div>
+        <div id="rpWrap" hidden>
+          <div class="switch-row"><span>Tekrarla</span><label class="sw"><input id="fRpOn" type="checkbox" aria-label="Hatırlatmayı tekrarla"><i></i></label></div>
+          <div id="rpBox" hidden style="display:grid;gap:6px;margin-top:10px">
+            <div class="stepper">
+              Her
+              <button type="button" id="rpMinus" aria-label="Azalt">−</button>
+              <output id="fRpN">1</output>
+              <button type="button" id="rpPlus" aria-label="Artır">+</button>
+              günde bir
+            </div>
+            <div id="rpHint" class="small-note"></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="group">
+        <span class="sec-label">Ekler</span>
+        <div id="editAtt" class="att-grid" style="margin:0"></div>
+        <div class="att-btns">
+          <label for="fFiles">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.1l-9.2 9.2a6 6 0 0 1-8.5-8.5l9.2-9.2a4 4 0 0 1 5.7 5.7l-9.2 9.2a2 2 0 0 1-2.8-2.8l8.5-8.5"/></svg>
+            Dosya / Galeri
+          </label>
+          <input id="fFiles" type="file" multiple>
+          <label for="fCam">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>
+            Kamera
+          </label>
+          <input id="fCam" type="file" accept="image/*" capture="environment">
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="recScreen" class="screen" hidden role="dialog" aria-modal="true" aria-label="Ses kaydı">
+  <div class="screen-inner gut">
+    <div class="rec-body">
+      <div class="timer"><span id="recTime">00:00</span><small>en fazla 05:00</small></div>
+      <canvas id="wave" width="720" height="220" aria-hidden="true"></canvas>
+      <div id="recStatus" class="rec-status"></div>
+    </div>
+    <div class="rec-ctrl" id="recCtrlLive">
+      <div class="round-wrap"><button id="recStop" class="round stop" aria-label="Kaydı durdur"><svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg></button>Durdur</div>
+    </div>
+    <div class="rec-ctrl" id="recCtrlDone" hidden>
+      <div class="round-wrap"><button id="recDel" class="round del" aria-label="Kaydı sil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>Sil</div>
+      <div class="round-wrap"><button id="recSend" class="round send" aria-label="Kaydı aktar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg></button>Aktar</div>
+    </div>
+  </div>
+</section>
+
+<section id="settingsScreen" class="screen" hidden role="dialog" aria-modal="true" aria-labelledby="setTitle">
+  <div class="screen-inner">
+    <div class="bar gut">
+      <button id="setBack" class="link left">Geri</button>
+      <h2 id="setTitle">Ayarlar</h2>
+      <span class="link"></span>
+    </div>
+    <div class="form gut">
+      <div class="field">
+        <label for="fKey">OpenAI API anahtarı</label>
+        <input id="fKey" class="inp" type="password" autocomplete="off" placeholder="sk-…">
+        <div class="small-note">Bu taslakta anahtar kaydedilmez ve kullanılmaz.</div>
+      </div>
+      <button id="keySave" class="btn primary">Kaydet</button>
+      <div class="small-note" style="text-align:center;margin-top:20px">Falan · taslak v1</div>
+    </div>
+  </div>
+</section>
+
+<div id="dialog" class="dialog-wrap" hidden>
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="dialogText">
+    <p id="dialogText"></p>
+    <div class="btn-row">
+      <button id="dialogCancel" class="btn">Vazgeç</button>
+      <button id="dialogOk" class="btn primary">Tamam</button>
+    </div>
+  </div>
+</div>
+
+<div id="busy" class="busy" hidden><div class="spin"></div><div id="busyText">İşleniyor…</div></div>
+<div id="viewer" class="viewer" hidden><img id="viewerImg" alt=""></div>
+<div id="toast" class="toast" hidden role="status"></div>
+
+<script>
+(() => {
+  const $ = id => document.getElementById(id);
+  const KEY = 'falan-v1';
+  const DEFAULT_TIME = '16:00';
+  const MAX_SEC = 300;
+
+  /* ---------- veri ---------- */
+  let state = { notes: [], pending: [] };
+  try {
+    const s = JSON.parse(localStorage.getItem(KEY));
+    if (s && Array.isArray(s.notes)) state = { notes: s.notes, pending: Array.isArray(s.pending) ? s.pending : [] };
+  } catch (e) {}
+  const save = () => { try { localStorage.setItem(KEY, JSON.stringify(state)); } catch (e) {} };
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  /* ek dosyalar IndexedDB'de */
+  const mem = new Map();
+  let dbP = null;
+  const idb = () => dbP || (dbP = new Promise(res => {
+    try {
+      const r = indexedDB.open('falan-files', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('f');
+      r.onsuccess = () => res(r.result);
+      r.onerror = () => res(null);
+    } catch (e) { res(null); }
+  }));
+  async function putFile(id, blob) {
+    mem.set(id, blob);
+    const d = await idb(); if (!d) return;
+    try { d.transaction('f', 'readwrite').objectStore('f').put(blob, id); } catch (e) {}
+  }
+  async function getFile(id) {
+    if (mem.has(id)) return mem.get(id);
+    const d = await idb(); if (!d) return null;
+    return new Promise(res => {
+      try {
+        const q = d.transaction('f').objectStore('f').get(id);
+        q.onsuccess = () => { if (q.result) mem.set(id, q.result); res(q.result || null); };
+        q.onerror = () => res(null);
+      } catch (e) { res(null); }
+    });
+  }
+  async function delFile(id) {
+    mem.delete(id);
+    const d = await idb(); if (!d) return;
+    try { d.transaction('f', 'readwrite').objectStore('f').delete(id); } catch (e) {}
+  }
+
+  /* ---------- yardımcılar ---------- */
+  const pad = n => String(n).padStart(2, '0');
+  const fmtDate = d => { const [y, m, dd] = d.split('-'); return `${dd}.${m}.${y}`; };
+  const fmtStamp = ts => { const d = new Date(ts); return `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} ${pad(d.getHours())}:${pad(d.getMinutes())}`; };
+  const dlTs = n => n.deadline ? new Date(`${n.deadline.date}T${n.deadline.time || DEFAULT_TIME}`).getTime() : null;
+  const fmtSize = b => b < 1024 ? b + ' B' : b < 1048576 ? (b / 1024).toFixed(0) + ' KB' : (b / 1048576).toFixed(1) + ' MB';
+  function el(tag, cls, text) { const e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+
+  let toastT;
+  function toast(msg) {
+    const t = $('toast'); t.textContent = msg; t.hidden = false;
+    clearTimeout(toastT); toastT = setTimeout(() => { t.hidden = true; }, 2200);
+  }
+  function ask(text, okLabel = 'Tamam', danger = false, withCancel = true) {
+    return new Promise(res => {
+      $('dialogText').textContent = text;
+      const ok = $('dialogOk'), cancel = $('dialogCancel');
+      ok.textContent = okLabel; ok.className = 'btn ' + (danger ? 'danger' : 'primary');
+      cancel.hidden = !withCancel;
+      $('dialog').hidden = false; ok.focus();
+      const done = v => { $('dialog').hidden = true; ok.onclick = cancel.onclick = null; res(v); };
+      ok.onclick = () => done(true); cancel.onclick = () => done(false);
+    });
+  }
+  const info = text => ask(text, 'Tamam', false, false);
+
+  /* ---------- sekmeler ve liste ---------- */
+  const TITLES = { notes: 'Notlarım', fix: 'Düzeltilmesi gerekenler', old: 'Eski notlar' };
+  let tab = 'notes';
+  try { const t = sessionStorage.getItem('falan-tab'); if (TITLES[t]) tab = t; } catch (e) {}
+
+  function listFor(t) {
+    if (t === 'notes') {
+      const now = Date.now(), over = [], none = [], up = [];
+      state.notes.filter(n => n.status === 'active').forEach(n => {
+        const ts = dlTs(n);
+        if (ts == null) none.push(n); else if (ts < now) over.push(n); else up.push(n);
+      });
+      over.sort((a, b) => dlTs(b) - dlTs(a));
+      none.sort((a, b) => b.createdAt - a.createdAt);
+      up.sort((a, b) => dlTs(a) - dlTs(b));
+      return [...over, ...none, ...up];
+    }
+    if (t === 'fix') return state.notes.filter(n => n.status === 'fix').sort((a, b) => b.createdAt - a.createdAt);
+    return state.notes.filter(n => n.status === 'done').sort((a, b) => b.doneAt - a.doneAt);
+  }
+
+  const EMPTY = {
+    notes: ['Henüz not yok', 'Yazmak için +, konuşmak için mikrofon.'],
+    fix: ['Düzeltilecek not yok', 'Sesli notta eksik bir bilgi olursa burada görünür.'],
+    old: ['Eski not yok', '“Bitti” dediğin notlar burada durur.']
+  };
+
+  function render() {
+    $('pageTitle').textContent = TITLES[tab];
+    $('gearBtn').hidden = tab !== 'notes';
+    $('actions').hidden = tab !== 'notes';
+    document.querySelectorAll('.tab[data-tab]').forEach(b => {
+      const on = b.dataset.tab === tab;
+      b.classList.toggle('on', on);
+      if (on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+    });
+    $('pendingCount').textContent = state.pending.length;
+
+    const list = $('list'); list.replaceChildren();
+    const items = listFor(tab);
+    if (!items.length) {
+      const e = el('div', 'empty');
+      e.append(el('b', null, EMPTY[tab][0]), el('span', null, EMPTY[tab][1]));
+      list.append(e); return;
+    }
+    items.forEach(n => {
+      const b = el('button', 'item' + (tab === 'old' ? ' old' : ''));
+      if (tab === 'fix') b.append(el('span', 'bang', '!'));
+      b.append(el('span', 't', n.title || 'Başlıksız not'));
+      b.onclick = () => openNote(n.id);
+      list.append(b);
+    });
+  }
+
+  document.querySelectorAll('.tab[data-tab]').forEach(b => b.onclick = () => {
+    tab = b.dataset.tab;
+    try { sessionStorage.setItem('falan-tab', tab); } catch (e) {}
+    render();
+  });
+
+  /* ---------- sheet açma/kapama ---------- */
+  let openSheetEl = null, urls = [];
+  function showSheet(s) { $('backdrop').hidden = false; s.hidden = false; openSheetEl = s; }
+  function closeSheet() {
+    if (openSheetEl) openSheetEl.hidden = true;
+    $('backdrop').hidden = true; openSheetEl = null;
+    urls.forEach(u => URL.revokeObjectURL(u)); urls = [];
+  }
+  $('backdrop').onclick = closeSheet;
+
+  /* ---------- not detay penceresi ---------- */
+  const ICON = {
+    flag: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg>',
+    bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+    file: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3H6v18h12V7zM14 3v4h4"/></svg>'
+  };
+  function metaRow(icon, label, value) {
+    const r = el('div', 'meta-row'); r.innerHTML = icon;
+    r.append(document.createTextNode(label + ' '), el('span', null, value));
+    return r;
+  }
+
+  async function renderAttachments(box, atts) {
+    box.replaceChildren();
+    for (const a of atts) {
+      const blob = await getFile(a.id);
+      if (blob && a.type.startsWith('image/')) {
+        const u = URL.createObjectURL(blob); urls.push(u);
+        const img = el('img', 'thumb'); img.src = u; img.alt = a.name;
+        const b = el('button'); b.append(img); b.setAttribute('aria-label', a.name + ' görüntüle');
+        b.onclick = () => { $('viewerImg').src = u; $('viewer').hidden = false; };
+        box.append(b);
+      } else {
+        const c = el(blob ? 'a' : 'span', 'chip'); c.innerHTML = ICON.file;
+        c.append(el('span', null, a.name), el('small', 'small-note', fmtSize(a.size)));
+        if (blob) { const u = URL.createObjectURL(blob); urls.push(u); c.href = u; c.target = '_blank'; c.rel = 'noopener'; }
+        box.append(c);
+      }
+    }
+  }
+  $('viewer').onclick = () => { $('viewer').hidden = true; };
+
+  function openNote(id) {
+    const n = state.notes.find(x => x.id === id); if (!n) return;
+    $('sheetTitle').textContent = n.title || 'Başlıksız not';
+    const meta = $('sheetMeta'); meta.replaceChildren();
+    if (n.deadline) meta.append(metaRow(ICON.flag, 'Deadline', `${fmtDate(n.deadline.date)} ${n.deadline.time || DEFAULT_TIME}`));
+    if (n.reminder) {
+      let v = `${fmtDate(n.reminder.date)} ${n.reminder.time || DEFAULT_TIME}`;
+      if (n.reminder.repeat) v += ` · her ${n.reminder.repeat} günde bir`;
+      meta.append(metaRow(ICON.bell, 'Hatırlatma', v));
+    }
+    meta.append(metaRow(ICON.clock, n.status === 'done' ? 'Bitti' : 'Oluşturuldu', fmtStamp(n.status === 'done' ? n.doneAt : n.createdAt)));
+    $('sheetContent').textContent = n.content || '';
+    $('sheetContent').hidden = !n.content;
+    renderAttachments($('sheetAtt'), n.attachments || []);
+
+    const btns = $('sheetBtns'); btns.replaceChildren();
+    const mk = (label, cls, fn) => { const b = el('button', 'btn ' + cls, label); b.onclick = fn; btns.append(b); };
+    if (n.status !== 'done') mk('Düzenle', '', () => { closeSheet(); openEdit(n.id); });
+    if (n.status === 'active') mk('Bitti', 'primary', async () => {
+      if (!await ask('Bu not eski notlara taşınsın mı? Bu işlem geri alınamaz.', 'Bitti')) return;
+      n.status = 'done'; n.doneAt = Date.now(); save(); closeSheet(); render(); toast('Eski notlara taşındı');
+    });
+    if (n.status === 'fix') mk('Notlarım’a al', 'primary', () => {
+      n.status = 'active'; n.missing = []; save(); closeSheet(); render(); toast('Notlarım’a alındı');
+    });
+    mk('Sil', 'danger', async () => {
+      if (!await ask('Bu not kalıcı olarak silinsin mi?', 'Sil', true)) return;
+      (n.attachments || []).forEach(a => delFile(a.id));
+      state.notes = state.notes.filter(x => x.id !== n.id); save(); closeSheet(); render(); toast('Not silindi');
+    });
+    showSheet($('noteSheet'));
+  }
+
+  /* ---------- ekleme / düzenleme ekranı ---------- */
+  let edit = null;
+  const F = {
+    title: $('fTitle'), content: $('fContent'),
+    dlOn: $('fDlOn'), dlDate: $('fDlDate'), dlTime: $('fDlTime'),
+    rmOn: $('fRmOn'), rmDate: $('fRmDate'), rmTime: $('fRmTime'),
+    rpOn: $('fRpOn'), rpN: $('fRpN')
+  };
+  const MISS_MAP = { title: 'title', content: 'content', deadline: 'dlDate', deadlineTime: 'dlTime', reminder: 'rmDate', reminderTime: 'rmTime' };
+
+  function syncToggles() {
+    $('dlBox').hidden = $('dlHint').hidden = !F.dlOn.checked;
+    $('rmBox').hidden = $('rmHint').hidden = $('rpWrap').hidden = !F.rmOn.checked;
+    $('rpBox').hidden = !(F.rmOn.checked && F.rpOn.checked);
+    $('rpBox').style.display = $('rpBox').hidden ? 'none' : 'grid';
+    $('rpHint').textContent = F.dlOn.checked ? 'Deadline’a kadar tekrarlar.' : '“Bitti” diyene ya da silene kadar tekrarlar.';
+  }
+  [F.dlOn, F.rmOn, F.rpOn].forEach(c => c.onchange = syncToggles);
+  const setRp = v => { F.rpN.textContent = Math.min(365, Math.max(1, v)); };
+  $('rpMinus').onclick = () => setRp(+F.rpN.textContent - 1);
+  $('rpPlus').onclick = () => setRp(+F.rpN.textContent + 1);
+  Object.values(F).forEach(inp => inp.addEventListener && inp.addEventListener('input', () => inp.classList.remove('miss')));
+
+  function openEdit(id) {
+    const n = id ? state.notes.find(x => x.id === id) : null;
+    edit = { id: n ? n.id : null, attachments: n ? [...(n.attachments || [])] : [], added: [] };
+    $('editTitle').textContent = n ? 'Düzenle' : 'Yeni not';
+    F.title.value = n ? n.title : '';
+    F.content.value = n ? n.content : '';
+    F.dlOn.checked = !!(n && n.deadline);
+    F.dlDate.value = n && n.deadline ? n.deadline.date : '';
+    F.dlTime.value = n && n.deadline ? (n.deadline.time || '') : '';
+    F.rmOn.checked = !!(n && n.reminder);
+    F.rmDate.value = n && n.reminder ? n.reminder.date : '';
+    F.rmTime.value = n && n.reminder ? (n.reminder.time || '') : '';
+    F.rpOn.checked = !!(n && n.reminder && n.reminder.repeat);
+    setRp(n && n.reminder && n.reminder.repeat ? n.reminder.repeat : 1);
+    Object.values(F).forEach(i => i.classList && i.classList.remove('miss'));
+    if (n && n.status === 'fix') (n.missing || []).forEach(k => { const f = F[MISS_MAP[k]]; if (f) f.classList.add('miss'); });
+    syncToggles();
+    renderAttachments($('editAtt'), edit.attachments);
+    $('editScreen').hidden = false;
+    $('editScreen').querySelector('.form').scrollTop = 0;
+  }
+
+  async function addFiles(fileList) {
+    for (const f of fileList) {
+      const a = { id: uid(), name: f.name || 'Fotoğraf', type: f.type || '', size: f.size || 0 };
+      await putFile(a.id, f);
+      edit.attachments.push(a); edit.added.push(a.id);
+    }
+    renderAttachments($('editAtt'), edit.attachments);
+  }
+  $('fFiles').onchange = e => { if (e.target.files.length) addFiles([...e.target.files]); e.target.value = ''; };
+  $('fCam').onchange = e => { if (e.target.files.length) addFiles([...e.target.files]); e.target.value = ''; };
+
+  function closeEdit() { $('editScreen').hidden = true; urls.forEach(u => URL.revokeObjectURL(u)); urls = []; edit = null; }
+  $('editCancel').onclick = () => { if (edit) edit.added.forEach(delFile); closeEdit(); };
+
+  $('editSave').onclick = () => {
+    const title = F.title.value.trim(), content = F.content.value.trim();
+    let bad = [];
+    if (!title) bad.push(F.title);
+    if (!content) bad.push(F.content);
+    if (F.dlOn.checked && !F.dlDate.value) bad.push(F.dlDate);
+    if (F.rmOn.checked && !F.rmDate.value) bad.push(F.rmDate);
+    if (bad.length) {
+      bad.forEach(b => b.classList.add('miss'));
+      toast(!title || !content ? 'Başlık ve içerik zorunlu' : 'Tarih seçilmedi');
+      bad[0].focus(); return;
+    }
+    const deadline = F.dlOn.checked ? { date: F.dlDate.value, time: F.dlTime.value || null } : null;
+    const reminder = F.rmOn.checked ? { date: F.rmDate.value, time: F.rmTime.value || null, repeat: F.rpOn.checked ? +F.rpN.textContent : null } : null;
+    if (edit.id) {
+      const n = state.notes.find(x => x.id === edit.id);
+      Object.assign(n, { title, content, deadline, reminder, attachments: edit.attachments });
+    } else {
+      state.notes.push({ id: uid(), title, content, deadline, reminder, attachments: edit.attachments, createdAt: Date.now(), status: 'active', source: 'text', missing: [] });
+    }
+    save(); closeEdit(); render(); toast('Kaydedildi');
+  };
+  $('addBtn').onclick = () => openEdit(null);
+
+  /* ---------- ses kaydı ---------- */
+  const rec = { start: 0, timer: null, raf: null, stream: null, analyser: null, ctx: null, wake: null, sec: 0, live: false };
+  const cv = $('wave'), g = cv.getContext('2d');
+  const BARS = 36;
+
+  function drawWave() {
+    const w = cv.width, h = cv.height, bw = w / BARS;
+    g.clearRect(0, 0, w, h);
+    let levels = [];
+    if (rec.analyser) {
+      const data = new Uint8Array(rec.analyser.frequencyBinCount);
+      rec.analyser.getByteFrequencyData(data);
+      const step = Math.floor(data.length / BARS) || 1;
+      for (let i = 0; i < BARS; i++) levels.push(data[i * step] / 255);
+    } else {
+      const t = performance.now() / 260;
+      for (let i = 0; i < BARS; i++) levels.push(.18 + .5 * Math.abs(Math.sin(t + i * .55) * Math.cos(t * .7 + i * .21)));
+    }
+    g.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--accent').trim() || '#F1B58E';
+    levels.forEach((v, i) => {
+      const bh = Math.max(10, v * h * .95);
+      const x = i * bw + bw * .22, y = (h - bh) / 2, ww = bw * .56;
+      g.beginPath(); g.roundRect ? g.roundRect(x, y, ww, bh, ww / 2) : g.rect(x, y, ww, bh); g.fill();
+    });
+    if (rec.live) rec.raf = requestAnimationFrame(drawWave);
+  }
+  const fmtSec = s => `${pad(Math.floor(s / 60))}:${pad(s % 60)}`;
+
+  async function startRec() {
+    Object.assign(rec, { start: Date.now(), sec: 0, live: true, analyser: null, stream: null, ctx: null });
+    $('recTime').textContent = '00:00';
+    $('recStatus').textContent = 'Kaydediliyor…';
+    $('recCtrlLive').hidden = false; $('recCtrlDone').hidden = true;
+    $('recScreen').hidden = false;
+    try { rec.wake = await navigator.wakeLock.request('screen'); } catch (e) { rec.wake = null; }
+    try {
+      rec.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const AC = window.AudioContext || window.webkitAudioContext;
+      rec.ctx = new AC();
+      const src = rec.ctx.createMediaStreamSource(rec.stream);
+      rec.analyser = rec.ctx.createAnalyser(); rec.analyser.fftSize = 256;
+      src.connect(rec.analyser);
+    } catch (e) {
+      if (rec.live) $('recStatus').textContent = 'Mikrofon bu taslakta açılamadı. Kayıt ekranı örnek olarak çalışıyor.';
+    }
+    rec.timer = setInterval(() => {
+      rec.sec = Math.min(MAX_SEC, Math.floor((Date.now() - rec.start) / 1000));
+      $('recTime').textContent = fmtSec(rec.sec);
+      if (rec.sec >= MAX_SEC) stopRec();
+    }, 250);
+    drawWave();
+  }
+  function stopRec() {
+    if (!rec.live) return;
+    rec.live = false;
+    clearInterval(rec.timer); cancelAnimationFrame(rec.raf);
+    rec.sec = Math.min(MAX_SEC, Math.floor((Date.now() - rec.start) / 1000));
+    $('recTime').textContent = fmtSec(rec.sec);
+    if (rec.stream) rec.stream.getTracks().forEach(t => t.stop());
+    if (rec.ctx) rec.ctx.close().catch(() => {});
+    if (rec.wake) rec.wake.release().catch(() => {});
+    rec.analyser = null; drawWave();
+    $('recStatus').textContent = 'Kayıt durdu.';
+    $('recCtrlLive').hidden = true; $('recCtrlDone').hidden = false;
+  }
+  $('micBtn').onclick = startRec;
+  $('recStop').onclick = stopRec;
+  $('recDel').onclick = async () => {
+    if (!await ask('Bu kayıt silinsin mi?', 'Sil', true)) return;
+    $('recScreen').hidden = true;
+  };
+  $('recSend').onclick = () => {
+    state.pending.push({ id: uid(), createdAt: rec.start, seconds: rec.sec });
+    save(); $('recScreen').hidden = true; render(); toast('Bekleyenlere eklendi');
+  };
+  document.addEventListener('visibilitychange', async () => {
+    if (document.visibilityState === 'visible' && rec.live && !rec.wake) {
+      try { rec.wake = await navigator.wakeLock.request('screen'); } catch (e) {}
+    }
+  });
+
+  /* ---------- bekleyenler ve İşle ---------- */
+  $('pendingBtn').onclick = () => {
+    const c = state.pending.length;
+    $('pendingText').textContent = c ? `${c} kayıt işlenmeyi bekliyor.` : 'İşlenmeyi bekleyen kayıt yok.';
+    $('processBtn').disabled = c === 0;
+    showSheet($('pendingSheet'));
+  };
+  $('processBtn').onclick = () => {
+    if (!state.pending.length) return;
+    closeSheet();
+    $('busyText').textContent = `İşleniyor… 0/${state.pending.length}`;
+    $('busy').hidden = false;
+    setTimeout(() => {
+      $('busy').hidden = true;
+      info('Bağlanılamadı. Lütfen daha sonra tekrar deneyin.');
+    }, 1200);
+  };
+
+  /* ---------- ayarlar ---------- */
+  $('gearBtn').onclick = () => { $('fKey').value = ''; $('settingsScreen').hidden = false; };
+  $('setBack').onclick = () => { $('settingsScreen').hidden = true; };
+  $('keySave').onclick = () => { $('fKey').value = ''; toast('Taslakta anahtar kaydedilmez'); };
+
+  document.addEventListener('keydown', e => {
+    if (e.key !== 'Escape') return;
+    if (!$('viewer').hidden) $('viewer').hidden = true;
+    else if (openSheetEl) closeSheet();
+  });
+
+  render();
+  setInterval(() => { if (tab === 'notes' && !openSheetEl && $('editScreen').hidden) render(); }, 60000);
+})();
+</script>
