@@ -80,6 +80,15 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 .btn.danger { color: var(--danger); background: var(--danger-soft); }
 .btn:disabled { opacity: .45; cursor: default; }
 .small-note { font-size: .82rem; color: var(--muted); }
+.plist { list-style: none; margin: 0 0 16px; padding: 0; display: grid; gap: 6px; }
+.prow { display: flex; align-items: center; gap: 6px; background: var(--surface); border-radius: 12px; padding: 2px 4px 2px 12px; }
+.chk { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; padding: 11px 0; font-weight: 600; font-variant-numeric: tabular-nums; cursor: pointer; }
+.chk input { width: 22px; height: 22px; margin: 0; flex: none; accent-color: var(--accent-ink); }
+.chk span { overflow-wrap: anywhere; }
+.chk.all { padding: 4px 12px 10px; color: var(--muted); }
+.del-btn { width: 42px; height: 42px; flex: none; border-radius: 10px; display: grid; place-items: center; color: var(--danger); }
+.del-btn:active { background: var(--danger-soft); }
+.del-btn svg { width: 20px; height: 20px; }
 
 .screen { position: fixed; inset: 0; z-index: 30; background: var(--bg); display: flex; flex-direction: column; padding-top: env(safe-area-inset-top, 0px); padding-bottom: env(safe-area-inset-bottom, 0px); }
 .screen-inner { width: 100%; max-width: 520px; margin: 0 auto; display: flex; flex-direction: column; flex: 1; min-height: 0; }
@@ -144,7 +153,7 @@ textarea.inp { min-height: 150px; resize: vertical; line-height: 1.5; }
 <div id="app">
   <header class="top gut">
     <h1 id="pageTitle">Notlarım</h1>
-    <span class="ver" title="Taslak sürümü">v1</span>
+    <span class="ver" title="Taslak sürümü">v2</span>
     <button id="gearBtn" class="icon-btn" aria-label="Ayarlar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
     </button>
@@ -195,7 +204,11 @@ textarea.inp { min-height: 150px; resize: vertical; line-height: 1.5; }
 <section id="pendingSheet" class="sheet gut" hidden role="dialog" aria-modal="true" aria-labelledby="pendingTitle">
   <div class="grab"></div>
   <h2 id="pendingTitle">İşlenmeyi bekleyen</h2>
-  <p id="pendingText" class="small-note" style="margin:0 0 16px"></p>
+  <p id="pendingEmpty" class="small-note" style="margin:0 0 16px">İşlenmeyi bekleyen kayıt yok.</p>
+  <div id="pendingWrap">
+    <label class="chk all" for="selAll"><input type="checkbox" id="selAll"><span>Tümünü seç</span></label>
+    <ul id="pendingList" class="plist"></ul>
+  </div>
   <div class="btn-row">
     <button id="processBtn" class="btn primary">İşle</button>
   </div>
@@ -300,7 +313,7 @@ textarea.inp { min-height: 150px; resize: vertical; line-height: 1.5; }
         <div class="small-note">Bu taslakta anahtar kaydedilmez ve kullanılmaz.</div>
       </div>
       <button id="keySave" class="btn primary">Kaydet</button>
-      <div class="small-note" style="text-align:center;margin-top:20px">Falan · taslak v1</div>
+      <div class="small-note" style="text-align:center;margin-top:20px">Falan · taslak v2</div>
     </div>
   </div>
 </section>
@@ -695,16 +708,51 @@ textarea.inp { min-height: 150px; resize: vertical; line-height: 1.5; }
   });
 
   /* ---------- bekleyenler ve İşle ---------- */
-  $('pendingBtn').onclick = () => {
-    const c = state.pending.length;
-    $('pendingText').textContent = c ? `${c} kayıt işlenmeyi bekliyor.` : 'İşlenmeyi bekleyen kayıt yok.';
-    $('processBtn').disabled = c === 0;
-    showSheet($('pendingSheet'));
+  const TRASH = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg>';
+  const sel = new Set();
+  function syncPending() {
+    const n = state.pending.length, s = sel.size;
+    $('selAll').checked = n > 0 && s === n;
+    $('selAll').indeterminate = s > 0 && s < n;
+    $('processBtn').disabled = s === 0;
+  }
+  function renderPending() {
+    const items = [...state.pending].sort((a, b) => a.createdAt - b.createdAt);
+    [...sel].forEach(id => { if (!items.some(p => p.id === id)) sel.delete(id); });
+    $('pendingEmpty').hidden = items.length > 0;
+    $('pendingWrap').hidden = items.length === 0;
+    const list = $('pendingList'); list.replaceChildren();
+    items.forEach((p, i) => {
+      const name = `Kayıt ${i + 1}`;
+      const d = new Date(p.createdAt);
+      const li = el('li', 'prow');
+      const lab = el('label', 'chk');
+      const cb = document.createElement('input');
+      cb.type = 'checkbox'; cb.id = 'p-' + p.id; cb.checked = sel.has(p.id);
+      lab.htmlFor = cb.id;
+      cb.onchange = () => { if (cb.checked) sel.add(p.id); else sel.delete(p.id); syncPending(); };
+      lab.append(cb, el('span', null, `${name} – ${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()} – ${pad(d.getHours())}:${pad(d.getMinutes())}`));
+      const del = el('button', 'del-btn'); del.innerHTML = TRASH; del.setAttribute('aria-label', name + ' sil');
+      del.onclick = async () => {
+        if (!await ask(`${name} silinsin mi?`, 'Sil', true)) return;
+        state.pending = state.pending.filter(x => x.id !== p.id); sel.delete(p.id);
+        save(); render(); renderPending(); toast('Kayıt silindi');
+      };
+      li.append(lab, del); list.append(li);
+    });
+    syncPending();
+  }
+  $('selAll').onchange = e => {
+    sel.clear();
+    if (e.target.checked) state.pending.forEach(p => sel.add(p.id));
+    renderPending();
   };
+  $('pendingBtn').onclick = () => { sel.clear(); renderPending(); showSheet($('pendingSheet')); };
   $('processBtn').onclick = () => {
-    if (!state.pending.length) return;
+    if (!sel.size) return;
+    const count = sel.size;
     closeSheet();
-    $('busyText').textContent = `İşleniyor… 0/${state.pending.length}`;
+    $('busyText').textContent = `İşleniyor… 0/${count}`;
     $('busy').hidden = false;
     setTimeout(() => {
       $('busy').hidden = true;
